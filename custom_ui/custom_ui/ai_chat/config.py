@@ -1,4 +1,4 @@
-GEMINI_MODEL = "gemini-2.5-flash"          # fast + smart, free tier available
+GEMINI_MODEL = "gemini-3.1-flash-lite"          # fast + smart, free tier available
 
 GEMINI_ENDPOINT = (
     "https://generativelanguage.googleapis.com/v1beta/models/"

@@ -66,18 +66,29 @@ def chat(messages, approved_action=None):
         return res_str
 
     if approved_action:
-        contents.append({
-            "role": "model",
-            "parts": [{"functionCall": {"name": approved_action["name"], "args": approved_action["args"]}}]
-        })
-        result = execute_tool(approved_action["name"], approved_action["args"])
+        action_name = approved_action.get("name")
+        action_args = approved_action.get("args") or {}
+        result = execute_tool(action_name, action_args)
+        status_desc = "successfully executed" if not isinstance(result, dict) or "error" not in result else "failed with error"
+
+        # NOTE: Do NOT inject a synthetic {"functionCall": ...} without thought_signature.
+        # Gemini 3.x and thinking models strictly reject functionCall parts lacking thought_signature (Error 400).
+        # Supplying the execution result as a clean user system notification allows Gemini to naturally
+        # observe the outcome, maintain full conversation context, and generate a friendly confirmation without errors.
         contents.append({
             "role": "user",
-            "parts": [{"functionResponse": {"name": approved_action["name"], "response": result}}]
+            "parts": [{
+                "text": (
+                    f"[System: User approved and executed action '{action_name}']\n"
+                    f"Parameters: {json.dumps(action_args, default=str)}\n"
+                    f"Result: {truncate_result(result)}\n\n"
+                    f"Please confirm to the user that the action was {status_desc} and summarize the key outcome."
+                )
+            }]
         })
         new_history.append({
             "role": "assistant",
-            "content": f"[System: Executed tool {approved_action['name']} with args {json.dumps(approved_action['args'])}]"
+            "content": f"[System: Executed tool {action_name} with args {json.dumps(action_args)}]"
         })
         new_history.append({
             "role": "user",
@@ -99,7 +110,8 @@ def chat(messages, approved_action=None):
             }
         }
 
-        url = GEMINI_ENDPOINT.format(model=GEMINI_MODEL, api_key=api_key)
+        active_model = frappe.conf.get("gemini_model") or GEMINI_MODEL
+        url = GEMINI_ENDPOINT.format(model=active_model, api_key=api_key)
         response = requests.post(
             url,
             headers={"Content-Type": "application/json"},
@@ -121,7 +133,7 @@ def chat(messages, approved_action=None):
         rt = usage_meta.get("candidatesTokenCount", 0)
         
         if pt > 0 or rt > 0:
-            log_token_usage(GEMINI_MODEL, pt, rt, "chat")
+            log_token_usage(active_model, pt, rt, "chat")
             accumulated_prompt_tokens += pt
             accumulated_response_tokens += rt
 
