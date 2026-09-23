@@ -832,6 +832,54 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   font-variant-numeric: tabular-nums;
 }
 
+.voice-header-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.voice-picker-dock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 41, 59, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 3px 10px 3px 9px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  color: #94A3B8;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.voice-picker-dock:hover {
+  border-color: rgba(0, 180, 216, 0.5);
+  box-shadow: 0 0 12px rgba(0, 180, 216, 0.2);
+  color: #38BDF8;
+}
+
+.voice-select-dropdown {
+  background: transparent;
+  border: none;
+  color: #E2E8F0;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  max-width: 170px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice-select-dropdown option,
+.voice-select-dropdown optgroup {
+  background: #0F172A;
+  color: #F8FAFC;
+  font-size: 12.5px;
+}
+
 .voice-lang-segmented {
   display: flex;
   align-items: center;

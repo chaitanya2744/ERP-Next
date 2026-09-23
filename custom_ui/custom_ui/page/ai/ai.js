@@ -174,11 +174,24 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
               </div>
             </div>
 
-            <!-- Segmented Language Switcher -->
-            <div class="voice-lang-segmented" id="voice-lang-segmented">
-              <button type="button" class="voice-lang-chip active" data-lang="mr-IN" onclick="setVoiceLanguage('mr-IN')">मराठी</button>
-              <button type="button" class="voice-lang-chip" data-lang="hi-IN" onclick="setVoiceLanguage('hi-IN')">हिन्दी</button>
-              <button type="button" class="voice-lang-chip" data-lang="en-IN" onclick="setVoiceLanguage('en-IN')">English</button>
+            <div class="voice-header-center">
+              <!-- Segmented Language Switcher -->
+              <div class="voice-lang-segmented" id="voice-lang-segmented">
+                <button type="button" class="voice-lang-chip active" data-lang="mr-IN" onclick="setVoiceLanguage('mr-IN')">मराठी</button>
+                <button type="button" class="voice-lang-chip" data-lang="hi-IN" onclick="setVoiceLanguage('hi-IN')">हिन्दी</button>
+                <button type="button" class="voice-lang-chip" data-lang="en-IN" onclick="setVoiceLanguage('en-IN')">English</button>
+              </div>
+
+              <!-- Voice Selection Dropdown -->
+              <div class="voice-picker-dock" id="voice-picker-dock" title="Choose Voice Model">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <select id="voice-select-dropdown" class="voice-select-dropdown" onchange="onUserVoiceSelected(this.value)">
+                  <option value="">Default AI Voice</option>
+                </select>
+              </div>
             </div>
 
             <!-- Header Actions: Minimize / Close -->
@@ -950,6 +963,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         if (
           !e.target.closest('.voice-bottom-dock') &&
           !e.target.closest('.voice-lang-segmented') &&
+          !e.target.closest('.voice-picker-dock') &&
           !e.target.closest('.voice-header-actions') &&
           !e.target.closest('.voice-reactor-container') &&
           !e.target.closest('.voice-ai-response-sheet') &&
@@ -1068,7 +1082,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       if (iconOn) iconOn.style.display = 'none';
       if (iconOff) iconOff.style.display = 'block';
       if (statusLabel) statusLabel.textContent = 'Muted (Microphone Off)';
-      if (_voiceRecognition) {
+      _populateVoiceDropdown();
+
+    if (_voiceRecognition) {
         try { _voiceRecognition.stop(); } catch(e) {}
       }
     } else {
@@ -1179,6 +1195,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _updateCallTimer();
 
     setVoiceLanguage(_currentLang);
+    _populateVoiceDropdown();
     _startListening();
     _startAudioVisualizer();
   }
@@ -1625,6 +1642,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   function _updateVoices() {
     if (window.speechSynthesis) {
       _browserVoices = window.speechSynthesis.getVoices() || [];
+      _populateVoiceDropdown();
     }
   }
   if (window.speechSynthesis) {
@@ -1632,12 +1650,121 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     window.speechSynthesis.onvoiceschanged = _updateVoices;
   }
 
+  function _cleanVoiceName(name, lang) {
+    if (!name) return lang || 'Voice';
+    return name
+      .replace(/Microsoft /g, '')
+      .replace(/ Online \(Natural\)/g, ' ★')
+      .replace(/ Desktop/g, '')
+      .replace(/ English \(United States\)/g, ' (US)')
+      .replace(/ English \(India\)/g, ' (IN)')
+      .replace(/ - /g, ' · ');
+  }
+
+  function _populateVoiceDropdown() {
+    var selectEl = wrapper.querySelector('#voice-select-dropdown');
+    if (!selectEl) return;
+
+    var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+    if (!voices || !voices.length) {
+      selectEl.innerHTML = '<option value="">Default AI Voice</option>';
+      return;
+    }
+
+    var savedVoice = localStorage.getItem('custom_ui_voice_' + _currentLang) || localStorage.getItem('custom_ui_voice_global') || '';
+    var langPrefix = _currentLang.toLowerCase().split('-')[0];
+
+    var recommended = [];
+    var other = [];
+
+    voices.forEach(function(v) {
+      var vLang = (v.lang || '').toLowerCase().replace('_', '-');
+      var vName = (v.name || '').toLowerCase();
+
+      var isMatch = false;
+      if (langPrefix === 'mr') {
+        if (vLang.startsWith('mr') || vName.includes('marathi') || vName.includes('aarohi')) isMatch = true;
+      } else if (langPrefix === 'hi') {
+        if (vLang.startsWith('hi') || vName.includes('hindi') || vName.includes('madhur') || vName.includes('swara') || vName.includes('kalpana')) isMatch = true;
+      } else {
+        if (vLang.startsWith('en') || vName.includes('english')) isMatch = true;
+      }
+
+      if (isMatch) {
+        recommended.push(v);
+      } else {
+        other.push(v);
+      }
+    });
+
+    var html = '<option value="">✨ Auto-Select Best Voice</option>';
+
+    if (recommended.length > 0) {
+      var groupLabel = _LANG_CONFIG[_currentLang] ? _LANG_CONFIG[_currentLang].label + ' Voices' : 'Recommended';
+      html += '<optgroup label="' + groupLabel + '">';
+      recommended.forEach(function(v) {
+        var clean = _cleanVoiceName(v.name, v.lang);
+        var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
+        html += '<option value="' + _escapeHtml(v.voiceURI || v.name) + '"' + isSelected + '>' + _escapeHtml(clean) + '</option>';
+      });
+      html += '</optgroup>';
+    }
+
+    if (other.length > 0) {
+      html += '<optgroup label="Other Voices">';
+      other.forEach(function(v) {
+        var clean = _cleanVoiceName(v.name, v.lang);
+        var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
+        html += '<option value="' + _escapeHtml(v.voiceURI || v.name) + '"' + isSelected + '>' + _escapeHtml(clean) + '</option>';
+      });
+      html += '</optgroup>';
+    }
+
+    selectEl.innerHTML = html;
+  }
+
+  function onUserVoiceSelected(voiceURI) {
+    if (voiceURI) {
+      localStorage.setItem('custom_ui_voice_' + _currentLang, voiceURI);
+      localStorage.setItem('custom_ui_voice_global', voiceURI);
+    } else {
+      localStorage.removeItem('custom_ui_voice_' + _currentLang);
+      localStorage.removeItem('custom_ui_voice_global');
+    }
+
+    // Play a brief 1-word audio preview
+    _playVoicePreview();
+  }
+  window.onUserVoiceSelected = onUserVoiceSelected;
+
+  function _playVoicePreview() {
+    if (!window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      var sample = _currentLang === 'mr-IN' ? 'नमस्कार!' : (_currentLang === 'hi-IN' ? 'नमस्ते!' : 'Hello!');
+      var utt = new SpeechSynthesisUtterance(sample);
+      utt.lang = _currentLang;
+      var voice = _findBestVoice(_currentLang);
+      if (voice) utt.voice = voice;
+      window.speechSynthesis.speak(utt);
+    } catch(e) {}
+  }
+
   function _findBestVoice(langCode) {
     var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
     if (!voices || !voices.length) return null;
 
-    var prefix = langCode.toLowerCase().split('-')[0];
+    // 1. Explicit user selection
+    var userChoice = localStorage.getItem('custom_ui_voice_' + langCode) || localStorage.getItem('custom_ui_voice_global');
+    if (userChoice) {
+      var chosen = voices.find(function(v) {
+        return v.voiceURI === userChoice || v.name === userChoice;
+      });
+      if (chosen) return chosen;
+    }
 
+    // 2. Exact language match
+    var prefix = langCode.toLowerCase().split('-')[0];
     var exact = voices.find(function(v) {
       return v.lang && v.lang.toLowerCase().replace('_', '-') === langCode.toLowerCase();
     });
@@ -1671,61 +1798,6 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     if (inVoice) return inVoice;
 
     return null;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // BULLETPROOF ENTERPRISE TTS ENGINE (GC-PROOF & CHROMIUM 15s FREEZE IMMUNE)
-  // ═══════════════════════════════════════════════════════════
-  window._activeUtterancePool = [];
-  var _ttsWatchdogTimer = null;
-  var _ttsHeartbeatTimer = null;
-
-  function _clearTTSWatchdogs() {
-    if (_ttsWatchdogTimer) {
-      clearTimeout(_ttsWatchdogTimer);
-      _ttsWatchdogTimer = null;
-    }
-    if (_ttsHeartbeatTimer) {
-      clearInterval(_ttsHeartbeatTimer);
-      _ttsHeartbeatTimer = null;
-    }
-  }
-
-  function stopAllSpeech() {
-    _clearTTSWatchdogs();
-    if (window._activeUtterancePool) {
-      window._activeUtterancePool.length = 0;
-    }
-    if (window.speechSynthesis) {
-      try {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-      } catch(e) {}
-    }
-  }
-  window.stopAllSpeech = stopAllSpeech;
-
-  // Split text into natural, digestible sentence chunks (< 140 chars)
-  function _splitIntoSentences(text) {
-    if (!text) return [];
-    var parts = text.split(/(?<=[.?!।\n])\s+/);
-    var chunks = [];
-
-    parts.forEach(function(p) {
-      p = p.trim();
-      if (!p) return;
-      if (p.length > 140) {
-        var subParts = p.split(/(?<=[,;:])\s+/);
-        subParts.forEach(function(sp) {
-          sp = sp.trim();
-          if (sp) chunks.push(sp);
-        });
-      } else {
-        chunks.push(p);
-      }
-    });
-
-    return chunks.length ? chunks : [text];
   }
 
   function speakReply(text, targetLang, onEnd) {
