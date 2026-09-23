@@ -46,7 +46,7 @@ Rules:
      - For 'Production Plan':
        * Check if the Finished Goods Item exists in ERPNext.
        * Check if an active default 'BOM' exists for that Item:
-         Query: `get_documents` on 'BOM' with filters `{"item": item_code, "is_active": 1, "is_default": 1, "docstatus": 1}`.
+         Query: `get_documents` on 'BOM' with filters `{{"item": item_code, "is_active": 1, "is_default": 1, "docstatus": 1}}`.
        * IF NO ACTIVE BOM EXISTS: DO NOT attempt to create the Production Plan! STOP and inform the user:
          "In ERPNext, a Production Plan requires an active Bill of Materials (BOM) for the item. Item '[item_code]' does not have an active BOM. Would you like me to create the BOM first?"
      - For 'Work Order':
