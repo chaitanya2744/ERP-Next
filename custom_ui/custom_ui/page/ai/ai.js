@@ -175,11 +175,31 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             </div>
 
             <div class="voice-header-center">
-              <!-- Segmented Language Switcher -->
+              <!-- Segmented Language Switcher with Live Search -->
               <div class="voice-lang-segmented" id="voice-lang-segmented">
                 <button type="button" class="voice-lang-chip active" data-lang="mr-IN" onclick="setVoiceLanguage('mr-IN')">मराठी</button>
                 <button type="button" class="voice-lang-chip" data-lang="hi-IN" onclick="setVoiceLanguage('hi-IN')">हिन्दी</button>
                 <button type="button" class="voice-lang-chip" data-lang="en-IN" onclick="setVoiceLanguage('en-IN')">English</button>
+                <button type="button" class="voice-lang-chip voice-lang-search-btn" id="voice-lang-search-btn" onclick="toggleLanguageSearchModal(event)" title="Search & Browse All Languages">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <span id="voice-extra-lang-name" style="margin-left: 3px;">More</span>
+                </button>
+              </div>
+
+              <!-- Searchable Language Modal -->
+              <div class="voice-lang-modal" id="voice-lang-modal" style="display: none;" onclick="event.stopPropagation()">
+                <div class="voice-lang-modal-header">
+                  <div class="voice-lang-search-bar">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="voice-lang-search-input" placeholder="Search language (Marathi, Gujarati, Tamil, etc.)..." autocomplete="off" oninput="filterVoiceLanguages(this.value)">
+                  </div>
+                  <button type="button" class="voice-lang-modal-close" onclick="closeLanguageSearchModal()" title="Close">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+                <div class="voice-lang-grid" id="voice-lang-grid">
+                  <!-- Dynamically populated via filterVoiceLanguages -->
+                </div>
               </div>
 
               <!-- Voice Selection Dropdown -->
@@ -864,6 +884,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     'mr-IN': {
       label: 'मराठी',
       name: 'Marathi',
+      native: 'मराठी',
+      region: 'India',
       listening: 'ऐकत आहे… (Listening)',
       sub: 'मराठीत बोला · थांबवण्यासाठी "थांबा" बोला',
       thinking: 'विचार करत आहे… (Thinking)',
@@ -876,6 +898,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     'hi-IN': {
       label: 'हिन्दी',
       name: 'Hindi',
+      native: 'हिन्दी',
+      region: 'India',
       listening: 'सुन रहा हूँ… (Listening)',
       sub: 'हिन्दी में बोलिए · रोकने के लिए "रुको" बोलें',
       thinking: 'सोच रहा हूँ… (Thinking)',
@@ -887,7 +911,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     },
     'en-IN': {
       label: 'English',
-      name: 'English',
+      name: 'English (India)',
+      native: 'English',
+      region: 'India',
       listening: 'Listening…',
       sub: 'Speak in English · Say "Stop" to interrupt',
       thinking: 'Thinking…',
@@ -896,6 +922,188 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       speakingSub: 'Say "Stop" or tap to interrupt',
       placeholder: 'Say something like "Show today\'s sales report" or "Check inventory"…',
       miniStatus: 'Listening…'
+    },
+    'gu-IN': {
+      label: 'ગુજરાતી',
+      name: 'Gujarati',
+      native: 'ગુજરાતી',
+      region: 'India',
+      listening: 'સાંભળી રહ્યો છું… (Listening)',
+      sub: 'ગુજરાતીમાં બોલો · રોકવા માટે "થોભો" બોલો',
+      thinking: 'વિચારી રહ્યો છું… (Thinking)',
+      thinkingSub: 'ERP ડેટા તપાસી રહ્યો છું…',
+      speaking: 'જવાબ આપી રહ્યો છું… (AI Speaking)',
+      speakingSub: 'રોકવા માટે "થોભો" બોલો અથવા ટૅપ કરો',
+      placeholder: 'ઉદા. "આજનો વેચાણ અહેવાલ બતાવો" બોલો…',
+      miniStatus: 'સાંભળી રહ્યો છું…'
+    },
+    'ta-IN': {
+      label: 'தமிழ்',
+      name: 'Tamil',
+      native: 'தமிழ்',
+      region: 'India',
+      listening: 'கேட்கிறேன்… (Listening)',
+      sub: 'தமிழில் பேசுங்கள் · நிறுத்த "நிறுத்து" சொல்லுங்கள்',
+      thinking: 'சிந்திக்கிறது… (Thinking)',
+      thinkingSub: 'ERP தரவை பகுப்பாய்வு செய்கிறது…',
+      speaking: 'பதில் கூறுகிறது… (AI Speaking)',
+      speakingSub: 'நிறுத்த "நிறுத்து" சொல்லுங்கள்',
+      placeholder: 'எ.கா. "இன்றைய விற்பனை அறிக்கையைக் காட்டு"…',
+      miniStatus: 'கேட்கிறேன்…'
+    },
+    'te-IN': {
+      label: 'తెలుగు',
+      name: 'Telugu',
+      native: 'తెలుగు',
+      region: 'India',
+      listening: 'వింటున్నాను… (Listening)',
+      sub: 'తెలుగులో మాట్లాడండి · ఆపడానికి "ఆపు" అనండి',
+      thinking: 'ఆలోచిస్తున్నాను… (Thinking)',
+      thinkingSub: 'ERP డేటాను విశ్లేషిస్తోంది…',
+      speaking: 'సమాధానం ఇస్తోంది… (AI Speaking)',
+      speakingSub: 'ఆపడానికి "ఆపు" అనండి',
+      placeholder: 'ఉదా. "ఈరోజు అమ్మకాల నివేదిక చూపించు"…',
+      miniStatus: 'వింటున్నాను…'
+    },
+    'kn-IN': {
+      label: 'ಕನ್ನಡ',
+      name: 'Kannada',
+      native: 'ಕನ್ನಡ',
+      region: 'India',
+      listening: 'ಕೇಳುತ್ತಿದ್ದೇನೆ… (Listening)',
+      sub: 'ಕನ್ನಡದಲ್ಲಿ ಮಾತನಾಡಿ · ನಿಲ್ಲಿಸಲು "ನಿಲ್ಲಿಸಿ" ಎನ್ನಿ',
+      thinking: 'ಯೋಚಿಸುತ್ತಿದ್ದೇನೆ… (Thinking)',
+      thinkingSub: 'ERP ಡೇಟಾವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…',
+      speaking: 'ಉತ್ತರಿಸುತ್ತಿದ್ದೇನೆ… (AI Speaking)',
+      speakingSub: 'ನಿಲ್ಲಿಸಲು "ನಿಲ್ಲಿಸಿ" ಎನ್ನಿ',
+      placeholder: 'ಉದಾ. "ಇಂದಿನ ಮಾರಾಟ ವರದಿ ತೋರಿಸಿ"…',
+      miniStatus: 'ಕೇಳುತ್ತಿದ್ದೇನೆ…'
+    },
+    'bn-IN': {
+      label: 'বাংলা',
+      name: 'Bengali',
+      native: 'বাংলা',
+      region: 'India',
+      listening: 'শুনছি… (Listening)',
+      sub: 'বাংলায় বলুন · থামাতে "থামো" বলুন',
+      thinking: 'ভাবছি… (Thinking)',
+      thinkingSub: 'ইআরপি ডেটা বিশ্লেষণ করছি…',
+      speaking: 'উত্তর দিচ্ছি… (AI Speaking)',
+      speakingSub: 'থামাতে "থামো" বলুন',
+      placeholder: 'যেমন "আজকের বিক্রির রিপোর্ট দেখাও"…',
+      miniStatus: 'শুনছি…'
+    },
+    'pa-IN': {
+      label: 'ਪੰਜਾਬੀ',
+      name: 'Punjabi',
+      native: 'ਪੰਜਾਬੀ',
+      region: 'India',
+      listening: 'ਸੁਣ ਰਿਹਾ ਹਾਂ… (Listening)',
+      sub: 'ਪੰਜਾਬੀ ਵਿੱਚ ਬੋਲੋ · ਰੋਕਣ ਲਈ "ਰੁਕੋ" ਬੋਲੋ',
+      thinking: 'ਸੋਚ ਰਿਹਾ ਹਾਂ… (Thinking)',
+      thinkingSub: 'ERP ਡਾਟਾ ਲੱਭ ਰਿਹਾ ਹਾਂ…',
+      speaking: 'ਜਵਾਬ ਦੇ ਰਿਹਾ ਹਾਂ… (AI Speaking)',
+      speakingSub: 'ਰੋਕਣ ਲਈ "ਰੁਕੋ" ਬੋਲੋ',
+      placeholder: 'ਜਿਵੇਂ "ਅੱਜ ਦੀ ਵਿਕਰੀ ਰਿਪੋਰਟ ਦਿਖਾਓ"…',
+      miniStatus: 'ਸੁਣ ਰਿਹਾ ਹਾਂ…'
+    },
+    'ml-IN': {
+      label: 'മലയാളം',
+      name: 'Malayalam',
+      native: 'മലയാളം',
+      region: 'India',
+      listening: 'കേൾക്കുന്നു… (Listening)',
+      sub: 'മലയാളത്തിൽ സംസാരിക്കുക · "നിർത്തൂ" എന്ന് പറയുക',
+      thinking: 'ചിന്തിക്കുന്നു… (Thinking)',
+      thinkingSub: 'ERP ഡാറ്റ പരിശോധിക്കുന്നു…',
+      speaking: 'മറുപടി നൽകുന്നു… (AI Speaking)',
+      speakingSub: 'നിർത്താൻ "നിർത്തൂ" പറയുക',
+      placeholder: 'ഉദാ: "ഇന്നത്തെ വിൽപ്പന റിപ്പോർട്ട് കാണിക്കൂ"…',
+      miniStatus: 'കേൾക്കുന്നു…'
+    },
+    'en-US': {
+      label: 'English (US)',
+      name: 'English (US)',
+      native: 'English (US)',
+      region: 'International',
+      listening: 'Listening…',
+      sub: 'Speak in English · Say "Stop" to interrupt',
+      thinking: 'Thinking…',
+      thinkingSub: 'Analyzing ERP records…',
+      speaking: 'Responding…',
+      speakingSub: 'Say "Stop" or tap to interrupt',
+      placeholder: 'Ask questions like "Show outstanding invoices" or "Check inventory"…',
+      miniStatus: 'Listening…'
+    },
+    'es-ES': {
+      label: 'Español',
+      name: 'Spanish',
+      native: 'Español',
+      region: 'International',
+      listening: 'Escuchando…',
+      sub: 'Habla en español · Di "Para" para interrumpir',
+      thinking: 'Pensando…',
+      thinkingSub: 'Consultando datos de ERP…',
+      speaking: 'Respondiendo…',
+      speakingSub: 'Di "Para" o toca para interrumpir',
+      placeholder: 'Ej: "¿Cuáles son las ventas de hoy?"…',
+      miniStatus: 'Escuchando…'
+    },
+    'fr-FR': {
+      label: 'Français',
+      name: 'French',
+      native: 'Français',
+      region: 'International',
+      listening: 'Écoute en cours…',
+      sub: 'Parlez en français · Dites "Arrêter" pour couper',
+      thinking: 'Réflexion…',
+      thinkingSub: 'Recherche des données ERP…',
+      speaking: 'Réponse en cours…',
+      speakingSub: 'Dites "Arrêter" pour interrompre',
+      placeholder: 'Ex: "Affichez les factures en attente"…',
+      miniStatus: 'Écoute…'
+    },
+    'de-DE': {
+      label: 'Deutsch',
+      name: 'German',
+      native: 'Deutsch',
+      region: 'International',
+      listening: 'Zuhören…',
+      sub: 'Sprechen Sie auf Deutsch · Sagen Sie "Stopp"',
+      thinking: 'Überlegen…',
+      thinkingSub: 'ERP-Daten werden abgefragt…',
+      speaking: 'Antwortet…',
+      speakingSub: 'Sagen Sie "Stopp" zum Unterbrechen',
+      placeholder: 'Z.B. "Zeige heutige Verkaufsberichte"…',
+      miniStatus: 'Zuhören…'
+    },
+    'ar-SA': {
+      label: 'العربية',
+      name: 'Arabic',
+      native: 'العربية',
+      region: 'International',
+      listening: 'استماع…',
+      sub: 'تحدث بالعربية · قل "توقف" للمقاطعة',
+      thinking: 'جاري التفكير…',
+      thinkingSub: 'تحليل بيانات النظام…',
+      speaking: 'جاري الرد…',
+      speakingSub: 'قل "توقف" للمقاطعة',
+      placeholder: 'مثال: "اعرض تقرير المبيعات اليوم"…',
+      miniStatus: 'استماع…'
+    },
+    'ja-JP': {
+      label: '日本語',
+      name: 'Japanese',
+      native: '日本語',
+      region: 'International',
+      listening: '聞いています…',
+      sub: '日本語で話してください · 「止めて」で中断',
+      thinking: '考え中…',
+      thinkingSub: 'ERPデータを検索しています…',
+      speaking: '回答中…',
+      speakingSub: '「止めて」またはタップで中断',
+      placeholder: '例：「本日の売上レポートを見せて」…',
+      miniStatus: '聞き取り中…'
     }
   };
 
@@ -967,7 +1175,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           !e.target.closest('.voice-header-actions') &&
           !e.target.closest('.voice-reactor-container') &&
           !e.target.closest('.voice-ai-response-sheet') &&
-          !e.target.closest('.voice-replay-pill')
+          !e.target.closest('.voice-replay-pill') &&
+          !e.target.closest('.voice-lang-modal')
         ) {
           setVoiceUIMode('pip');
         }
@@ -1105,7 +1314,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _currentLang = langCode;
     localStorage.setItem('custom_ui_voice_lang', langCode);
 
-    var chips = wrapper.querySelectorAll('.voice-lang-chip');
+    var isStandard = ['mr-IN', 'hi-IN', 'en-IN'].includes(langCode);
+    var chips = wrapper.querySelectorAll('.voice-lang-segmented .voice-lang-chip:not(.voice-lang-search-btn)');
     chips.forEach(function(chip) {
       if (chip.getAttribute('data-lang') === langCode) {
         chip.classList.add('active');
@@ -1113,6 +1323,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         chip.classList.remove('active');
       }
     });
+
+    var extraBtn = wrapper.querySelector('#voice-lang-search-btn');
+    var extraName = wrapper.querySelector('#voice-extra-lang-name');
+    if (extraBtn && extraName) {
+      if (!isStandard) {
+        extraBtn.classList.add('active');
+        extraName.textContent = _LANG_CONFIG[langCode].label;
+      } else {
+        extraBtn.classList.remove('active');
+        extraName.textContent = 'More';
+      }
+    }
 
     var cfg = _LANG_CONFIG[langCode];
     var statusLabel = wrapper.querySelector('#voice-status-label');
@@ -1137,8 +1359,81 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         _voiceRecognition.lang = langCode;
       } catch(e) {}
     }
+
+    if (typeof _populateVoiceDropdown === 'function') {
+      _populateVoiceDropdown();
+    }
   }
   window.setVoiceLanguage = setVoiceLanguage;
+
+  function toggleLanguageSearchModal(e) {
+    if (e) e.stopPropagation();
+    var modal = wrapper.querySelector('#voice-lang-modal');
+    if (!modal) return;
+    if (modal.style.display === 'none') {
+      modal.style.display = 'flex';
+      var searchInput = wrapper.querySelector('#voice-lang-search-input');
+      if (searchInput) {
+        searchInput.value = '';
+        setTimeout(function() { searchInput.focus(); }, 60);
+      }
+      filterVoiceLanguages('');
+    } else {
+      modal.style.display = 'none';
+    }
+  }
+  window.toggleLanguageSearchModal = toggleLanguageSearchModal;
+
+  function closeLanguageSearchModal() {
+    var modal = wrapper.querySelector('#voice-lang-modal');
+    if (modal) modal.style.display = 'none';
+  }
+  window.closeLanguageSearchModal = closeLanguageSearchModal;
+
+  function filterVoiceLanguages(query) {
+    var grid = wrapper.querySelector('#voice-lang-grid');
+    if (!grid) return;
+
+    var q = (query || '').toLowerCase().trim();
+    var codes = Object.keys(_LANG_CONFIG);
+
+    var filtered = codes.filter(function(code) {
+      var item = _LANG_CONFIG[code];
+      if (!q) return true;
+      return (
+        code.toLowerCase().includes(q) ||
+        (item.name || '').toLowerCase().includes(q) ||
+        (item.label || '').toLowerCase().includes(q) ||
+        (item.native || '').toLowerCase().includes(q) ||
+        (item.region || '').toLowerCase().includes(q)
+      );
+    });
+
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="voice-lang-empty">No languages found matching "' + _escapeHtml(query) + '"</div>';
+      return;
+    }
+
+    var html = '';
+    filtered.forEach(function(code) {
+      var item = _LANG_CONFIG[code];
+      var isActive = _currentLang === code ? ' active' : '';
+      html += '<div class="voice-lang-card' + isActive + '" onclick="selectVoiceLanguageFromSearch(\'' + code + '\')">';
+      html += '  <span class="voice-lang-card-native">' + _escapeHtml(item.native || item.label) + '</span>';
+      html += '  <span class="voice-lang-card-name">' + _escapeHtml(item.name) + '</span>';
+      html += '  <span class="voice-lang-card-tag">' + _escapeHtml(item.region || 'Voice') + '</span>';
+      html += '</div>';
+    });
+
+    grid.innerHTML = html;
+  }
+  window.filterVoiceLanguages = filterVoiceLanguages;
+
+  function selectVoiceLanguageFromSearch(langCode) {
+    setVoiceLanguage(langCode);
+    closeLanguageSearchModal();
+  }
+  window.selectVoiceLanguageFromSearch = selectVoiceLanguageFromSearch;
 
   function toggleVoice() {
     if (_voiceOverlayOpen) {
