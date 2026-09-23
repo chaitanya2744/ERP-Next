@@ -1800,6 +1800,61 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     return null;
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // BULLETPROOF ENTERPRISE TTS ENGINE (GC-PROOF & CHROMIUM 15s FREEZE IMMUNE)
+  // ═══════════════════════════════════════════════════════════
+  window._activeUtterancePool = [];
+  var _ttsWatchdogTimer = null;
+  var _ttsHeartbeatTimer = null;
+
+  function _clearTTSWatchdogs() {
+    if (_ttsWatchdogTimer) {
+      clearTimeout(_ttsWatchdogTimer);
+      _ttsWatchdogTimer = null;
+    }
+    if (_ttsHeartbeatTimer) {
+      clearInterval(_ttsHeartbeatTimer);
+      _ttsHeartbeatTimer = null;
+    }
+  }
+
+  function stopAllSpeech() {
+    _clearTTSWatchdogs();
+    if (window._activeUtterancePool) {
+      window._activeUtterancePool.length = 0;
+    }
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+      } catch(e) {}
+    }
+  }
+  window.stopAllSpeech = stopAllSpeech;
+
+  // Split text into natural, digestible sentence chunks (< 140 chars)
+  function _splitIntoSentences(text) {
+    if (!text) return [];
+    var parts = text.split(/(?<=[.?!।\n])\s+/);
+    var chunks = [];
+
+    parts.forEach(function(p) {
+      p = p.trim();
+      if (!p) return;
+      if (p.length > 140) {
+        var subParts = p.split(/(?<=[,;:])\s+/);
+        subParts.forEach(function(sp) {
+          sp = sp.trim();
+          if (sp) chunks.push(sp);
+        });
+      } else {
+        chunks.push(p);
+      }
+    });
+
+    return chunks.length ? chunks : [text];
+  }
+
   function speakReply(text, targetLang, onEnd) {
     if (!window.speechSynthesis) {
       if (onEnd) onEnd();
