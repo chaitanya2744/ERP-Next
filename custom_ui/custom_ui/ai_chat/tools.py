@@ -106,6 +106,81 @@ def execute_tool(name, args):
             else:
                 return {"output": str(res)[:10000]}
 
+        elif name == "describe_doctype":
+            doctype = args.get("doctype")
+            if not doctype or not frappe.db.exists("DocType", doctype):
+                return {"error": f"DocType '{doctype}' does not exist in ERPNext."}
+
+            meta = frappe.get_meta(doctype)
+            mandatory_fields = []
+            key_optional_fields = []
+            child_tables = []
+
+            for df in meta.fields:
+                if df.fieldtype in ["Section Break", "Column Break", "Tab Break", "HTML", "Heading"]:
+                    continue
+
+                finfo = {
+                    "fieldname": df.fieldname,
+                    "label": df.label,
+                    "fieldtype": df.fieldtype,
+                    "options": df.options,
+                    "reqd": bool(df.reqd)
+                }
+
+                if df.fieldtype == "Table":
+                    try:
+                        child_meta = frappe.get_meta(df.options)
+                        child_mandatory = []
+                        for cdf in child_meta.fields:
+                            if cdf.reqd and cdf.fieldtype not in ["Section Break", "Column Break", "Tab Break"]:
+                                child_mandatory.append({
+                                    "fieldname": cdf.fieldname,
+                                    "label": cdf.label,
+                                    "fieldtype": cdf.fieldtype,
+                                    "options": cdf.options
+                                })
+                        child_tables.append({
+                            "fieldname": df.fieldname,
+                            "label": df.label,
+                            "child_doctype": df.options,
+                            "mandatory_fields": child_mandatory
+                        })
+                    except Exception:
+                        child_tables.append({
+                            "fieldname": df.fieldname,
+                            "label": df.label,
+                            "child_doctype": df.options,
+                            "mandatory_fields": []
+                        })
+                elif df.reqd:
+                    mandatory_fields.append(finfo)
+                elif df.fieldtype in ["Link", "Select"] or df.fieldname in ["status", "posting_date", "transaction_date", "company"]:
+                    key_optional_fields.append(finfo)
+
+            prerequisites_map = {
+                "Production Plan": "Prerequisites: Finished Goods Item(s) with an active submitted 'BOM'. If item has no active BOM, a Production Plan cannot be created! Child table 'po_items' (or 'items') requires 'item_code', 'bom_no', and 'planned_qty'.",
+                "Work Order": "Prerequisites: 'production_item' (Item) with an active 'bom_no' (BOM), 'qty', 'wip_warehouse', and 'fg_warehouse'.",
+                "BOM": "Prerequisites: 'item' (Finished Goods item, is_stock_item=1). In child table 'items', raw material items with 'qty' and 'uom'.",
+                "Sales Order": "Prerequisites: 'customer' (Customer DocType) and in child table 'items', valid 'item_code' and 'delivery_date'.",
+                "Sales Invoice": "Prerequisites: 'customer', in child table 'items', valid 'item_code', and valid income account.",
+                "Purchase Order": "Prerequisites: 'supplier' (Supplier DocType) and in child table 'items', valid 'item_code' and 'schedule_date'.",
+                "Purchase Invoice": "Prerequisites: 'supplier', in child table 'items', valid 'item_code', and expense account.",
+                "Material Request": "Prerequisites: In child table 'items', valid 'item_code' and 'schedule_date'.",
+                "Stock Entry": "Prerequisites: 'purpose'. If 'Manufacture', requires 'work_order' and 'bom_no'."
+            }
+
+            return {
+                "output": {
+                    "doctype": doctype,
+                    "is_submittable": bool(meta.is_submittable),
+                    "mandatory_fields": mandatory_fields,
+                    "important_optional_fields": key_optional_fields[:15],
+                    "child_tables": child_tables,
+                    "workflow_prerequisite_hint": prerequisites_map.get(doctype, "Verify linked Link fields and child tables exist before calling create_document.")
+                }
+            }
+
         elif name == "execute_sql_query":
             query = args.get("query", "").strip()
             if not query.lower().startswith("select"):

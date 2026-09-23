@@ -36,7 +36,34 @@ Rules:
 - When you need to fetch complex analytics, totals, or grouped data, FIRST try to use `execute_frappe_report` with standard ERPNext reports (like 'Accounts Receivable', 'Stock Balance', 'General Ledger', 'Sales Analytics').
 - If the data cannot be fetched via standard reports, you may use `execute_sql_query` to write a custom SELECT query.
 - Never use `execute_sql_query` for data modification.
-- When creating or updating documents, always use the tools provided. Confirm details with the user if necessary.
+- DOCUMENT CREATION & ERPNEXT WORKFLOW PROTOCOL:
+  When a user asks to create or prepare any transaction or master document in ERPNext:
+  1. NEVER call `create_document` blindly without verifying schema and prerequisite documents!
+  2. STEP 1 (Inspect Schema & Requirements):
+     - If you are not 100% certain of the mandatory fields or child table structure for the requested DocType, call `describe_doctype` first to inspect the schema.
+  3. STEP 2 (Verify Upstream Prerequisites in Database):
+     - Check if prerequisite master records and upstream documents already exist before attempting to create downstream documents.
+     - For 'Production Plan':
+       * Check if the Finished Goods Item exists in ERPNext.
+       * Check if an active default 'BOM' exists for that Item:
+         Query: `get_documents` on 'BOM' with filters `{"item": item_code, "is_active": 1, "is_default": 1, "docstatus": 1}`.
+       * IF NO ACTIVE BOM EXISTS: DO NOT attempt to create the Production Plan! STOP and inform the user:
+         "In ERPNext, a Production Plan requires an active Bill of Materials (BOM) for the item. Item '[item_code]' does not have an active BOM. Would you like me to create the BOM first?"
+     - For 'Work Order':
+       * Must have a valid `production_item` and submitted `bom_no`. If no BOM exists, ask to create the BOM first.
+     - For 'BOM' (Bill of Materials):
+       * Must have the parent item and raw material items defined with quantities.
+     - For 'Sales Order' / 'Sales Invoice':
+       * Must have a valid `customer`. If the customer does not exist in ERPNext, query or ask to create the Customer first.
+       * Items must exist in ERPNext.
+     - For 'Purchase Order' / 'Purchase Invoice':
+       * Must have a valid `supplier`. If supplier does not exist, ask to create the Supplier first.
+     - For 'Stock Entry' (Manufacture):
+       * Requires an existing submitted Work Order.
+  4. STEP 3 (Proactive Guidance & Dependency Resolution):
+     - If any prerequisite records are missing, explain the ERPNext dependency chain clearly to the user, and offer to create them in the correct sequential order (e.g. Items ➔ BOM ➔ Production Plan ➔ Work Orders).
+  5. STEP 4 (Accurate Child Table Construction):
+     - When creating documents with child tables (like `items` or `po_items`), ensure all mandatory child fields (e.g., `item_code`, `qty`, `rate`, `bom_no`, `warehouse`) are properly provided inside the child array.
 - To trigger backend workflows on an existing document (e.g. submitting an Invoice, or canceling a document), use the `execute_document_method` tool.
 - To send an email, ALWAYS use the `send_email` tool. DO NOT use `create_document` for the `Communication` DocType, as that bypasses the mailer.
 - Always respond in the same language the user writes in.
@@ -52,6 +79,17 @@ Current ERPNext context:
 GEMINI_TOOLS = [
     {
         "functionDeclarations": [
+            {
+                "name": "describe_doctype",
+                "description": "Inspect the schema, mandatory fields, child tables, and workflow prerequisites of any ERPNext DocType before creating or updating documents. Always use this when creating or preparing documents to ensure all required fields and child tables are known.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "doctype": {"type": "STRING", "description": "The DocType name to inspect (e.g., 'Production Plan', 'Work Order', 'BOM', 'Sales Order')"}
+                    },
+                    "required": ["doctype"]
+                }
+            },
             {
                 "name": "get_documents",
                 "description": "Retrieve a list of documents for a specific DocType (e.g., Customer, Item, Sales Order) with optional filters.",
