@@ -808,3 +808,317 @@ html { background-color: var(--cu-bg) !important; }
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
 }
+
+
+/* ── Searchable Voice Picker Dock ── */
+.voice-picker-dock {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.voice-picker-trigger {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 999px !important;
+  padding: 4px 10px !important;
+  color: #F8FAFC !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  outline: none !important;
+}
+
+.voice-picker-trigger:hover {
+  background: rgba(0, 153, 163, 0.2) !important;
+  border-color: rgba(0, 180, 216, 0.45) !important;
+  color: #FFFFFF !important;
+}
+
+.voice-picker-selected-name {
+  max-width: 140px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.voice-picker-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  width: 270px !important;
+  background: rgba(15, 23, 42, 0.98) !important;
+  border: 1.5px solid rgba(0, 180, 216, 0.35) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  z-index: 1200 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 8px !important;
+  gap: 6px !important;
+  animation: picker-menu-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes picker-menu-pop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.voice-picker-search-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  padding: 5px 9px !important;
+  color: #94A3B8 !important;
+}
+
+.voice-picker-search-box input {
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #F8FAFC !important;
+  font-size: 11.5px !important;
+  font-family: inherit !important;
+}
+
+.voice-picker-search-box input::placeholder {
+  color: #64748B !important;
+}
+
+.voice-picker-list {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  gap: 2px !important;
+}
+
+.voice-picker-list::-webkit-scrollbar {
+  width: 4px !important;
+}
+.voice-picker-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 10px !important;
+}
+
+.voice-picker-header {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  color: #00B4D8 !important;
+  padding: 6px 8px 3px !important;
+  margin-top: 4px !important;
+}
+
+.voice-picker-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 11.5px !important;
+  transition: all 0.15s !important;
+}
+
+.voice-picker-item:hover {
+  background: rgba(0, 153, 163, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+.voice-picker-item.selected {
+  background: linear-gradient(135deg, rgba(0, 153, 163, 0.45) 0%, rgba(0, 98, 105, 0.55) 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+.voice-picker-item-name {
+  color: #F8FAFC !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 190px !important;
+}
+
+.voice-picker-item-tag {
+  color: #94A3B8 !important;
+  font-size: 9.5px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+}
+
+.voice-picker-empty {
+  text-align: center !important;
+  padding: 14px !important;
+  color: #64748B !important;
+  font-size: 11px !important;
+}
+
+
+/* ── Enhanced Voice Picker Menu with Header & Close Button ── */
+.voice-picker-menu {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  width: 290px !important;
+  max-width: 90vw !important;
+  background: rgba(15, 23, 42, 0.98) !important;
+  border: 1.5px solid rgba(0, 180, 216, 0.35) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  z-index: 1250 !important;
+  display: none !important;
+  flex-direction: column !important;
+  padding: 10px !important;
+  gap: 8px !important;
+}
+
+.voice-picker-menu.open {
+  display: flex !important;
+  animation: picker-menu-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.voice-picker-menu-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.voice-picker-search-box {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  padding: 6px 10px !important;
+  color: #94A3B8 !important;
+  transition: all 0.2s !important;
+}
+
+.voice-picker-search-box:focus-within {
+  border-color: #00B4D8 !important;
+  box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.25) !important;
+  color: #00B4D8 !important;
+}
+
+.voice-picker-search-box input {
+  flex: 1 !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #F8FAFC !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+}
+
+.voice-picker-search-box input::placeholder {
+  color: #64748B !important;
+}
+
+.voice-picker-close-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94A3B8 !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
+}
+
+.voice-picker-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #EF4444 !important;
+  transform: scale(1.06) !important;
+}
+
+.voice-picker-list {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+  gap: 3px !important;
+}
+
+.voice-picker-list::-webkit-scrollbar {
+  width: 5px !important;
+}
+.voice-picker-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 10px !important;
+}
+
+.voice-picker-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 7px 10px !important;
+  border-radius: 9px !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  transition: all 0.15s !important;
+  gap: 6px !important;
+}
+
+.voice-picker-item:hover {
+  background: rgba(0, 153, 163, 0.25) !important;
+  color: #FFFFFF !important;
+}
+
+.voice-picker-item.selected {
+  background: linear-gradient(135deg, rgba(0, 153, 163, 0.45) 0%, rgba(0, 98, 105, 0.6) 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+.voice-picker-item-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.voice-picker-check {
+  color: #38BDF8 !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+}
+
+.voice-picker-item-name {
+  color: #F8FAFC !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.voice-picker-item-tag {
+  color: #94A3B8 !important;
+  font-size: 9.5px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+}
