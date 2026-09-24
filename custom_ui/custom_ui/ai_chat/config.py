@@ -105,7 +105,7 @@ Rules:
        GROUP BY jc.workstation ORDER BY avg_delay_mins DESC LIMIT 3;
 
     2. Lead-to-Cash (L2C) Cycle:
-       - Sales Order: `tabSales Order` (so)
+       - Sales Order: `tabSales Order` (so) (DO NOT join on so.opportunity, it does not exist in ERPNext; start directly from `tabSales Order`)
        - Link SO to Delivery Note: JOIN `tabDelivery Note Item` dni ON so.name = dni.against_sales_order, JOIN `tabDelivery Note` dn ON dni.parent = dn.name
        - Link SO to Sales Invoice: JOIN `tabSales Invoice Item` sii ON so.name = sii.sales_order, JOIN `tabSales Invoice` si ON sii.parent = si.name
        - Link Invoice to Payment: JOIN `tabPayment Entry Reference` per ON per.reference_doctype = 'Sales Invoice' AND per.reference_name = si.name, JOIN `tabPayment Entry` pe ON per.parent = pe.name
