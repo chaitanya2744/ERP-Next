@@ -70,6 +70,14 @@ Rules:
 - Never make up data. If you don't know, say so.
 - CONTEXT HINT (Branches): In this ERPNext instance, "Branches" (e.g. Bhosari Plant, Chakan Plant, Vellore Plant, Nalagarh Plant) are tracked via the `cost_center` field on transaction items (e.g. `Sales Invoice Item`, `Purchase Invoice Item`, `GL Entry`). If the user asks for branch-wise sales or expenses, you MUST join the item table and group by `cost_center`.
 
+- MODULE & CROSS-MODULAR SCHEMA RELATIONSHIPS & JOIN PATHS:
+  * Lead-to-Cash (L2C): `tabOpportunity`.name = `tabSales Order`.opportunity -> `tabSales Order Item`.name = `tabDelivery Note Item`.so_detail -> `tabSales Invoice Item`.so_detail -> `tabPayment Entry Reference`.reference_name.
+  * Vendor 360 & Procurement: `tabPurchase Order`.name = `tabPurchase Receipt Item`.purchase_order -> `tabQuality Inspection`.reference_name = `tabPurchase Receipt`.name -> `tabPurchase Invoice Item`.purchase_order.
+  * Engineer-to-Order & EVM: `tabProject`.name = `tabTask`.project -> `tabTimesheet`.project or `tabTimesheet Detail`.project -> `tabWork Order`.project -> `tabPurchase Invoice Item`.project. Calculate CV = EV - AC, SV = EV - PV.
+  * Manufacturing & Work Centers: `tabWork Order`.name = `tabJob Card`.work_order -> `tabJob Card`.work_center = `tabWork Center`.name. Work Order scrap is tracked in `tabStock Entry Detail` (Manufacture).
+  * Subcontracting: `tabSubcontracting Order`.name = `tabSubcontracting Receipt`.subcontracting_order. Subcontractor stock is in Warehouses of type 'Subcontracting' or where `is_subcontracted` is 1.
+  * Stock Ageing & Dead Stock: When asked for stock aging, prefer calling `execute_frappe_report` with report_name='Stock Ageing'. For zero-movement dead stock, inspect `tabStock Ledger Entry` grouped by `item_code` and `warehouse`.
+
 Current ERPNext context:
 - Company: {company}
 - Logged-in user: {user}
