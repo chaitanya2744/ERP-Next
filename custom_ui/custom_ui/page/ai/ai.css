@@ -1475,6 +1475,88 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   .voice-brand-badge { width: 100%; justify-content: space-between; }
   .voice-caption-stream { font-size: 15px; }
   .voice-dock-btn { width: 48px; height: 48px; }
+
+  /* ── Mobile Responsive Voice Picker ── */
+  .voice-picker-dock {
+    position: relative !important;
+  }
+
+  .voice-picker-trigger {
+    padding: 6px 11px !important;
+    font-size: 11px !important;
+    min-height: 34px !important;
+    max-width: 100% !important;
+  }
+
+  .voice-picker-selected-name {
+    max-width: 115px !important;
+  }
+
+  .voice-picker-menu {
+    position: fixed !important;
+    top: 76px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 24px) !important;
+    max-width: 360px !important;
+    max-height: calc(100vh - 120px) !important;
+    max-height: calc(100dvh - 120px) !important;
+    border-radius: 20px !important;
+    padding: 12px !important;
+    gap: 10px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 180, 216, 0.35) !important;
+    z-index: 99999 !important;
+  }
+
+  .voice-picker-menu.open {
+    display: flex !important;
+    animation: picker-menu-mobile-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  .voice-picker-search-box {
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+  }
+
+  .voice-picker-search-box input {
+    font-size: 14px !important;
+  }
+
+  .voice-picker-close-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+  }
+
+  .voice-picker-list {
+    max-height: calc(100vh - 210px) !important;
+    max-height: calc(100dvh - 210px) !important;
+    gap: 4px !important;
+  }
+
+  .voice-picker-item {
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+
+  .voice-picker-item-name {
+    font-size: 13px !important;
+    max-width: 200px !important;
+  }
+
+  .voice-picker-item-tag {
+    font-size: 10px !important;
+    padding: 2px 7px !important;
+  }
+}
+
+@keyframes picker-menu-mobile-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
 /* ── Searchable Language Selector Modal ── */
