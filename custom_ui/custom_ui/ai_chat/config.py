@@ -87,13 +87,51 @@ Rules:
 - Never make up data. If you don't know, say so.
 - CONTEXT HINT (Branches): In this ERPNext instance, "Branches" (e.g. Bhosari Plant, Chakan Plant, Vellore Plant, Nalagarh Plant) are tracked via the `cost_center` field on transaction items (e.g. `Sales Invoice Item`, `Purchase Invoice Item`, `GL Entry`). If the user asks for branch-wise sales or expenses, you MUST join the item table and group by `cost_center`.
 
-- MODULE & CROSS-MODULAR SCHEMA RELATIONSHIPS & JOIN PATHS:
-  * Lead-to-Cash (L2C): `tabOpportunity`.name = `tabSales Order`.opportunity -> `tabSales Order Item`.name = `tabDelivery Note Item`.so_detail -> `tabSales Invoice Item`.so_detail -> `tabPayment Entry Reference`.reference_name.
-  * Vendor 360 & Procurement: `tabPurchase Order`.name = `tabPurchase Receipt Item`.purchase_order -> `tabQuality Inspection`.reference_name = `tabPurchase Receipt`.name -> `tabPurchase Invoice Item`.purchase_order.
-  * Engineer-to-Order & EVM: `tabProject`.name = `tabTask`.project -> `tabTimesheet`.project or `tabTimesheet Detail`.project -> `tabWork Order`.project -> `tabPurchase Invoice Item`.project. Calculate CV = EV - AC, SV = EV - PV.
-  * Manufacturing & Work Centers: `tabWork Order`.name = `tabJob Card`.work_order -> `tabJob Card`.work_center = `tabWork Center`.name. Work Order scrap is tracked in `tabStock Entry Detail` (Manufacture).
-  * Subcontracting: `tabSubcontracting Order`.name = `tabSubcontracting Receipt`.subcontracting_order. Subcontractor stock is in Warehouses of type 'Subcontracting' or where `is_subcontracted` is 1.
-  * Stock Ageing & Dead Stock: When asked for stock aging, prefer calling `execute_frappe_report` with report_name='Stock Ageing'. For zero-movement dead stock, inspect `tabStock Ledger Entry` grouped by `item_code` and `warehouse`.
+- MODULE & CROSS-MODULAR SCHEMA RELATIONSHIPS & EXACT MARIADB RECIPES:
+  * CRITICAL NAMING IN ERPNEXT:
+    - Work Centers are called 'Workstation' (Table: `tabWorkstation`, NOT `tabWork Center`).
+    - In `tabJob Card`, the column is `workstation` (NOT work_center).
+    - In `tabWork Order`, planned vs actual dates: `planned_start_date`, `planned_end_date`, `actual_start_date`, `actual_end_date`, `lead_time`.
+    - BOM consumption is in `tabWork Order Item` (`required_qty`, `consumed_qty`, `source_warehouse`).
+
+  * EXACT JOIN RECIPES:
+    1. Work-Order & Workstation Bottleneck Analysis:
+       SELECT jc.workstation, COUNT(jc.name) as total_jobs,
+              AVG(CASE WHEN jc.actual_end_date IS NOT NULL AND jc.expected_end_date IS NOT NULL
+                       THEN TIMESTAMPDIFF(MINUTE, jc.expected_end_date, jc.actual_end_date)
+                       ELSE (jc.total_time_in_mins - jc.time_required) END) as avg_delay_mins
+       FROM `tabJob Card` jc
+       WHERE jc.creation >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+       GROUP BY jc.workstation ORDER BY avg_delay_mins DESC LIMIT 3;
+
+    2. Lead-to-Cash (L2C) Cycle:
+       - Sales Order: `tabSales Order` (so)
+       - Link SO to Delivery Note: JOIN `tabDelivery Note Item` dni ON so.name = dni.against_sales_order, JOIN `tabDelivery Note` dn ON dni.parent = dn.name
+       - Link SO to Sales Invoice: JOIN `tabSales Invoice Item` sii ON so.name = sii.sales_order, JOIN `tabSales Invoice` si ON sii.parent = si.name
+       - Link Invoice to Payment: JOIN `tabPayment Entry Reference` per ON per.reference_doctype = 'Sales Invoice' AND per.reference_name = si.name, JOIN `tabPayment Entry` pe ON per.parent = pe.name
+       - Customer group is `so.customer_group`.
+       - Delivery delay = DATEDIFF(dn.posting_date, so.transaction_date).
+       - Payment delay = DATEDIFF(pe.posting_date, si.posting_date).
+
+    3. Vendor Performance & 360 Scorecard:
+       - PO: `tabPurchase Order` (po)
+       - Receipt: `tabPurchase Receipt Item` pri ON po.name = pri.purchase_order, `tabPurchase Receipt` pr ON pri.parent = pr.name
+       - QC: `tabQuality Inspection` qi ON qi.reference_name = pr.name (or qi.reference_name = po.name)
+       - Invoice: `tabPurchase Invoice Item` pii ON po.name = pii.purchase_order
+
+    4. Engineer-to-Order EVM:
+       - Project: `tabProject` (name, estimated_cost, project_name)
+       - Timesheets: `tabTimesheet Detail` td ON td.project = p.name
+       - Invoices: `tabPurchase Invoice Item` pii ON pii.project = p.name
+       - Work Orders: `tabWork Order` wo ON wo.project = p.name
+
+    5. Accounts Receivable Aging:
+       - `tabSales Invoice` WHERE outstanding_amount > 0 and docstatus = 1.
+       - Overdue days = DATEDIFF(CURDATE(), due_date).
+
+    6. Stock Aging & Dead Stock:
+       - Prefer `execute_frappe_report` with report_name='Stock Ageing'.
+       - For dead stock: `tabStock Ledger Entry` grouped by item_code having MAX(posting_date) < DATE_SUB(CURDATE(), INTERVAL 12 MONTH).
 
 Current ERPNext context:
 - Company: {company}

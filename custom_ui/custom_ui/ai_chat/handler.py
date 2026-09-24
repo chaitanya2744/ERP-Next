@@ -99,7 +99,7 @@ def chat(messages, approved_action=None):
     accumulated_prompt_tokens = 0
     accumulated_response_tokens = 0
     
-    for loop_count in range(12):  # limit to 8 turns to avoid infinite loops
+    for loop_count in range(15):  # limit to 8 turns to avoid infinite loops
         payload = {
             "system_instruction": {"parts": [{"text": system_text}]},
             "contents": contents,
@@ -144,6 +144,7 @@ def chat(messages, approved_action=None):
         # Check for function calls
         function_calls = [p.get("functionCall") for p in parts if p.get("functionCall")]
 
+        print(f"\n>>> [TURN {loop_count}] Function calls: {json.dumps(function_calls, default=str)}")
         if function_calls:
             # INTERCEPT RISKY TOOLS FOR APPROVAL
             risky_tools = ["create_document", "update_document", "delete_document", "execute_document_method", "send_email"]
@@ -173,6 +174,7 @@ def chat(messages, approved_action=None):
                 name = call.get("name")
                 args = call.get("args") or {}
                 result = execute_tool(name, args)
+                print(f"<<< [TURN {loop_count}] Tool {name} result: {str(result)[:250]}")
                 response_parts.append({
                     "functionResponse": {
                         "name": name,
