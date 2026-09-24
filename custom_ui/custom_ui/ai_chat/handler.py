@@ -99,7 +99,7 @@ def chat(messages, approved_action=None):
     accumulated_prompt_tokens = 0
     accumulated_response_tokens = 0
     
-    for loop_count in range(8):  # limit to 8 turns to avoid infinite loops
+    for loop_count in range(12):  # limit to 8 turns to avoid infinite loops
         payload = {
             "system_instruction": {"parts": [{"text": system_text}]},
             "contents": contents,

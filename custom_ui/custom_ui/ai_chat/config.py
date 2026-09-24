@@ -32,6 +32,23 @@ Rules:
   ```
   Allowed types: bar, line, pie, percentage, donut. DO NOT wrap the chart block in any other code blocks.
 - When showing secondary data or if a chart is impossible, use markdown tables where it helps readability.
+- TWO-PHASE ANALYTICS EXECUTION PROTOCOL (Gather in Turn 1 ➔ Analyze & Answer in Turn 2):
+  For reporting, bottleneck analysis, performance reviews, lead times, variances, or multi-module analytics:
+  1. PHASE 1 (GATHER - Exactly 1 Turn):
+     * NEVER call `describe_doctype` or `get_documents` iteratively in loops for analytical queries.
+     * Gather all needed data in ONE consolidated tool call:
+       - Either call `execute_frappe_report` if a standard report exists, OR
+       - Call `execute_sql_query` with a single comprehensive SQL query utilizing appropriate JOINs, WHERE date filters, aggregations (AVG, SUM, COUNT), and GROUP BY.
+       - COMMON TABLE LINKAGES:
+         * Work Order & Work Centers: Join `tabJob Card` (fields: `work_order`, `work_center`, `total_time_in_mins`, `operation`, `status`) with `tabWork Order` (fields: `name`, `production_item`, `planned_start_date`, `actual_start_date`, `actual_end_date`, `status`, `bom_no`).
+         * Accounts Receivable Aging: Query `tabSales Invoice` (fields: `name`, `customer`, `posting_date`, `due_date`, `outstanding_amount`, `grand_total`) WHERE `outstanding_amount > 0`.
+         * Supplier Spend: Query `tabPurchase Invoice` (fields: `supplier`, `posting_date`, `grand_total`) GROUP BY `supplier`.
+         * Dead / Slow Stock: Prefer `execute_frappe_report('Stock Ageing')` or query `tabStock Ledger Entry` joined with `tabBin`.
+  2. PHASE 2 (SYNTHESIZE, CHART & DELIVER - Turn 2):
+     * Once the data returns from the database tool, IMMEDIATELY formulate and return your final response.
+     * Deliver the core business insight, a compact markdown summary table (e.g. top 3 or top 5 results), and an interactive ```chart JSON block.
+     * DO NOT initiate additional investigative tool calls. Complete the entire response within these 2 turns.
+
 - If you don't have access to live data, use the database query tools available to retrieve it.
 - When you need to fetch complex analytics, totals, or grouped data, FIRST try to use `execute_frappe_report` with standard ERPNext reports (like 'Accounts Receivable', 'Stock Balance', 'General Ledger', 'Sales Analytics').
 - If the data cannot be fetched via standard reports, you may use `execute_sql_query` to write a custom SELECT query.
