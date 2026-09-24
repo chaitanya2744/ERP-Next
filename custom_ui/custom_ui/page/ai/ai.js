@@ -175,6 +175,29 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             </div>
 
             <div class="voice-header-center">
+              <!-- Single Searchable Language Dropdown -->
+              <div class="voice-picker-dock voice-lang-dropdown-wrap" style="position: relative;" id="voice-lang-dropdown-wrap" title="Choose Voice Language">
+                <button type="button" class="voice-picker-trigger voice-lang-dropdown-btn" id="voice-lang-trigger" onclick="toggleLangDropdown(event)" title="Select Voice Language">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                  <span id="voice-lang-dropdown-label" class="voice-picker-selected-name">English</span>
+                  <svg class="voice-lang-dropdown-caret" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+
+                <!-- Searchable Language Menu Dropdown -->
+                <div class="voice-lang-dropdown-panel" id="voice-lang-dropdown-panel" style="display: none;" onclick="event.stopPropagation()">
+                  <div class="voice-lang-dp-search-row">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="voice-lang-dp-input" placeholder="Search language (English, Marathi, Hindi...)" autocomplete="off" oninput="filterLangDropdown(this.value)">
+                    <button type="button" class="voice-lang-dp-close" onclick="event.stopPropagation(); closeLangDropdown(event);" title="Close Language Selector (Esc)">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                  <div class="voice-lang-dp-list" id="voice-lang-dp-list">
+                    <!-- Dynamically populated via filterLangDropdown -->
+                  </div>
+                </div>
+              </div>
+
               <!-- Searchable Voice Picker Dock -->
               <div class="voice-picker-dock" id="voice-picker-dock" title="Choose Voice Model">
                 <button type="button" class="voice-picker-trigger" id="voice-picker-trigger" onclick="toggleVoicePickerDropdown(event)" title="Select AI Voice Model">
@@ -238,16 +261,16 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             <div class="voice-status-wrapper">
               <div class="voice-status-pill" id="voice-status-pill">
                 <span class="voice-status-indicator"></span>
-                <span id="voice-status-label">ऐकत आहे… (Listening)</span>
+                <span id="voice-status-label">Listening…</span>
               </div>
-              <div id="voice-sub-label" class="voice-sub-caption">मराठीत बोला · मिनिमाइझ करण्यासाठी बॅकग्राउंडवर क्लिक करा</div>
+              <div id="voice-sub-label" class="voice-sub-caption">Speak in English · Say "Stop" to interrupt</div>
             </div>
           </div>
 
           <!-- Live Floating Subtitles / Captions -->
           <div class="voice-caption-stage">
             <div id="voice-transcript-live" class="voice-caption-stream">
-              <span class="vplaceholder">उदा. "आजचा विक्री अहवाल दाखवा" किंवा "स्टॉक किती आहे?" बोला…</span>
+              <span class="vplaceholder">Say something like "Show today's sales report" or "Check inventory"…</span>
             </div>
 
             <!-- AI Spoken Response Card -->
@@ -840,6 +863,22 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   // ═══════════════════════════════════════════════════════════
   // ENTERPRISE MULTILINGUAL VOICE CALL CONTROLLER (SPLIT ARCHITECTURE)
   // ═══════════════════════════════════════════════════════════
+    // Screen WakeLock API (Edge case matching OpenWebUI CallOverlay)
+  var _wakeLock = null;
+  function _requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(function(lock) {
+        _wakeLock = lock;
+      }).catch(function(e) {});
+    }
+  }
+  function _releaseWakeLock() {
+    if (_wakeLock) {
+      try { _wakeLock.release(); } catch(e) {}
+      _wakeLock = null;
+    }
+  }
+
   var _voiceRecognition = null;
   var _voiceRunning = false;
   var _voiceOverlayOpen = false;
@@ -859,7 +898,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   var _callStartTime = 0;
   var _callTimerInterval = null;
 
-  var _currentLang = localStorage.getItem('custom_ui_voice_lang') || 'mr-IN';
+  var _currentLang = 'en-IN';
 
   var _INTERRUPT_KEYWORDS = [
     // Marathi
@@ -1160,6 +1199,16 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         var pickerMenu = (wrapper || document).querySelector('#voice-picker-menu');
         var pickerOpen = pickerMenu && (pickerMenu.classList.contains('open') || pickerMenu.style.display === 'flex');
 
+        // Priority 0: If Language Dropdown is open, ANY click on stage closes it & STOPS (never PiP)
+        var langPanel = (wrapper || document).querySelector('#voice-lang-dropdown-panel');
+        var langOpen = langPanel && langPanel.style.display !== 'none' && langPanel.style.display !== '';
+        if (langOpen) {
+          if (!e.target.closest('#voice-lang-dropdown-panel') || e.target.closest('.voice-lang-dp-close')) {
+            closeLangDropdown(e);
+          }
+          return;
+        }
+
         // Priority 1: If Voice Picker Dropdown is open, ANY click on stage outside the menu closes dropdown & STOPS (never PiP)
         if (pickerOpen) {
           if (!e.target.closest('#voice-picker-menu') || e.target.closest('.voice-picker-close-btn')) {
@@ -1172,6 +1221,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         if (
           !e.target.closest('.voice-bottom-dock') &&
           !e.target.closest('.voice-picker-dock') &&
+          !e.target.closest('#voice-lang-dropdown-wrap') &&
           !e.target.closest('.voice-header-actions') &&
           !e.target.closest('.voice-brand-badge') &&
           !e.target.closest('.voice-status-wrapper') &&
@@ -1244,7 +1294,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _isAssistantSpeaking = false;
     _ignoreUntil = Date.now() + 350;
 
-    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
     var statusLabel = wrapper.querySelector('#voice-status-label');
     var subLabel = wrapper.querySelector('#voice-sub-label');
     var miniStatus = wrapper.querySelector('#voice-mini-status');
@@ -1303,6 +1353,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     var iconOff = wrapper.querySelector('#voice-mute-icon-off');
     var statusLabel = wrapper.querySelector('#voice-status-label');
 
+    // Hardware microphone track sync (edge case matching OpenWebUI)
+    if (_audioStream) {
+      _audioStream.getAudioTracks().forEach(function(track) {
+        track.enabled = !_isMuted;
+      });
+    }
+
     if (_isMuted) {
       if (muteBtn) muteBtn.classList.add('muted');
       if (iconOn) iconOn.style.display = 'none';
@@ -1317,7 +1374,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       if (muteBtn) muteBtn.classList.remove('muted');
       if (iconOn) iconOn.style.display = 'block';
       if (iconOff) iconOff.style.display = 'none';
-      var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+      var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
       if (statusLabel) statusLabel.textContent = _isAssistantSpeaking ? cfg.speaking : cfg.listening;
       if (_voiceRunning && _voiceOverlayOpen && !_isAssistantSpeaking) {
         _startListening();
@@ -1327,7 +1384,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   window.toggleVoiceMute = toggleVoiceMute;
 
   function setVoiceLanguage(langCode) {
-    if (!_LANG_CONFIG[langCode]) langCode = 'mr-IN';
+    if (!_LANG_CONFIG[langCode]) langCode = 'en-IN';
     _currentLang = langCode;
     localStorage.setItem('custom_ui_voice_lang', langCode);
 
@@ -1359,6 +1416,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     if (_voiceRecognition) {
       try {
         _voiceRecognition.lang = langCode;
+        if (_voiceRunning && !_isMuted && !_isAssistantSpeaking) {
+          _startListening();
+        }
       } catch(e) {}
     }
 
@@ -1494,6 +1554,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _isMuted = false;
     _ignoreUntil = 0;
     _callStartTime = Date.now();
+    _requestWakeLock();
 
     var triggerBtn = wrapper.querySelector('#mic-btn');
     var aiReplyBox = wrapper.querySelector('#voice-ai-reply-box');
@@ -1521,7 +1582,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _callTimerInterval = setInterval(_updateCallTimer, 1000);
     _updateCallTimer();
 
-    setVoiceLanguage(_currentLang);
+    // Guarantee clean English startup every time call is opened
+    try {
+      
+      localStorage.removeItem('custom_ui_voice_lang');
+    } catch(e) {}
+    _currentLang = 'en-IN';
+    setVoiceLanguage('en-IN');
     _populateVoiceDropdown();
     _startListening();
     _startAudioVisualizer();
@@ -1729,14 +1796,14 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         _lastInterim = '';
         var transcriptEl = wrapper.querySelector('#voice-transcript-live');
         if (transcriptEl) {
-          var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+          var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
           transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
         }
         return;
       }
     }
 
-    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
     var statusLabel = wrapper.querySelector('#voice-status-label');
     var subLabel = wrapper.querySelector('#voice-sub-label');
     var miniStatus = wrapper.querySelector('#voice-mini-status');
@@ -1779,7 +1846,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       _aiSpeakingStartTime = Date.now();
       _ignoreUntil = 0;
 
-      var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+      var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
       var statusLabel = wrapper.querySelector('#voice-status-label');
       var subLabel = wrapper.querySelector('#voice-sub-label');
       var miniStatus = wrapper.querySelector('#voice-mini-status');
@@ -1817,7 +1884,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     _lastInterim = '';
     if (_silenceTimer) clearTimeout(_silenceTimer);
 
-    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
     var statusLabel = wrapper.querySelector('#voice-status-label');
     var subLabel = wrapper.querySelector('#voice-sub-label');
     var miniStatus = wrapper.querySelector('#voice-mini-status');
@@ -1862,7 +1929,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
     if (!_voiceOverlayOpen) return;
 
-    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['mr-IN'];
+    var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
     var statusLabel = wrapper.querySelector('#voice-status-label');
     var subLabel = wrapper.querySelector('#voice-sub-label');
     var miniStatus = wrapper.querySelector('#voice-mini-status');
@@ -1887,6 +1954,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   }
 
   function closeVoiceCall() {
+    _releaseWakeLock();
     closeLangDropdown();
     closeVoicePickerDropdown();
     _voiceOverlayOpen = false;
@@ -2061,25 +2129,25 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   }
   window.closeVoicePickerDropdown = closeVoicePickerDropdown;
 
-  function filterVoicePickerMenu(query) {
+    function filterVoicePickerMenu(query) {
     var listEl = wrapper.querySelector('#voice-picker-list');
     if (!listEl) return;
 
     var q = (query || '').toLowerCase().trim();
     var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
-    var savedVoice = localStorage.getItem('custom_ui_voice_' + _currentLang) || localStorage.getItem('custom_ui_voice_global') || '';
+    var savedVoice = localStorage.getItem('custom_ui_voice_' + _currentLang) || '';
 
     if (!voices || !voices.length) {
-      listEl.innerHTML = '<div class="voice-picker-item selected" onclick="onUserVoiceSelected(\'\')"><span class="voice-picker-item-name">✨ Auto AI Voice</span></div>';
+      listEl.innerHTML = '<div class="voice-picker-item selected" onclick="onUserVoiceSelected(\'\', \'\', \'\')"><span class="voice-picker-item-name">✨ Auto AI Voice</span></div>';
       return;
     }
 
-    var langPrefix = _currentLang.toLowerCase().split('-')[0];
+    var langPrefix = (_currentLang || 'en-IN').toLowerCase().split('-')[0];
     var recommended = [];
     var other = [];
 
     voices.forEach(function(v) {
-      var vLang = (v.lang || '').toLowerCase().replace('_', '-');
+      var vLang = (v.lang || '').toLowerCase().replace(/_/g, '-');
       var vName = (v.name || '').toLowerCase();
 
       var isMatch = false;
@@ -2087,6 +2155,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         if (vLang.startsWith('mr') || vName.includes('marathi') || vName.includes('aarohi')) isMatch = true;
       } else if (langPrefix === 'hi') {
         if (vLang.startsWith('hi') || vName.includes('hindi') || vName.includes('madhur') || vName.includes('swara') || vName.includes('kalpana')) isMatch = true;
+      } else if (langPrefix === 'gu') {
+        if (vLang.startsWith('gu') || vName.includes('gujarati')) isMatch = true;
+      } else if (langPrefix === 'ta') {
+        if (vLang.startsWith('ta') || vName.includes('tamil')) isMatch = true;
+      } else if (langPrefix === 'te') {
+        if (vLang.startsWith('te') || vName.includes('telugu')) isMatch = true;
       } else {
         if (vLang.startsWith('en') || vName.includes('english')) isMatch = true;
       }
@@ -2110,17 +2184,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
     var html = '';
     var isAutoSelected = !savedVoice ? ' selected' : '';
-    html += '<div class="voice-picker-item' + isAutoSelected + '" onclick="onUserVoiceSelected(\'\')">';
+    html += '<div class="voice-picker-item' + isAutoSelected + '" onclick="onUserVoiceSelected(\'\', \'\', \'\')">';
     html += '  <span class="voice-picker-item-name">✨ Auto-Select Best AI Voice</span>';
     html += '  <span class="voice-picker-item-tag">Default</span>';
     html += '</div>';
 
     if (recommended.length > 0) {
-      html += '<div class="voice-picker-header">RECOMMENDED FOR YOUR LANGUAGE</div>';
+      var langLabel = (_LANG_CONFIG[_currentLang] && _LANG_CONFIG[_currentLang].label) || 'Current Language';
+      html += '<div class="voice-picker-header">RECOMMENDED FOR ' + _escapeHtml(langLabel.toUpperCase()) + '</div>';
       recommended.forEach(function(v) {
         var clean = _cleanVoiceName(v.name, v.lang);
         var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
-        html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\')">';
+        html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\', \'' + _escapeHtml(v.lang || '') + '\')">';
         html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + '</span>';
         html += '  <span class="voice-picker-item-tag">' + _escapeHtml(v.lang || '') + '</span>';
         html += '</div>';
@@ -2128,11 +2203,11 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     }
 
     if (other.length > 0) {
-      html += '<div class="voice-picker-header">OTHER AVAILABLE VOICES</div>';
+      html += '<div class="voice-picker-header">OTHER LANGUAGES &amp; VOICES</div>';
       other.forEach(function(v) {
         var clean = _cleanVoiceName(v.name, v.lang);
         var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
-        html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\')">';
+        html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\', \'' + _escapeHtml(v.lang || '') + '\')">';
         html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + '</span>';
         html += '  <span class="voice-picker-item-tag">' + _escapeHtml(v.lang || '') + '</span>';
         html += '</div>';
@@ -2144,30 +2219,94 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   window.filterVoicePickerMenu = filterVoicePickerMenu;
 
   function _populateVoiceDropdown() {
-    var savedVoice = localStorage.getItem('custom_ui_voice_' + _currentLang) || localStorage.getItem('custom_ui_voice_global') || '';
     var labelEl = wrapper.querySelector('#voice-picker-selected-name');
-    if (labelEl) {
-      if (savedVoice) {
-        var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
-        var match = voices.find(function(v) { return v.voiceURI === savedVoice || v.name === savedVoice; });
-        if (match) {
-          labelEl.textContent = _cleanVoiceName(match.name, match.lang);
-        } else {
-          labelEl.textContent = _cleanVoiceName(savedVoice);
-        }
-      } else {
-        labelEl.textContent = '✨ Auto AI Voice';
+    if (!labelEl) return;
+
+    var savedVoice = localStorage.getItem('custom_ui_voice_' + _currentLang) || '';
+    var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+    var langBase = (_currentLang || 'en-IN').split('-')[0].toLowerCase();
+
+    // Only display saved voice if it exists AND actually belongs to the current language
+    if (savedVoice && voices.length > 0) {
+      var match = voices.find(function(v) {
+        return (v.voiceURI === savedVoice || v.name === savedVoice) &&
+               v.lang && v.lang.toLowerCase().replace(/_/g, '-').startsWith(langBase);
+      });
+      if (match) {
+        labelEl.textContent = _cleanVoiceName(match.name, match.lang);
+        return;
       }
     }
+
+    labelEl.textContent = '✨ Auto AI Voice';
   }
 
-  function onUserVoiceSelected(voiceURI, cleanName) {
+    function _detectLangFromVoice(rawLang, voiceName) {
+    var l = (rawLang || '').toLowerCase().replace(/_/g, '-');
+    var n = (voiceName || '').toLowerCase();
+
+    // Check exact matches in _LANG_CONFIG first
+    if (rawLang && _LANG_CONFIG[rawLang]) return rawLang;
+
+    // Marathi
+    if (l.startsWith('mr') || n.includes('marathi') || n.includes('aarohi')) return 'mr-IN';
+
+    // Hindi
+    if (l.startsWith('hi') || n.includes('hindi') || n.includes('madhur') || n.includes('swara') || n.includes('kalpana')) return 'hi-IN';
+
+    // English
+    if (l.startsWith('en') || n.includes('english')) return 'en-IN';
+
+    // Gujarati
+    if (l.startsWith('gu') || n.includes('gujarati')) return 'gu-IN';
+
+    // Tamil
+    if (l.startsWith('ta') || n.includes('tamil')) return 'ta-IN';
+
+    // Telugu
+    if (l.startsWith('te') || n.includes('telugu')) return 'te-IN';
+
+    // Kannada
+    if (l.startsWith('kn') || n.includes('kannada')) return 'kn-IN';
+
+    // Bengali
+    if (l.startsWith('bn') || n.includes('bengali') || n.includes('bangla')) return 'bn-IN';
+
+    // Malayalam
+    if (l.startsWith('ml') || n.includes('malayalam')) return 'ml-IN';
+
+    // Punjabi
+    if (l.startsWith('pa') || n.includes('punjabi')) return 'pa-IN';
+
+    // Generic prefix match against _LANG_CONFIG
+    var prefix = l.split('-')[0];
+    for (var code in _LANG_CONFIG) {
+      if (code.toLowerCase().startsWith(prefix)) return code;
+    }
+
+    return null;
+  }
+
+  function onUserVoiceSelected(voiceURI, cleanName, voiceLang) {
+    var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+    var chosenVoice = voices.find(function(v) { return (v.voiceURI === voiceURI || v.name === voiceURI); });
+
+    var targetLang = null;
+    if (chosenVoice) {
+      targetLang = _detectLangFromVoice(chosenVoice.lang || voiceLang, chosenVoice.name);
+    } else if (voiceLang) {
+      targetLang = _detectLangFromVoice(voiceLang, cleanName);
+    }
+
+    // When user changes voice, update UI & STT language automatically!
+    if (targetLang && targetLang !== _currentLang) {
+      setVoiceLanguage(targetLang);
+    }
+
     if (voiceURI) {
       localStorage.setItem('custom_ui_voice_' + _currentLang, voiceURI);
-      localStorage.setItem('custom_ui_voice_global', voiceURI);
     } else {
       localStorage.removeItem('custom_ui_voice_' + _currentLang);
-      localStorage.removeItem('custom_ui_voice_global');
     }
 
     var labelEl = wrapper.querySelector('#voice-picker-selected-name');
@@ -2176,18 +2315,20 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     }
 
     closeVoicePickerDropdown();
-    _playVoicePreview();
+    _playVoicePreview(chosenVoice);
   }
   window.onUserVoiceSelected = onUserVoiceSelected;
 
-  function _playVoicePreview() {
+  function _playVoicePreview(chosenVoice) {
     if (!window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
-      var sample = _currentLang === 'mr-IN' ? 'नमस्कार!' : (_currentLang === 'hi-IN' ? 'नमस्ते!' : 'Hello!');
+      var sample = _currentLang === 'mr-IN' ? 'नमस्कार! मी आपली काय मदत करू शकतो?' :
+                   (_currentLang === 'hi-IN' ? 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?' :
+                   'Hello! How can I assist you today?');
       var utt = new SpeechSynthesisUtterance(sample);
       utt.lang = _currentLang;
-      var bestVoice = _findBestVoice(_currentLang);
+      var bestVoice = chosenVoice || _findBestVoice(_currentLang);
       if (bestVoice) utt.voice = bestVoice;
       window.speechSynthesis.speak(utt);
     } catch(e) {}
@@ -2208,7 +2349,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     if (!voices || !voices.length) return null;
 
     // User-selected voice (per-lang or global)
-    var userPref = localStorage.getItem('custom_ui_voice_' + lang) || localStorage.getItem('custom_ui_voice_global');
+    var userPref = localStorage.getItem('custom_ui_voice_' + lang) || '';
     if (userPref) {
       var pref = voices.find(function(v) { return v.voiceURI === userPref || v.name === userPref; });
       if (pref) return pref;
@@ -2328,7 +2469,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
       var chunk = chunks[chunkIdx++];
       var utt = new SpeechSynthesisUtterance(chunk);
-      utt.lang = lang || _currentLang || 'mr-IN';
+      utt.lang = lang || _currentLang || 'en-IN';
       utt.rate = 1.0;
       utt.pitch = 1.05;
       utt.volume = 1.0;
