@@ -335,7 +335,6 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   // Ribbon Module Categories with pre-computed counts
   const EXECUTIVE_MODULE_TABS = [
-    { key: "all", label: "All", icon: "✦" },
     { key: "360° Cross", label: "360° Cross-Modular", icon: "🌐", is_cross: true },
     { key: "Manufacturing", label: "Manufacturing", icon: "🏭" },
     { key: "Accounting", label: "Accounting", icon: "💰" },
@@ -349,7 +348,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     { key: "Subcontracting", label: "Subcontracting", icon: "🔨" }
   ];
 
-  var activeExecModule = "all";
+  var activeExecModule = "360° Cross";
   var activeExecSearch = "";
 
   function formatPromptTextForDisplay(text) {
@@ -365,7 +364,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     // Filter prompts based on active module and search keyword
     const q = activeExecSearch.toLowerCase().trim();
     const filtered = EXECUTIVE_PROMPTS.filter(p => {
-      const matchModule = (activeExecModule === 'all') || (p.module === activeExecModule);
+      // When searching, match across all modules; otherwise filter by active selected module
+      const matchModule = q ? true : (p.module === activeExecModule);
       if (!matchModule) return false;
       if (!q) return true;
       return (
@@ -379,10 +379,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
     // Generate Ribbon Tabs HTML
     const ribbonHtml = EXECUTIVE_MODULE_TABS.map(tab => {
-      const count = tab.key === 'all'
-        ? EXECUTIVE_PROMPTS.length
-        : EXECUTIVE_PROMPTS.filter(p => p.module === tab.key).length;
-      const isActive = activeExecModule === tab.key ? ' active' : '';
+      const count = EXECUTIVE_PROMPTS.filter(p => p.module === tab.key).length;
+      const isActive = (!q && activeExecModule === tab.key) ? ' active' : '';
       const isCross = tab.is_cross ? ' cross-tab' : '';
       return `<button type="button" class="exec-tab-btn${isActive}${isCross}" data-module="${tab.key}">
         <span>${tab.icon}</span>
