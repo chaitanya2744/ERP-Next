@@ -468,6 +468,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       });
     });
 
+    try {
+      const activeTabBtn = root.querySelector('.exec-tab-btn.active');
+      if (activeTabBtn) {
+        activeTabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    } catch (_) {}
+
     // Attach Search Input Listeners
     const searchInput = root.querySelector('#exec-prompt-search');
     const clearBtn = root.querySelector('#exec-search-clear');
