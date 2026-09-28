@@ -3,15 +3,16 @@ from frappe.utils import now_datetime
 import requests
 
 def get_model_rates(model_name):
+    # 1. Exact match in AI Model Rate
     rate_doc = frappe.get_all("AI Model Rate", filters={"model_name": model_name}, fields=["input_cost_per_1m_usd", "output_cost_per_1m_usd", "markup_percentage"])
     if rate_doc:
         return rate_doc[0]
-    # Default fallback if model not found
-    return {
-        "input_cost_per_1m_usd": 0.15,
-        "output_cost_per_1m_usd": 0.60,
-        "markup_percentage": 0.0
-    }
+    
+    # 2. Strict check: If model has no rate configured, throw explicit configuration error
+    frappe.throw(
+        f"Billing configuration missing: No pricing rate defined for model '{model_name}'. "
+        f"Please create an 'AI Model Rate' entry in ERPNext for '{model_name}' before proceeding."
+    )
 
 def calculate_costs(model_name, prompt_tokens, response_tokens):
     rates = get_model_rates(model_name)
@@ -47,7 +48,7 @@ def log_token_usage(model_name, prompt_tokens, response_tokens, api_method="chat
         charged_inr = costs["charged_cost_inr"]
         
         # 1. Pessimistic Lock on AI Settings
-        frappe.db.sql("SELECT name FROM `tabAI Settings` FOR UPDATE")
+        frappe.db.sql("SELECT value FROM `tabSingles` WHERE doctype = 'AI Settings' FOR UPDATE")
         settings = frappe.get_single("AI Settings")
         
         prev_balance = settings.balance_inr or 0.0
@@ -115,7 +116,7 @@ def recharge_wallet(amount_inr, description="Admin recharge"):
         frappe.throw("Recharge amount must be greater than zero.")
         
     try:
-        frappe.db.sql("SELECT name FROM `tabAI Settings` FOR UPDATE")
+        frappe.db.sql("SELECT value FROM `tabSingles` WHERE doctype = 'AI Settings' FOR UPDATE")
         settings = frappe.get_single("AI Settings")
         
         prev_balance = settings.balance_inr or 0.0

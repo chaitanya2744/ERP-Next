@@ -867,7 +867,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function appendMessage(role, content) {
+  function appendMessage(role, content, tokenData) {
     if (role === 'ai') {
       try {
         if (typeof _voiceOverlayOpen !== 'undefined' && _voiceOverlayOpen) {
@@ -919,6 +919,25 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         }, 2000);
       };
+      // Token Badge Rendering
+      if (tokenData && (tokenData.total || tokenData.prompt || tokenData.response)) {
+        var tokenBadge = document.createElement('div');
+        tokenBadge.className = 'msg-token-badge';
+        
+        var totalTokens = tokenData.total || ((tokenData.prompt || 0) + (tokenData.response || 0));
+        var promptTok = tokenData.prompt || 0;
+        var replyTok = tokenData.response || 0;
+        
+        var tokTag = document.createElement('span');
+        tokTag.className = 'token-tag';
+        tokTag.innerHTML = '⚡ ' + totalTokens.toLocaleString() + ' tokens <span style="color:#94A3B8; font-weight:normal;">(' + promptTok + ' in · ' + replyTok + ' out)</span>';
+        tokenBadge.appendChild(tokTag);
+
+
+
+        bubble.appendChild(tokenBadge);
+      }
+
       bubble.appendChild(copyBtn);
     }
 
@@ -1073,8 +1092,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             } else if (r.message.requires_approval) {
               renderApprovalCard(r.message.tool_call);
             } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply);
+              appendMessage('ai', r.message.reply, r.message.tokens);
               history.push({ role: 'assistant', content: r.message.reply });
+              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
             }
           } else {
             var reply = r.message;
@@ -1128,8 +1148,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             } else if (r.message.requires_approval) {
               renderApprovalCard(r.message.tool_call);
             } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply);
+              appendMessage('ai', r.message.reply, r.message.tokens);
               history.push({ role: 'assistant', content: r.message.reply });
+              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
             }
           } else {
             var reply = r.message;
@@ -1176,8 +1197,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
             } else if (r.message.requires_approval) {
               renderApprovalCard(r.message.tool_call);
             } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply);
+              appendMessage('ai', r.message.reply, r.message.tokens);
               history.push({ role: 'assistant', content: r.message.reply });
+              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
             }
           } else {
             var reply = r.message;
@@ -2972,3 +2994,146 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   // Focus input
   setTimeout(function () { inputEl.focus(); }, 300);
 };
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // TOKEN USAGE CALCULATOR & WALLET CONTROLLERS
+  // ══════════════════════════════════════════════════════════════════════════════
+  
+  function injectTokenCalcModal() {
+    if (document.getElementById('token-calc-modal-backdrop')) return;
+    
+    var modalHtml = `
+      <div id="token-calc-modal-backdrop" class="token-calc-modal-backdrop" onclick="closeTokenCalcModal(event)">
+        <div class="token-calc-modal" onclick="event.stopPropagation()">
+          <div class="calc-modal-header">
+            <h3>🧮 AI Token & Cost Calculator</h3>
+            <button class="calc-modal-close" onclick="closeTokenCalcModal()">✕</button>
+          </div>
+          <div class="calc-modal-body">
+            <div class="calc-stat-cards">
+              <div class="calc-stat-card">
+                <div class="calc-stat-label">Wallet Balance</div>
+                <div class="calc-stat-value" id="calc-wallet-balance">₹0.00</div>
+                <div class="calc-stat-sub" id="calc-wallet-status">Status: Active</div>
+              </div>
+              <div class="calc-stat-card">
+                <div class="calc-stat-label">Consumed Today</div>
+                <div class="calc-stat-value" id="calc-today-tokens">0 tok</div>
+                <div class="calc-stat-sub" id="calc-today-cost">₹0.00 spent</div>
+              </div>
+            </div>
+
+            <div class="calc-input-group">
+              <label for="calc-prompt-input">Test / Estimate Query Cost</label>
+              <textarea id="calc-prompt-input" class="calc-textarea" placeholder="Type or paste sample query to calculate prompt tokens and projected INR cost..."></textarea>
+            </div>
+
+            <div class="calc-estimation-box">
+              <div class="calc-est-left">
+                <span class="calc-est-title">Projected Tokens</span>
+                <span class="calc-est-tokens" id="calc-proj-tokens">~250 tokens</span>
+                <span style="font-size:10.5px; color:#64748B;" id="calc-proj-breakdown">(0 prompt + 250 reply)</span>
+              </div>
+              <div class="calc-est-right">
+                <div class="calc-est-cost-inr" id="calc-proj-cost-inr">~₹0.017</div>
+                <div class="calc-est-cost-usd" id="calc-proj-cost-usd">($0.00018 USD)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    var div = document.createElement('div');
+    div.innerHTML = modalHtml;
+    document.body.appendChild(div.firstElementChild);
+
+    var calcInput = document.getElementById('calc-prompt-input');
+    if (calcInput) {
+      var calcTimer = null;
+      calcInput.addEventListener('input', function() {
+        clearTimeout(calcTimer);
+        calcTimer = setTimeout(function() {
+          runTokenEstimation(calcInput.value);
+        }, 180);
+      });
+    }
+  }
+
+  function updateWalletSummaryUI() {
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.get_wallet_summary',
+      callback: function(r) {
+        if (r && r.message) {
+          var data = r.message;
+          var balEl = document.getElementById('wallet-balance-text');
+          var tokEl = document.getElementById('wallet-tokens-text');
+          var pill = document.getElementById('token-wallet-pill');
+
+          if (balEl) balEl.textContent = '⚡ ₹' + (data.balance_inr || 0).toFixed(2);
+          if (tokEl) tokEl.textContent = '(' + (data.today_tokens || 0).toLocaleString() + ' tok today)';
+          if (pill) {
+            if (data.balance_inr < 50) pill.classList.add('low-balance');
+            else pill.classList.remove('low-balance');
+          }
+
+          var modalBal = document.getElementById('calc-wallet-balance');
+          var modalTok = document.getElementById('calc-today-tokens');
+          var modalCost = document.getElementById('calc-today-cost');
+          if (modalBal) modalBal.textContent = '₹' + (data.balance_inr || 0).toFixed(2);
+          if (modalTok) modalTok.textContent = (data.today_tokens || 0).toLocaleString() + ' tok';
+          if (modalCost) modalCost.textContent = '₹' + (data.today_cost_inr || 0).toFixed(2) + ' spent';
+        }
+      }
+    });
+  }
+
+  function runTokenEstimation(text) {
+    if (!text || !text.trim()) {
+      var pt = document.getElementById('calc-proj-tokens');
+      var pb = document.getElementById('calc-proj-breakdown');
+      var ci = document.getElementById('calc-proj-cost-inr');
+      var cu = document.getElementById('calc-proj-cost-usd');
+      if (pt) pt.textContent = '~250 tokens';
+      if (pb) pb.textContent = '(0 prompt + 250 reply)';
+      if (ci) ci.textContent = '~₹0.017';
+      if (cu) cu.textContent = '($0.00018 USD)';
+      return;
+    }
+
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.estimate_tokens_and_cost',
+      args: { text: text },
+      callback: function(r) {
+        if (r && r.message) {
+          var res = r.message;
+          var pt = document.getElementById('calc-proj-tokens');
+          var pb = document.getElementById('calc-proj-breakdown');
+          var ci = document.getElementById('calc-proj-cost-inr');
+          var cu = document.getElementById('calc-proj-cost-usd');
+          if (pt) pt.textContent = res.total_estimated_tokens.toLocaleString() + ' tokens';
+          if (pb) pb.textContent = '(' + res.prompt_tokens + ' prompt + ' + res.estimated_reply_tokens + ' reply)';
+          if (ci) ci.textContent = '₹' + res.charged_cost_inr.toFixed(4);
+          if (cu) cu.textContent = '($' + res.charged_cost_usd.toFixed(6) + ' USD)';
+        }
+      }
+    });
+  }
+
+  window.openTokenCalcModal = function() {
+    injectTokenCalcModal();
+    updateWalletSummaryUI();
+    var backdrop = document.getElementById('token-calc-modal-backdrop');
+    if (backdrop) backdrop.classList.add('active');
+  };
+
+  window.closeTokenCalcModal = function() {
+    var backdrop = document.getElementById('token-calc-modal-backdrop');
+    if (backdrop) backdrop.classList.remove('active');
+  };
+
+  // Initial call to populate wallet pill on page load
+  setTimeout(function() {
+    injectTokenCalcModal();
+    updateWalletSummaryUI();
+  }, 350);

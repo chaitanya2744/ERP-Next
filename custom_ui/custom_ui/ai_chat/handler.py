@@ -133,7 +133,6 @@ def chat(messages, approved_action=None):
         rt = usage_meta.get("candidatesTokenCount", 0)
         
         if pt > 0 or rt > 0:
-            log_token_usage(active_model, pt, rt, "chat")
             accumulated_prompt_tokens += pt
             accumulated_response_tokens += rt
 
@@ -199,6 +198,9 @@ def chat(messages, approved_action=None):
             continue
         else:
             # No tool call; return the text response
+            if accumulated_prompt_tokens > 0 or accumulated_response_tokens > 0:
+                log_token_usage(active_model, accumulated_prompt_tokens, accumulated_response_tokens, "chat")
+
             try:
                 reply_text = "".join([p.get("text", "") for p in parts if "text" in p])
                 return {
@@ -212,5 +214,8 @@ def chat(messages, approved_action=None):
                 }
             except IndexError:
                 return {"reply": "No response text returned.", "new_history": new_history, "tokens": {}}
+
+    if accumulated_prompt_tokens > 0 or accumulated_response_tokens > 0:
+        log_token_usage(active_model, accumulated_prompt_tokens, accumulated_response_tokens, "chat")
 
     return {"error": "Max tool execution turns reached."}

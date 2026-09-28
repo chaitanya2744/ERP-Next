@@ -2835,3 +2835,297 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
     font-size: 11px;
   }
 }
+
+/* ==========================================================================
+   AI TOKEN USAGE & WALLET CALCULATOR COMPONENTS
+   ========================================================================== */
+
+/* Header Token Pill & Wallet Trigger */
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.token-wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface, #F8FAFC);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-color, #1E293B);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.token-wallet-pill:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.token-wallet-pill .pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+}
+
+.token-wallet-pill.low-balance .pill-dot {
+  background: #EF4444;
+  box-shadow: 0 0 6px #EF4444;
+}
+
+.token-calc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #64748B);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.token-calc-btn:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+/* Message Token Badge */
+.msg-token-badge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(226, 232, 240, 0.6);
+  font-size: 10.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text-muted, #64748B);
+}
+
+.msg-token-badge .token-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(241, 245, 249, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.msg-token-badge .cost-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(236, 253, 245, 0.85);
+  border: 1px solid rgba(167, 243, 208, 0.8);
+  color: #065F46;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+}
+
+/* Token Calculator Modal */
+.token-calc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.token-calc-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.token-calc-modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.95) translateY(8px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.token-calc-modal-backdrop.active .token-calc-modal {
+  transform: scale(1) translateY(0);
+}
+
+.calc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.calc-modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calc-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.calc-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.calc-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calc-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.calc-stat-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.calc-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+
+.calc-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.calc-stat-sub {
+  font-size: 10.5px;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+.calc-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calc-input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.calc-textarea {
+  width: 100%;
+  height: 90px;
+  padding: 10px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.calc-textarea:focus {
+  border-color: #0099A3;
+  box-shadow: 0 0 0 2px rgba(0, 153, 163, 0.15);
+}
+
+.calc-estimation-box {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calc-est-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-est-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1E40AF;
+  text-transform: uppercase;
+}
+
+.calc-est-tokens {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E3A8A;
+}
+
+.calc-est-right {
+  text-align: right;
+}
+
+.calc-est-cost-inr {
+  font-size: 16px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.calc-est-cost-usd {
+  font-size: 11px;
+  color: #64748B;
+}
