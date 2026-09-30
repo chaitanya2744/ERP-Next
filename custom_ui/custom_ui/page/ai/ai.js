@@ -335,7 +335,6 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   // Ribbon Module Categories with pre-computed counts
   const EXECUTIVE_MODULE_TABS = [
-    { key: "360° Cross", label: "360° Cross-Modular", icon: "🌐", is_cross: true },
     { key: "Manufacturing", label: "Manufacturing", icon: "🏭" },
     { key: "Accounting", label: "Accounting", icon: "💰" },
     { key: "Buying", label: "Buying", icon: "🛒" },
@@ -345,10 +344,11 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     { key: "Quality", label: "Quality", icon: "🔬" },
     { key: "CRM", label: "CRM", icon: "🤝" },
     { key: "Assets", label: "Assets", icon: "🏢" },
-    { key: "Subcontracting", label: "Subcontracting", icon: "🔨" }
+    { key: "Subcontracting", label: "Subcontracting", icon: "🔨" },
+    { key: "360° Cross", label: "360° Cross-Modular", icon: "🌐", is_cross: true },
   ];
 
-  var activeExecModule = "360° Cross";
+  var activeExecModule = "Manufacturing";
   var activeExecSearch = "";
 
   function formatPromptTextForDisplay(text) {

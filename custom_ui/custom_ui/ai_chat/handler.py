@@ -1,3 +1,4 @@
+import re
 import frappe
 import json
 import requests
@@ -46,14 +47,19 @@ def chat(messages, approved_action=None):
         user=frappe.session.user,
         today=frappe.utils.nowdate(),
     )
+    system_text += "\n\nCRITICAL RULE: When executing tools to retrieve data, the volume of data MUST be MODERATE—no less, no more. Do not fetch massive datasets that overload tokens, but ensure you retrieve enough rows to provide complete context."
 
     # Convert chat history to Gemini format
     contents = []
     for msg in history:
+        text = msg.get("content", "")
+        # Prevent contaminated history from leaking fake system prompts to model
+        if text.startswith("[System:"):
+            continue
         role = "model" if msg["role"] == "assistant" else "user"
         contents.append({
             "role": role,
-            "parts": [{"text": msg["content"]}]
+            "parts": [{"text": text}]
         })
 
     # If the user just approved an action, artificially inject it so Gemini knows it executed
@@ -99,11 +105,76 @@ def chat(messages, approved_action=None):
     accumulated_prompt_tokens = 0
     accumulated_response_tokens = 0
     
+    user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
+
+    # 0. Voice Zero-Data-Entry: Ghost HUD & Slot-Filling Triage via JEV
+    if not approved_action and user_prompt:
+        try:
+            from custom_ui.custom_ui.ai_chat.fast_draft import attempt_voice_draft
+            draft_reply = attempt_voice_draft(user_prompt, history)
+            if draft_reply:
+                return {
+                    "reply": draft_reply,
+                    "new_history": new_history,
+                    "tokens": {"prompt": 0, "response": 0, "total": 0}
+                }
+        except Exception as draft_err:
+            frappe.log_error(f"Voice Draft Error: {draft_err}", "AI Voice Draft")
+
+    # 1. Bypass & Fast Resolution
+    active_tools = GEMINI_TOOLS
+    if not approved_action and user_prompt:
+        try:
+            from custom_ui.custom_ui.ai_chat.router import route_and_prune
+            try:
+                from custom_ui.custom_ui.ai_chat.fast_resolver import attempt_fast_resolution
+            except ImportError:
+                attempt_fast_resolution = None
+
+            # Context-aware routing for short conversational follow-ups
+            routing_prompt = user_prompt
+            if len(history) >= 2 and len(user_prompt.split()) <= 10:
+                prev_ctx = history[-2].get("content", "")
+                if prev_ctx:
+                    routing_prompt = f"Context: {prev_ctx[-300:]}\nFollow-up: {user_prompt}"
+
+            route_info = route_and_prune(routing_prompt)
+            # Safeguard: if JEV flags general_chat on a multi-turn conversation, keep analytics tools available
+            if route_info.get("query_type") == "general_chat" and len(history) >= 3:
+                route_info["selected_tools"] = ["execute_sql_query", "execute_frappe_report"]
+            
+            if not route_info["needs_llm"] and attempt_fast_resolution:
+                fast_data = attempt_fast_resolution(user_prompt, route_info["query_type"])
+                if fast_data:
+                    fast_data = f"⚡ **Laya Fast-Path Resolution (0 Tokens & 0s Latency)**\n\n{fast_data}"
+                    # Return immediately, zero cost
+                    return {
+                        "reply": fast_data,
+                        "new_history": new_history,
+                        "tokens": {"prompt": 0, "response": 0, "total": 0}
+                    }
+
+            # 2. Prune Tools for Complex Queries
+            if route_info["selected_tools"] is not None:
+                pruned_count = len(GEMINI_TOOLS[0]["functionDeclarations"]) - len(route_info["selected_tools"])
+
+
+                active_tools = [
+                    {
+                        "functionDeclarations": [
+                            t for t in GEMINI_TOOLS[0]["functionDeclarations"] 
+                            if t["name"] in route_info["selected_tools"]
+                        ]
+                    }
+                ]
+        except Exception as e:
+            print(f"Router error (falling back to all tools): {e}")
+
     for loop_count in range(15):  # limit to 8 turns to avoid infinite loops
         payload = {
             "system_instruction": {"parts": [{"text": system_text}]},
             "contents": contents,
-            "tools": GEMINI_TOOLS,
+            "tools": active_tools,
             "generationConfig": {
                 "maxOutputTokens": MAX_TOKENS,
                 "temperature": 0.2,  # lower temperature is better for tool calling
@@ -180,14 +251,7 @@ def chat(messages, approved_action=None):
                         "response": result
                     }
                 })
-                new_history.append({
-                    "role": "assistant",
-                    "content": f"[System: Executed tool {name} with args {json.dumps(args)}]"
-                })
-                new_history.append({
-                    "role": "user",
-                    "content": f"[System: Tool result: {truncate_result(result)}]"
-                })
+
 
             # Append the tool results message to contents history
             contents.append({
@@ -197,12 +261,32 @@ def chat(messages, approved_action=None):
             # Continue the loop to let Gemini process the tool outputs
             continue
         else:
+            # Check if Gemini outputted raw tool execution text instead of functionCall
+            reply_text = "".join([p.get("text", "") for p in parts if "text" in p])
+            raw_tool_match = re.search(r'\[System: Executed tool (\w+) with args\s*(\{.*?\})\]', reply_text, re.DOTALL)
+            if raw_tool_match:
+                tool_name = raw_tool_match.group(1)
+                try:
+                    tool_args = json.loads(raw_tool_match.group(2), strict=False)
+                    print(f">>> Intercepting raw tool text from model: {tool_name}")
+                    tool_result = execute_tool(tool_name, tool_args)
+                    contents.append({
+                        "role": "model",
+                        "parts": [{"text": reply_text}]
+                    })
+                    contents.append({
+                        "role": "user",
+                        "parts": [{"text": f"Tool '{tool_name}' result:\n{json.dumps(tool_result, default=str)}"}]
+                    })
+                    continue
+                except Exception as intercept_err:
+                    print(f"Failed to parse raw tool text: {intercept_err}")
+
             # No tool call; return the text response
             if accumulated_prompt_tokens > 0 or accumulated_response_tokens > 0:
                 log_token_usage(active_model, accumulated_prompt_tokens, accumulated_response_tokens, "chat")
 
             try:
-                reply_text = "".join([p.get("text", "") for p in parts if "text" in p])
                 return {
                     "reply": reply_text,
                     "new_history": new_history,

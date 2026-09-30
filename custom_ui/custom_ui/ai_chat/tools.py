@@ -185,6 +185,8 @@ def execute_tool(name, args):
             query = args.get("query", "").strip()
             if not query.lower().startswith("select"):
                 return {"error": "Only SELECT queries are allowed for security reasons."}
+            import re
+            query = re.sub(r'(?<!`)\b(tab[A-Z][a-zA-Z0-9]+(?:\s+[A-Z][a-zA-Z0-9]+)+)\b(?!`)', r'`\1`', query)
             res = frappe.db.sql(query, as_dict=True)
             return {"output": res}
 

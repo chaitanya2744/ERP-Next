@@ -41,7 +41,7 @@ def has_enough_balance():
         return False, "Insufficient AI Credits. Please ask your administrator to recharge the wallet."
     return True, ""
 
-def log_token_usage(model_name, prompt_tokens, response_tokens, api_method="chat"):
+def log_token_usage(model_name, prompt_tokens, response_tokens, api_method="chat", description=None):
     try:
         total_tokens = prompt_tokens + response_tokens
         costs = calculate_costs(model_name, prompt_tokens, response_tokens)
@@ -77,7 +77,7 @@ def log_token_usage(model_name, prompt_tokens, response_tokens, api_method="chat
         usage_doc.submit()
         
         # 4. Create Audit Ledger Transaction (DEBIT)
-        tx_desc = f"Chat: {model_name} ({total_tokens} tokens)"
+        tx_desc = description or f"{api_method.capitalize()}: {model_name} ({total_tokens} tokens)"
         tx_doc = frappe.get_doc({
             "doctype": "AI Credit Transaction",
             "transaction_type": "DEBIT",
