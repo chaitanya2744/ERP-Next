@@ -55,25 +55,38 @@ def chat(messages, approved_action=None, voice_gender="female"):
     if voice_gender not in ["female", "male"]:
         voice_gender = "female"
 
-    if voice_gender == "female":
+    # Determine user's language from latest user turn
+    user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
+    has_devanagari = bool(re.search(r'[ऀ-ॿ]', user_prompt))
+
+    if not has_devanagari:
         system_text += (
-            "\n\nVOICE PERSONA & GRAMMATICAL GENDER REQUIREMENT (STRICT):\n"
-            "You are a professional female AI assistant.\n"
-            "When responding in languages that distinguish grammatical gender in first person (such as Marathi and Hindi), "
-            "you MUST strictly use feminine first-person grammatical forms and inflections.\n"
-            "- In Marathi: Always use feminine verb endings like 'मी करू शकते' (NEVER 'शकतो'), 'मी मदत करते' (NEVER 'करतो'), "
-            "'मी शोध घेते' (NEVER 'घेतो'), 'मी तयार केली आहे' / 'मी बनवली आहे' (NEVER 'केला'), 'मी सांगेन', 'मी पाहिले'.\n"
-            "- In Hindi: Always use feminine verb endings like 'मैं कर सकती हूँ' (NEVER 'सकता हूँ'), 'मैं मदद करती हूँ' (NEVER 'करता हूँ'), "
-            "'मैं देखती हूँ' (NEVER 'देखता हूँ'), 'मैंने तैयार कर दी है' (NEVER 'कर दिया है'), 'मैं बताऊँगी' (NEVER 'बताऊँगा').\n"
-            "- Maintain this feminine persona consistently across all conversational turns and explanations."
+            "\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
+            "The user asked their question in ENGLISH.\n"
+            "You MUST formulate your entire response (including summaries, table headers, descriptions, and charts) EXCLUSIVELY in ENGLISH.\n"
+            "DO NOT reply in Marathi or Hindi."
         )
-    elif voice_gender == "male":
-        system_text += (
-            "\n\nVOICE PERSONA & GRAMMATICAL GENDER REQUIREMENT (STRICT):\n"
-            "You are a professional male AI assistant.\n"
-            "When responding in languages that distinguish grammatical gender in first person (such as Marathi and Hindi), "
-            "use masculine first-person grammatical forms (e.g. 'मी करू शकतो', 'मी करतो' in Marathi; 'मैं कर सकता हूँ', 'मैं करता हूँ' in Hindi)."
-        )
+    else:
+        # Devanagari detected: determine Marathi vs Hindi
+        marathi_markers = ['आहे', 'नावाने', 'करा', 'करायची', 'करायचे', 'करावे', 'केले', 'आणि', 'मध्ये', 'पाहिजे', 'हवे', 'द्या', 'पाठवा', 'झाले', 'हो', 'दाखवा']
+        is_marathi = any(m in user_prompt for m in marathi_markers)
+        lang_name = "MARATHI" if is_marathi else "HINDI"
+
+        if voice_gender == "female":
+            if is_marathi:
+                persona_rules = "Use feminine first-person forms: 'मी करू शकते' (NOT शकतो), 'मी मदत करते' (NOT करतो), 'मी तयार केली आहे' (NOT केला)."
+            else:
+                persona_rules = "Use feminine first-person forms: 'मैं कर सकती हूँ' (NOT सकता हूँ), 'मैं मदद करती हूँ' (NOT करता हूँ), 'मैंने तैयार कर दी है' (NOT कर दिया है)."
+            system_text += (
+                f"\n\nCRITICAL LANGUAGE & PERSONA DIRECTIVE:\n"
+                f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}.\n"
+                f"You are a female assistant. {persona_rules}"
+            )
+        else:
+            system_text += (
+                f"\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
+                f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}."
+            )
 
     # Convert chat history to Gemini format
     contents = []

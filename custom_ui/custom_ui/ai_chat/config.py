@@ -75,7 +75,7 @@ Rules:
        * Items must exist in ERPNext.
           - For 'Request for Quotation' (RFQ):
        * The DocType name is 'Request for Quotation'.
-       * In ERPNext, supplier is NOT a parent field. Suppliers are stored in the child table `suppliers` (`Request for Quotation Supplier`), e.g.: [{"supplier": "Supplier Name"}].
+       * In ERPNext, supplier is NOT a parent field. Suppliers are stored in the child table `suppliers` (`Request for Quotation Supplier`), e.g.: [{{"supplier": "Supplier Name"}}].
        * Items must be in the child table `items`, with `item_code`, `qty`, `uom`, `schedule_date`, and `warehouse`.
        * Upstream check: Check if the supplier and item exist in ERPNext before creating.
      - For 'Supplier Quotation':
