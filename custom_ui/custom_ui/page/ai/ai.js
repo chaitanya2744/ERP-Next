@@ -1073,7 +1073,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     frappe.call({
       method: 'custom_ui.custom_ui.api.chat',
       args: {
-        messages: JSON.stringify(history)
+        messages: JSON.stringify(history),
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
       },
       callback: function (r) {
         hideTyping();
@@ -1131,7 +1132,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       method: 'custom_ui.custom_ui.api.chat',
       args: {
         messages: JSON.stringify(history),
-        approved_action: JSON.stringify(tool_call)
+        approved_action: JSON.stringify(tool_call),
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
       },
       callback: function (r) {
         hideTyping();
@@ -1180,7 +1182,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     frappe.call({
       method: 'custom_ui.custom_ui.api.chat',
       args: {
-        messages: JSON.stringify(history)
+        messages: JSON.stringify(history),
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
       },
       callback: function (r) {
         hideTyping();
@@ -2541,6 +2544,45 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       .replace(/ - /g, ' · ');
   }
 
+  // ── Voice Gender Detection & Preference Helpers ───────────────────────────
+  function _detectVoiceGender(voice) {
+    if (!voice) return 'female';
+    var name = (typeof voice === 'string' ? voice : (voice.name || voice.voiceURI || '')).toLowerCase();
+    
+    // Explicit gender markers
+    if (name.includes('female') || name.includes('woman') || name.includes('girl')) return 'female';
+    if (name.includes('male') || name.includes('man') || name.includes('boy')) return 'male';
+
+    var maleKeywords = [
+      'hemant', 'madhur', 'david', 'mark', 'guy', 'george', 'prabhat', 'ravi',
+      'richard', 'james', 'brian', 'russell', 'oliver', 'thomas', 'alex', 'fred',
+      'daniel', 'ashok', 'rahul', 'amit'
+    ];
+
+    var femaleKeywords = [
+      'aarohi', 'swara', 'kalpana', 'heera', 'dhwani', 'neerja', 'zira', 'jenny', 'aria',
+      'sonia', 'samantha', 'victoria', 'karen', 'moira', 'fiona', 'tessa', 'stephanie',
+      'libby', 'natasha', 'clara', 'shruti', 'chitra', 'pallavi', 'tanisha', 'nirja',
+      'catherin', 'linda', 'susan', 'hazel', 'geeta', 'ananya', 'priya', 'sunita'
+    ];
+
+    for (var i = 0; i < maleKeywords.length; i++) {
+      if (name.includes(maleKeywords[i])) return 'male';
+    }
+
+    for (var j = 0; j < femaleKeywords.length; j++) {
+      if (name.includes(femaleKeywords[j])) return 'female';
+    }
+
+    return 'female';
+  }
+  window._detectVoiceGender = _detectVoiceGender;
+
+  function _getPreferredVoiceGender() {
+    return localStorage.getItem('custom_ui_voice_gender') || 'female';
+  }
+  window._getPreferredVoiceGender = _getPreferredVoiceGender;
+
   // ═══════════════════════════════════════════════════════════
   // SEARCHABLE VOICE PICKER DOCK CONTROLLER
   // ═══════════════════════════════════════════════════════════
@@ -2647,8 +2689,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       recommended.forEach(function(v) {
         var clean = _cleanVoiceName(v.name, v.lang);
         var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
+        var vGender = _detectVoiceGender(v);
+        var genderBadge = (vGender === 'female')
+          ? '<span style="background: rgba(236,72,153,0.12); color: #ec4899; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">♀ Female</span>'
+          : '<span style="background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">♂ Male</span>';
         html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\', \'' + _escapeHtml(v.lang || '') + '\')">';
-        html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + '</span>';
+        html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + genderBadge + '</span>';
         html += '  <span class="voice-picker-item-tag">' + _escapeHtml(v.lang || '') + '</span>';
         html += '</div>';
       });
@@ -2659,8 +2705,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       other.forEach(function(v) {
         var clean = _cleanVoiceName(v.name, v.lang);
         var isSelected = (savedVoice && (v.voiceURI === savedVoice || v.name === savedVoice)) ? ' selected' : '';
+        var vGender = _detectVoiceGender(v);
+        var genderBadge = (vGender === 'female')
+          ? '<span style="background: rgba(236,72,153,0.12); color: #ec4899; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">♀ Female</span>'
+          : '<span style="background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">♂ Male</span>';
         html += '<div class="voice-picker-item' + isSelected + '" onclick="onUserVoiceSelected(\'' + _escapeHtml(v.voiceURI || v.name) + '\', \'' + _escapeHtml(clean) + '\', \'' + _escapeHtml(v.lang || '') + '\')">';
-        html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + '</span>';
+        html += '  <span class="voice-picker-item-name">' + _escapeHtml(clean) + genderBadge + '</span>';
         html += '  <span class="voice-picker-item-tag">' + _escapeHtml(v.lang || '') + '</span>';
         html += '</div>';
       });
@@ -2746,6 +2796,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     var targetLang = null;
     if (chosenVoice) {
       targetLang = _detectLangFromVoice(chosenVoice.lang || voiceLang, chosenVoice.name);
+      var detectedGender = _detectVoiceGender(chosenVoice);
+      localStorage.setItem('custom_ui_voice_gender', detectedGender);
     } else if (voiceLang) {
       targetLang = _detectLangFromVoice(voiceLang, cleanName);
     }
@@ -2775,13 +2827,23 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     if (!window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
-      var sample = _currentLang === 'mr-IN' ? 'नमस्कार! मी आपली काय मदत करू शकतो?' :
-                   (_currentLang === 'hi-IN' ? 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?' :
-                   'Hello! How can I assist you today?');
+      var activeVoice = chosenVoice || _findBestVoice(_currentLang);
+      var gender = _detectVoiceGender(activeVoice);
+      var sample = '';
+      if (_currentLang === 'mr-IN') {
+        sample = (gender === 'female') 
+          ? 'नमस्कार! मी आपली काय मदत करू शकते?' 
+          : 'नमस्कार! मी आपली काय मदत करू शकतो?';
+      } else if (_currentLang === 'hi-IN') {
+        sample = (gender === 'female')
+          ? 'नमस्ते! मैं आपकी क्या सहायता कर सकती हूँ?'
+          : 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?';
+      } else {
+        sample = 'Hello! How can I assist you today?';
+      }
       var utt = new SpeechSynthesisUtterance(sample);
-      utt.lang = _currentLang;
-      var bestVoice = chosenVoice || _findBestVoice(_currentLang);
-      if (bestVoice) utt.voice = bestVoice;
+      utt.lang = (activeVoice && activeVoice.lang) || _currentLang;
+      if (activeVoice) utt.voice = activeVoice;
       window.speechSynthesis.speak(utt);
     } catch(e) {}
   }
@@ -2800,39 +2862,65 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     var voices = _browserVoices.length ? _browserVoices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
     if (!voices || !voices.length) return null;
 
-    // User-selected voice (per-lang or global)
+    // 1. Explicit user-saved voice for this specific language
     var userPref = localStorage.getItem('custom_ui_voice_' + lang) || '';
     if (userPref) {
       var pref = voices.find(function(v) { return v.voiceURI === userPref || v.name === userPref; });
       if (pref) return pref;
     }
 
+    var preferredGender = _getPreferredVoiceGender(); // 'female' (default) or 'male'
     var langBase = (lang || '').split('-')[0].toLowerCase();
 
-    // Priority 1: Exact lang match + online/natural (best quality)
-    var online = voices.find(function(v) {
-      return v.lang && v.lang.toLowerCase().startsWith(langBase) &&
-             (v.name.toLowerCase().includes('online') || v.name.toLowerCase().includes('natural'));
+    function langMatch(v) {
+      if (!v.lang) return false;
+      var vl = v.lang.toLowerCase().replace(/_/g, '-');
+      return vl === (lang || '').toLowerCase() || vl.startsWith(langBase);
+    }
+
+    var candidates = voices.filter(langMatch);
+
+    if (candidates.length > 0) {
+      // Priority 1: Exact/base lang match + preferred gender + online/natural
+      var genderOnline = candidates.find(function(v) {
+        return _detectVoiceGender(v) === preferredGender &&
+               (v.name.toLowerCase().includes('online') || v.name.toLowerCase().includes('natural'));
+      });
+      if (genderOnline) return genderOnline;
+
+      // Priority 2: Exact/base lang match + preferred gender (e.g. Microsoft Aarohi over Hemant)
+      var genderMatch = candidates.find(function(v) {
+        return _detectVoiceGender(v) === preferredGender;
+      });
+      if (genderMatch) return genderMatch;
+
+      // Priority 3: Exact/base lang match + online/natural
+      var online = candidates.find(function(v) {
+        return v.name.toLowerCase().includes('online') || v.name.toLowerCase().includes('natural');
+      });
+      if (online) return online;
+
+      // Priority 4: Any matching candidate for this language
+      return candidates[0];
+    }
+
+    // Fallback: English voice matching preferred gender (e.g. Zira over David)
+    var enVoices = voices.filter(function(v) {
+      return v.lang && v.lang.toLowerCase().startsWith('en');
     });
-    if (online) return online;
+    if (enVoices.length > 0) {
+      var enGender = enVoices.find(function(v) {
+        return _detectVoiceGender(v) === preferredGender;
+      });
+      if (enGender) return enGender;
+      return enVoices[0];
+    }
 
-    // Priority 2: Exact lang match
-    var exact = voices.find(function(v) {
-      return v.lang && v.lang.toLowerCase() === (lang || '').toLowerCase();
+    // Absolute fallback: Any voice matching preferred gender
+    var anyGender = voices.find(function(v) {
+      return _detectVoiceGender(v) === preferredGender;
     });
-    if (exact) return exact;
-
-    // Priority 3: Same base language (e.g. 'mr' for 'mr-IN')
-    var base = voices.find(function(v) {
-      return v.lang && v.lang.toLowerCase().startsWith(langBase);
-    });
-    if (base) return base;
-
-    // Priority 4: Fallback to any English voice
-    var enVoice = voices.find(function(v) { return v.lang && v.lang.toLowerCase().startsWith('en'); });
-    if (enVoice) return enVoice;
-
-    return null;
+    return anyGender || voices[0];
   }
 
   // ── speakReply: speak AI response via Web Speech Synthesis TTS ───────────

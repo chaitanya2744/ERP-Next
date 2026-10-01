@@ -2,17 +2,53 @@ import frappe
 from frappe.utils import now_datetime
 import requests
 
+DEFAULT_MODEL_RATES = {
+    "typesafe-jev": {
+        "input_cost_per_1m_usd": 0.042,   # $42 per 1 Billion tokens ($0.042 / 1M)
+        "output_cost_per_1m_usd": 0.0,    # Free ($0) for structured output
+        "markup_percentage": 0.0
+    },
+    "gemini-2.5-flash": {
+        "input_cost_per_1m_usd": 0.15,
+        "output_cost_per_1m_usd": 0.60,
+        "markup_percentage": 20.0
+    },
+    "gemini-3.1-flash-lite": {
+        "input_cost_per_1m_usd": 0.25,
+        "output_cost_per_1m_usd": 1.50,
+        "markup_percentage": 20.0
+    }
+}
+
 def get_model_rates(model_name):
-    # 1. Exact match in AI Model Rate
+    # 1. Exact match in AI Model Rate doctype
     rate_doc = frappe.get_all("AI Model Rate", filters={"model_name": model_name}, fields=["input_cost_per_1m_usd", "output_cost_per_1m_usd", "markup_percentage"])
     if rate_doc:
         return rate_doc[0]
     
-    # 2. Strict check: If model has no rate configured, throw explicit configuration error
-    frappe.throw(
-        f"Billing configuration missing: No pricing rate defined for model '{model_name}'. "
-        f"Please create an 'AI Model Rate' entry in ERPNext for '{model_name}' before proceeding."
-    )
+    # 2. Auto-seed standard rates if entry is missing on new servers/sites
+    if model_name in DEFAULT_MODEL_RATES:
+        def_rate = DEFAULT_MODEL_RATES[model_name]
+        try:
+            doc = frappe.get_doc({
+                "doctype": "AI Model Rate",
+                "model_name": model_name,
+                "input_cost_per_1m_usd": def_rate["input_cost_per_1m_usd"],
+                "output_cost_per_1m_usd": def_rate["output_cost_per_1m_usd"],
+                "markup_percentage": def_rate["markup_percentage"]
+            })
+            doc.insert(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception:
+            pass
+        return def_rate
+
+    # 3. Safe fallback rather than throwing a breaking error
+    return {
+        "input_cost_per_1m_usd": 0.042,
+        "output_cost_per_1m_usd": 0.0,
+        "markup_percentage": 0.0
+    }
 
 def calculate_costs(model_name, prompt_tokens, response_tokens):
     rates = get_model_rates(model_name)

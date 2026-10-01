@@ -14,7 +14,7 @@ from custom_ui.custom_ui.ai_chat.tools import execute_tool
 from custom_ui.custom_ui.ai_chat.budget import has_enough_balance, log_token_usage
 
 @frappe.whitelist()
-def chat(messages, approved_action=None):
+def chat(messages, approved_action=None, voice_gender="female"):
     """
     Endpoint called by the chat page.
     messages: JSON string of [{role, content}, ...]
@@ -48,6 +48,32 @@ def chat(messages, approved_action=None):
         today=frappe.utils.nowdate(),
     )
     system_text += "\n\nCRITICAL RULE: When executing tools to retrieve data, the volume of data MUST be MODERATE—no less, no more. Do not fetch massive datasets that overload tokens, but ensure you retrieve enough rows to provide complete context."
+
+    if not voice_gender or not isinstance(voice_gender, str):
+        voice_gender = "female"
+    voice_gender = voice_gender.lower().strip()
+    if voice_gender not in ["female", "male"]:
+        voice_gender = "female"
+
+    if voice_gender == "female":
+        system_text += (
+            "\n\nVOICE PERSONA & GRAMMATICAL GENDER REQUIREMENT (STRICT):\n"
+            "You are a professional female AI assistant.\n"
+            "When responding in languages that distinguish grammatical gender in first person (such as Marathi and Hindi), "
+            "you MUST strictly use feminine first-person grammatical forms and inflections.\n"
+            "- In Marathi: Always use feminine verb endings like 'मी करू शकते' (NEVER 'शकतो'), 'मी मदत करते' (NEVER 'करतो'), "
+            "'मी शोध घेते' (NEVER 'घेतो'), 'मी तयार केली आहे' / 'मी बनवली आहे' (NEVER 'केला'), 'मी सांगेन', 'मी पाहिले'.\n"
+            "- In Hindi: Always use feminine verb endings like 'मैं कर सकती हूँ' (NEVER 'सकता हूँ'), 'मैं मदद करती हूँ' (NEVER 'करता हूँ'), "
+            "'मैं देखती हूँ' (NEVER 'देखता हूँ'), 'मैंने तैयार कर दी है' (NEVER 'कर दिया है'), 'मैं बताऊँगी' (NEVER 'बताऊँगा').\n"
+            "- Maintain this feminine persona consistently across all conversational turns and explanations."
+        )
+    elif voice_gender == "male":
+        system_text += (
+            "\n\nVOICE PERSONA & GRAMMATICAL GENDER REQUIREMENT (STRICT):\n"
+            "You are a professional male AI assistant.\n"
+            "When responding in languages that distinguish grammatical gender in first person (such as Marathi and Hindi), "
+            "use masculine first-person grammatical forms (e.g. 'मी करू शकतो', 'मी करतो' in Marathi; 'मैं कर सकता हूँ', 'मैं करता हूँ' in Hindi)."
+        )
 
     # Convert chat history to Gemini format
     contents = []
@@ -107,19 +133,7 @@ def chat(messages, approved_action=None):
     
     user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
 
-    # 0. Voice Zero-Data-Entry: Ghost HUD & Slot-Filling Triage via JEV
-    if not approved_action and user_prompt:
-        try:
-            from custom_ui.custom_ui.ai_chat.fast_draft import attempt_voice_draft
-            draft_reply = attempt_voice_draft(user_prompt, history)
-            if draft_reply:
-                return {
-                    "reply": draft_reply,
-                    "new_history": new_history,
-                    "tokens": {"prompt": 0, "response": 0, "total": 0}
-                }
-        except Exception as draft_err:
-            frappe.log_error(f"Voice Draft Error: {draft_err}", "AI Voice Draft")
+
 
     # 1. Bypass & Fast Resolution
     active_tools = GEMINI_TOOLS
