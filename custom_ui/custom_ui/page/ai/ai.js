@@ -30,6 +30,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     $('body').addClass('ai-assistant-page-active');
     $(wrapper).show();
     if (typeof scrollToBottom === 'function') scrollToBottom();
+    setTimeout(function() { if (typeof window.loadSessions === 'function') window.loadSessions(); }, 300);
   };
 
   frappe.pages["ai"].on_page_hide = function (wrapper) {
@@ -240,9 +241,22 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
     // Inline HTML markup directly to bypass template cache issues
   let html = `
-    <div id="ai-chat-root">
+    <div class="chat-layout">
+      <div id="chat-sidebar" class="chat-sidebar open">
+        <div class="sidebar-header">
+          <span class="sidebar-title">
+             <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+             AI Chat
+          </span>
+          <button id="new-chat-btn" onclick="startNewChat()">＋ New</button>
+        </div>
+        <div id="session-list"></div>
+      </div>
+      <div id="ai-chat-root">
+
       <!-- Header -->
       <div id="chat-header">
+        <button id="floating-sidebar-toggle" onclick="toggleSidebar()" style="display: none;" title="Open Sidebar">☰</button>
         <div class="avatar">✦</div>
         <div class="info">
           <div class="name">AI Assistant</div>
@@ -495,9 +509,14 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   // Initialize dynamic prompt suggestion component
   initExecutiveSuite();
 
+
   // State
+  var currentSessionId = null;
+  var sessions = [];
+  var sidebarOpen = true;
   var history = [];
   var isLoading = false;
+  var viewToken = 0;
 
   // DOM elements (scoped to this page wrapper)
   var messagesEl = wrapper.querySelector('#chat-messages');
@@ -733,7 +752,150 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     }
   };
 
-  window.clearChat = function () {
+  
+  window.toggleSidebar = function() {
+    sidebarOpen = !sidebarOpen;
+    var sb = wrapper.querySelector('#chat-sidebar');
+    var floatBtn = wrapper.querySelector('#floating-sidebar-toggle');
+    if (sb) {
+      if (sidebarOpen) {
+        sb.classList.remove('closed');
+        if (floatBtn) floatBtn.style.display = 'none';
+      } else {
+        sb.classList.add('closed');
+        if (floatBtn) floatBtn.style.display = 'flex';
+      }
+    }
+  };
+
+  window.loadSessions = function() {
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.list_sessions',
+      args: { limit: 20 },
+      callback: function(r) {
+        if (r.message) {
+          sessions = r.message;
+          renderSessions();
+        }
+      }
+    });
+  };
+
+  window.renderSessions = function() {
+    var sl = wrapper.querySelector('#session-list');
+    if (!sl) return;
+    sl.innerHTML = '';
+    
+    var html = '';
+    if (sessions.length === 0) {
+      html = '<div style="padding: 20px; color: var(--pro-text-muted); font-size: 13px; text-align: center; opacity: 0.7;">No chats yet</div>';
+    }
+    sessions.forEach(function(s) {
+      var activeClass = (s.name === currentSessionId) ? 'active' : '';
+      html += `
+        <div class="session-item ${activeClass}" data-id="${s.name}">
+          <span class="session-title" onclick="switchSession('${s.name}')">${(s.title || 'New Chat')}</span>
+          <div class="session-actions">
+            <button onclick="renameSession('${s.name}')" title="Rename">✏</button>
+            <button onclick="deleteSession('${s.name}')" title="Delete">🗑</button>
+          </div>
+        </div>
+      `;
+    });
+    sl.innerHTML = html;
+  };
+
+  window.switchSession = function(id) {
+    if (currentSessionId === id) return;
+    
+    viewToken++;
+    currentSessionId = id;
+    isLoading = false;
+    sendBtn.disabled = false;
+    hideTyping();
+
+    var messagesEl = wrapper.querySelector('#chat-messages');
+    if (messagesEl) {
+      messagesEl.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color: var(--pro-text-muted); font-size: 14px;"><div class="loadingRing_RJI3 searchBarLoadingRing_YnHq" style="margin-right:10px;"><div></div><div></div><div></div><div></div></div> Loading chat history...</div>';
+    }
+    
+    var sl = wrapper.querySelector('#session-list');
+    if (sl) {
+      sl.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+      var clickedItem = sl.querySelector(`.session-item[data-id="${id}"]`);
+      if (clickedItem) clickedItem.classList.add('active');
+    }
+
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.get_session',
+      args: { session_id: id },
+      callback: function(r) {
+        if (r.message && currentSessionId === id) {
+          history = r.message.messages || [];
+          
+          var messagesEl = wrapper.querySelector('#chat-messages');
+          if (messagesEl) {
+            messagesEl.innerHTML = '';
+            history.forEach(function(msg) {
+              appendMessage(msg.role === 'user' ? 'user' : 'ai', msg.content);
+            });
+          }
+          
+          renderSessions();
+        }
+      }
+    });
+  };
+
+  window.startNewChat = function() {
+    viewToken++;
+    currentSessionId = null;
+    isLoading = false;
+    sendBtn.disabled = false;
+    hideTyping();
+    clearChat();
+    renderSessions();
+  };
+
+  window.renameSession = function(id) {
+    var newTitle = prompt("Enter new title:");
+    if (!newTitle) return;
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.rename_session',
+      args: { session_id: id, new_title: newTitle },
+      callback: function() {
+        loadSessions();
+      }
+    });
+  };
+
+  window.deleteSession = function(id) {
+    if (!confirm("Are you sure you want to delete this chat?")) return;
+    frappe.call({
+      method: 'custom_ui.custom_ui.api.delete_session',
+      args: { session_id: id },
+      callback: function() {
+        if (currentSessionId === id) {
+          startNewChat();
+        } else {
+          loadSessions();
+        }
+      }
+    });
+  };
+
+  // initial load
+  setTimeout(function() {
+    if (typeof window.loadSessions === 'function') {
+      window.loadSessions();
+    }
+  }, 600);
+
+window.clearChat = function () {
+    viewToken++;
+    isLoading = false;
+    sendBtn.disabled = false;
+    hideTyping();
     history = [];
     messagesEl.innerHTML = '';
 
@@ -766,6 +928,24 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     var text = inputEl.value.trim();
     if (!text || isLoading) return;
 
+    var requestViewToken = viewToken;
+    var requestSessionId = currentSessionId;
+
+    // Optimistically create session in sidebar if starting a new chat
+    if (!currentSessionId) {
+      var sl = wrapper.querySelector('#session-list');
+      if (sl) {
+        sl.querySelectorAll('.session-item').forEach(function(el) { el.classList.remove('active'); });
+        var emptyNotice = sl.querySelector('div');
+        if (emptyNotice && emptyNotice.textContent.includes('No chats yet')) {
+          emptyNotice.remove();
+        }
+        var cleanTitle = text.length > 40 ? text.substring(0, 40) + '...' : text;
+        var tempHtml = '<div class="session-item active" id="optimistic-session"><span class="session-title">' + cleanTitle.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span><div class="session-actions"></div></div>';
+        sl.insertAdjacentHTML('afterbegin', tempHtml);
+      }
+    }
+
     inputEl.value = '';
     inputEl.style.height = 'auto';
     isLoading = true;
@@ -779,43 +959,61 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       method: 'custom_ui.custom_ui.api.chat',
       args: {
         messages: JSON.stringify(history),
-        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female',
+        session_id: currentSessionId
       },
       callback: function (r) {
-        hideTyping();
-        isLoading = false;
-        sendBtn.disabled = false;
+        var targetSessionId = (r && r.message && r.message.session_id) ? r.message.session_id : requestSessionId;
 
-        if (r && r.message) {
-          if (typeof r.message === 'object') {
-            if (r.message.new_history) {
-              r.message.new_history.forEach(function (msg) {
-                history.push(msg);
-              });
-            }
-            if (r.message.error) {
-              appendMessage('ai', '⚠ ' + r.message.error);
-            } else if (r.message.requires_approval) {
-              renderApprovalCard(r.message.tool_call);
-            } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply, r.message.tokens);
-              history.push({ role: 'assistant', content: r.message.reply });
-              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          sendBtn.disabled = false;
+
+          if (r && r.message) {
+            if (typeof r.message === 'object') {
+              if (r.message.session_id && currentSessionId !== r.message.session_id) {
+                currentSessionId = r.message.session_id;
+              }
+              if (r.message.new_history) {
+                r.message.new_history.forEach(function (msg) {
+                  history.push(msg);
+                });
+              }
+              if (r.message.error) {
+                appendMessage('ai', '⚠ ' + r.message.error);
+              } else if (r.message.requires_approval) {
+                renderApprovalCard(r.message.tool_call);
+              } else if (r.message.reply !== undefined) {
+                appendMessage('ai', r.message.reply, r.message.tokens);
+                history.push({ role: 'assistant', content: r.message.reply });
+                if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
+              }
+            } else {
+              var reply = r.message;
+              appendMessage('ai', reply);
+              history.push({ role: 'assistant', content: reply });
             }
           } else {
-            var reply = r.message;
-            appendMessage('ai', reply);
-            history.push({ role: 'assistant', content: reply });
+            appendMessage('ai', '⚠ Sorry, I could not get a response. Please try again.');
           }
+          loadSessions();
         } else {
-          appendMessage('ai', '⚠ Sorry, I could not get a response. Please try again.');
+          // User navigated away (clicked New Chat or switched to another session).
+          // Backend has already persisted the response in targetSessionId.
+          loadSessions();
+          if (targetSessionId && currentSessionId === targetSessionId) {
+            switchSession(targetSessionId);
+          }
         }
       },
       error: function (err) {
-        hideTyping();
-        isLoading = false;
-        sendBtn.disabled = false;
-        appendMessage('ai', '⚠ Connection error. Verify your Gemini API key is configured.');
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          sendBtn.disabled = false;
+          appendMessage('ai', '⚠ Connection error. Verify your Gemini API key is configured.');
+        }
         console.error('AI chat error:', err);
       }
     });
@@ -830,6 +1028,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     var args = JSON.parse(decodeURIComponent(argsStr));
     var tool_call = { name: name, args: args };
 
+    var requestViewToken = viewToken;
+    var requestSessionId = currentSessionId;
+
     isLoading = true;
     showTyping();
 
@@ -838,38 +1039,54 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       args: {
         messages: JSON.stringify(history),
         approved_action: JSON.stringify(tool_call),
-        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female',
+        session_id: currentSessionId
       },
       callback: function (r) {
-        hideTyping();
-        isLoading = false;
-        if (r && r.message) {
-          if (typeof r.message === 'object') {
-            if (r.message.new_history) {
-              r.message.new_history.forEach(function (msg) {
-                history.push(msg);
-              });
+        var targetSessionId = (r && r.message && r.message.session_id) ? r.message.session_id : requestSessionId;
+
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          if (r && r.message) {
+            if (typeof r.message === 'object') {
+              if (r.message.session_id && currentSessionId !== r.message.session_id) {
+                currentSessionId = r.message.session_id;
+              }
+              if (r.message.new_history) {
+                r.message.new_history.forEach(function (msg) {
+                  history.push(msg);
+                });
+              }
+              if (r.message.error) {
+                appendMessage('ai', '⚠ ' + r.message.error);
+              } else if (r.message.requires_approval) {
+                renderApprovalCard(r.message.tool_call);
+              } else if (r.message.reply !== undefined) {
+                appendMessage('ai', r.message.reply, r.message.tokens);
+                history.push({ role: 'assistant', content: r.message.reply });
+                if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
+              }
+            } else {
+              var reply = r.message;
+              appendMessage('ai', reply);
+              history.push({ role: 'assistant', content: reply });
             }
-            if (r.message.error) {
-              appendMessage('ai', '⚠ ' + r.message.error);
-            } else if (r.message.requires_approval) {
-              renderApprovalCard(r.message.tool_call);
-            } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply, r.message.tokens);
-              history.push({ role: 'assistant', content: r.message.reply });
-              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
-            }
-          } else {
-            var reply = r.message;
-            appendMessage('ai', reply);
-            history.push({ role: 'assistant', content: reply });
+          }
+          loadSessions();
+        } else {
+          loadSessions();
+          if (targetSessionId && currentSessionId === targetSessionId) {
+            switchSession(targetSessionId);
           }
         }
       },
       error: function (err) {
-        hideTyping();
-        isLoading = false;
-        appendMessage('ai', '⚠ Execution failed.');
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          appendMessage('ai', '⚠ Execution failed.');
+        }
       }
     });
   };
@@ -882,38 +1099,62 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     appendMessage('user', rejectionMsg);
     history.push({ role: 'user', content: rejectionMsg });
 
+    var requestViewToken = viewToken;
+    var requestSessionId = currentSessionId;
+
     isLoading = true;
     showTyping();
     frappe.call({
       method: 'custom_ui.custom_ui.api.chat',
       args: {
         messages: JSON.stringify(history),
-        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female'
+        voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female',
+        session_id: currentSessionId
       },
       callback: function (r) {
-        hideTyping();
-        isLoading = false;
-        if (r && r.message) {
-          if (typeof r.message === 'object') {
-            if (r.message.new_history) {
-              r.message.new_history.forEach(function (msg) {
-                history.push(msg);
-              });
+        var targetSessionId = (r && r.message && r.message.session_id) ? r.message.session_id : requestSessionId;
+
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          if (r && r.message) {
+            if (typeof r.message === 'object') {
+              if (r.message.session_id && currentSessionId !== r.message.session_id) {
+                currentSessionId = r.message.session_id;
+              }
+              if (r.message.new_history) {
+                r.message.new_history.forEach(function (msg) {
+                  history.push(msg);
+                });
+              }
+              if (r.message.error) {
+                appendMessage('ai', '⚠ ' + r.message.error);
+              } else if (r.message.requires_approval) {
+                renderApprovalCard(r.message.tool_call);
+              } else if (r.message.reply !== undefined) {
+                appendMessage('ai', r.message.reply, r.message.tokens);
+                history.push({ role: 'assistant', content: r.message.reply });
+                if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
+              }
+            } else {
+              var reply = r.message;
+              appendMessage('ai', reply);
+              history.push({ role: 'assistant', content: reply });
             }
-            if (r.message.error) {
-              appendMessage('ai', '⚠ ' + r.message.error);
-            } else if (r.message.requires_approval) {
-              renderApprovalCard(r.message.tool_call);
-            } else if (r.message.reply !== undefined) {
-              appendMessage('ai', r.message.reply, r.message.tokens);
-              history.push({ role: 'assistant', content: r.message.reply });
-              if (typeof updateWalletSummaryUI === 'function') updateWalletSummaryUI();
-            }
-          } else {
-            var reply = r.message;
-            appendMessage('ai', reply);
-            history.push({ role: 'assistant', content: reply });
           }
+          loadSessions();
+        } else {
+          loadSessions();
+          if (targetSessionId && currentSessionId === targetSessionId) {
+            switchSession(targetSessionId);
+          }
+        }
+      },
+      error: function (err) {
+        if (viewToken === requestViewToken) {
+          hideTyping();
+          isLoading = false;
+          appendMessage('ai', '⚠ Rejection handling failed.');
         }
       }
     });
@@ -2930,3 +3171,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     injectTokenCalcModal();
     updateWalletSummaryUI();
   }, 350);
+  
+  if (typeof window.loadSessions === 'function') {
+      window.loadSessions();
+  }
