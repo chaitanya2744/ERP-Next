@@ -1,0 +1,13 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "AI Settings",
+  "enabled": 1,
+  "modified": "2026-06-24 15:15:00.000000",
+  "module": "Custom UI",
+  "name": "AI Settings Progress",
+  "script": "\nfrappe.ui.form.on('AI Settings', {\n    refresh: function(frm) {\n        let balance = frm.doc.balance_inr || 0;\n        let color = balance > 50 ? 'green' : 'red';\n        let currency = frm.doc.currency || 'INR';\n        let formatted_balance = format_currency(balance, currency);\n        frm.dashboard.set_headline('Live Prepaid Wallet Balance: ' + formatted_balance, color);\n    }\n});\n",
+  "view": "Form"
+ }
+]
