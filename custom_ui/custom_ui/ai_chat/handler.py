@@ -14,11 +14,12 @@ from custom_ui.custom_ui.ai_chat.tools import execute_tool
 from custom_ui.custom_ui.ai_chat.budget import has_enough_balance, log_token_usage
 
 @frappe.whitelist()
-def chat(messages, approved_action=None, voice_gender="female"):
+def chat(messages, approved_action=None, voice_gender="female", session_id=None):
     """
     Endpoint called by the chat page.
     messages: JSON string of [{role, content}, ...]
     approved_action: JSON string of tool to execute directly (after user approval)
+    session_id: ID of the AI Chat Session
     Returns: assistant reply string or approval required dict
     """
     try:
@@ -314,9 +315,15 @@ def chat(messages, approved_action=None, voice_gender="female"):
                 log_token_usage(active_model, accumulated_prompt_tokens, accumulated_response_tokens, "chat")
 
             try:
+                from custom_ui.custom_ui.api import save_session
+                final_history = history + new_history
+                final_history.append({"role": "assistant", "content": reply_text})
+                new_session_id = save_session(session_id, json.dumps(final_history))
+                
                 return {
                     "reply": reply_text,
                     "new_history": new_history,
+                    "session_id": new_session_id,
                     "tokens": {
                         "prompt": accumulated_prompt_tokens,
                         "response": accumulated_response_tokens,
@@ -324,7 +331,7 @@ def chat(messages, approved_action=None, voice_gender="female"):
                     }
                 }
             except IndexError:
-                return {"reply": "No response text returned.", "new_history": new_history, "tokens": {}}
+                return {"reply": "No response text returned.", "new_history": new_history, "session_id": session_id, "tokens": {}}
 
     if accumulated_prompt_tokens > 0 or accumulated_response_tokens > 0:
         log_token_usage(active_model, accumulated_prompt_tokens, accumulated_response_tokens, "chat")
