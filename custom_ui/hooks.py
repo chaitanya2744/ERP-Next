@@ -16,6 +16,7 @@ app_license = "mit"
 app_include_css = ["/assets/custom_ui/css/minimal_desk_v9.css"]
 app_include_js = [
     "/assets/custom_ui/js/breadcrumb_chevron_fix.js",
+    "/assets/custom_ui/js/ai/executive_prompts.js",
     "/assets/custom_ui/js/ai_navigation.js"
 ]
 
