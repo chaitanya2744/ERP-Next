@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-18 12:54:07.073302",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "model",
+  "prompt_tokens",
+  "response_tokens",
+  "total_tokens",
+  "raw_cost_usd",
+  "charged_cost_usd",
+  "charged_cost_inr",
+  "markup_percentage_used",
+  "exchange_rate_used",
+  "request_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt Tokens"
+  },
+  {
+   "fieldname": "response_tokens",
+   "fieldtype": "Int",
+   "label": "Response Tokens"
+  },
+  {
+   "fieldname": "total_tokens",
+   "fieldtype": "Int",
+   "label": "Total Tokens"
+  },
+  {
+   "fieldname": "raw_cost_usd",
+   "fieldtype": "Float",
+   "label": "Raw Cost (USD)",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "charged_cost_usd",
+   "fieldtype": "Float",
+   "label": "Charged Cost (USD)",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "charged_cost_inr",
+   "fieldtype": "Currency",
+   "label": "Charged Cost (INR)",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "markup_percentage_used",
+   "fieldtype": "Percent",
+   "label": "Markup Percentage Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "exchange_rate_used",
+   "fieldtype": "Float",
+   "label": "Exchange Rate Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "request_time",
+   "fieldtype": "Datetime",
+   "label": "Request Time",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-06-24 15:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom UI",
+ "name": "AI Token Usage Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

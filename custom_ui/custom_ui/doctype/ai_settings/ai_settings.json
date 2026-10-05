@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-18 12:54:06.997761",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "balance_inr",
+  "total_purchased_inr",
+  "total_consumed_inr",
+  "low_balance_notified",
+  "current_usd_to_inr_rate",
+  "alert_email",
+  "currency"
+ ],
+ "fields": [
+  {
+   "default": "0.0",
+   "fieldname": "balance_inr",
+   "fieldtype": "Currency",
+   "label": "Wallet Balance",
+   "options": "currency"
+  },
+  {
+   "default": "0.0",
+   "fieldname": "total_purchased_inr",
+   "fieldtype": "Currency",
+   "label": "Total Purchased",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0.0",
+   "fieldname": "total_consumed_inr",
+   "fieldtype": "Currency",
+   "label": "Total Consumed",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "low_balance_notified",
+   "fieldtype": "Check",
+   "label": "Low Balance Notified",
+   "read_only": 1
+  },
+  {
+   "default": "84.0",
+   "fieldname": "current_usd_to_inr_rate",
+   "fieldtype": "Float",
+   "label": "Current USD to INR Rate"
+  },
+  {
+   "fieldname": "alert_email",
+   "fieldtype": "Data",
+   "label": "Alert Email",
+   "options": "Email"
+  },
+  {
+   "default": "INR",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-24 15:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom UI",
+ "name": "AI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
