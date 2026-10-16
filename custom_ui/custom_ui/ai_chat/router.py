@@ -4,7 +4,15 @@ import frappe
 from custom_ui.custom_ui.ai_chat.budget import log_token_usage
 
 JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone"
-JEV_API_KEY = os.getenv("JEV_API_KEY") or getattr(frappe.conf, "jev_api_key", None) or "apikey_2153796ebf47547745e9be43447d7896f359_f99fb92ac76509b231bce448bef6068cd4868510d023da1ad77ebded92be83f9"
+if os.getenv("JEV_API_KEY"):
+    JEV_API_KEY = os.getenv("JEV_API_KEY")
+elif getattr(frappe.conf, "jev_api_key", None):
+    JEV_API_KEY = frappe.conf.jev_api_key
+else:
+    raise RuntimeError(
+        "JEV_API_KEY is not configured. Export JEV_API_KEY, "
+        "or run: bench set-config jev_api_key <key>"
+    )
 
 TOOL_MAPPINGS = {
     "direct_lookup": ["execute_sql_query", "get_documents", "get_document", "describe_doctype"],

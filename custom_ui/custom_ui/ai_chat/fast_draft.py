@@ -8,11 +8,17 @@ from custom_ui.custom_ui.ai_chat.tools import resolve_supplier, resolve_customer
 
 JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone"
 def get_jev_api_key():
-    try:
-        conf_val = frappe.conf.get("jev_api_key") if hasattr(frappe, "conf") and frappe.conf else None
-    except Exception:
-        conf_val = None
-    return os.getenv("JEV_API_KEY") or conf_val or "apikey_2153796ebf47547745e9be43447d7896f359_f99fb92ac76509b231bce448bef6068cd4868510d023da1ad77ebded92be83f9"
+    if hasattr(frappe, "conf") and frappe.conf:
+        conf_val = frappe.conf.get("jev_api_key")
+        if conf_val:
+            return conf_val
+    env_key = os.getenv("JEV_API_KEY")
+    if env_key:
+        return env_key
+    raise RuntimeError(
+        "JEV_API_KEY is not configured. Export JEV_API_KEY, "
+        "or run: bench set-config jev_api_key <key>"
+    )
 
 JEV_API_KEY = get_jev_api_key()
 
