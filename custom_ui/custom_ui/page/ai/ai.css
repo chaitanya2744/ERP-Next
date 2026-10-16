@@ -3136,11 +3136,15 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   height: 100%;
   width: 100%;
   background: var(--chat-bg);
+  overflow: hidden;
 }
 
 .chat-sidebar {
   width: 280px;
   min-width: 280px;
+  max-width: 280px;
+  height: 100%;
+  max-height: 100%;
   background: var(--pro-surface);
   border-right: 1px solid var(--pro-border);
   display: flex;
@@ -3149,21 +3153,30 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   z-index: 10;
+  position: relative;
 }
 
 .chat-sidebar.closed {
-  width: 0;
-  min-width: 0;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
   border-right: none;
 }
 
-.sidebar-header {
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--pro-border);
-  background: var(--header-bg);
+.chat-sidebar .sidebar-header {
+  flex-shrink: 0 !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-bottom: 1px solid var(--pro-border) !important;
+  background: var(--header-bg, var(--pro-surface)) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
 }
 
 .sidebar-title {
@@ -3173,6 +3186,8 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   align-items: center;
   gap: 12px;
   font-size: 15px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 #sidebar-toggle {
@@ -3181,12 +3196,15 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   border-radius: var(--radius-sm);
   width: 28px;
   height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--pro-text-main);
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 #sidebar-toggle:hover {
@@ -3225,6 +3243,11 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   font-size: 13px;
   font-weight: 500;
   transition: background 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #new-chat-btn:hover {
@@ -3232,8 +3255,10 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
 }
 
 #session-list {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding: 12px;
 }
 

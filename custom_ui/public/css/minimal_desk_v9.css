@@ -126,12 +126,24 @@ html { background-color: var(--cu-bg) !important; }
 /* ──────────────────────────────────────────────────
    4. SIDEBAR STYLING
    ────────────────────────────────────────────────── */
-.body-sidebar-container {
+.body-sidebar-container,
+.body-sidebar-container.expanded {
+    position: relative !important;
+    z-index: 1030 !important;
     border-right: 1px solid var(--cu-border) !important;
     box-shadow: 2px 0 10px -4px rgba(0,98,105,.12) !important;
 }
 .body-sidebar {
+    position: relative;
+    z-index: 1032 !important;
     background: linear-gradient(180deg, #FFFFFF 0%, #F0F7F8 100%) !important;
+}
+.body-sidebar-container.expanded .body-sidebar {
+    position: absolute !important;
+    z-index: 1032 !important;
+}
+.body-sidebar-container.expanded .overlay {
+    z-index: 1029 !important;
 }
 .standard-sidebar-item .item-anchor {
     border-radius: 7px !important;
