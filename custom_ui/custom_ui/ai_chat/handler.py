@@ -14,7 +14,7 @@ from custom_ui.custom_ui.ai_chat.tools import execute_tool
 from custom_ui.custom_ui.ai_chat.budget import has_enough_balance, log_token_usage
 
 @frappe.whitelist()
-def chat(messages, approved_action=None, voice_gender="female", session_id=None):
+def chat(messages, approved_action=None, voice_gender="female", session_id=None, voice_language=None, is_voice_call=0):
     """
     Endpoint called by the chat page.
     messages: JSON string of [{role, content}, ...]
@@ -56,47 +56,173 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None)
     if voice_gender not in ["female", "male"]:
         voice_gender = "female"
 
-    # Determine user's language from latest user turn
-    user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
-    has_devanagari = bool(re.search(r'[ऀ-ॿ]', user_prompt))
+    # Determine language directive (voice call mode vs standard text mode)
+    lang_key = (voice_language.split('-')[0].lower() if voice_language else "").strip()
+    is_call = bool(is_voice_call and str(is_voice_call).lower() not in ["0", "false"])
 
-    if not has_devanagari:
-        system_text += (
-            "\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
-            "The user asked their question in ENGLISH.\n"
-            "You MUST formulate your entire response (including summaries, table headers, descriptions, and charts) EXCLUSIVELY in ENGLISH.\n"
-            "DO NOT reply in Marathi or Hindi."
-        )
-    else:
-        # Devanagari detected: determine Marathi vs Hindi
-        marathi_markers = ['आहे', 'नावाने', 'करा', 'करायची', 'करायचे', 'करावे', 'केले', 'आणि', 'मध्ये', 'पाहिजे', 'हवे', 'द्या', 'पाठवा', 'झाले', 'हो', 'दाखवा']
-        is_marathi = any(m in user_prompt for m in marathi_markers)
-        lang_name = "MARATHI" if is_marathi else "HINDI"
+    LANG_MAP = {
+        "mr": {
+            "name": "MARATHI",
+            "native": "मराठी",
+            "script": "Devanagari",
+            "female": "Use feminine first-person forms: 'मी करू शकते' (NOT शकतो), 'मी मदत करते' (NOT करतो), 'मी तयार केली आहे' (NOT केला).",
+            "male": "Use masculine first-person forms: 'मी करू शकतो', 'मी मदत करतो', 'मी तयार केला आहे'."
+        },
+        "hi": {
+            "name": "HINDI",
+            "native": "हिन्दी",
+            "script": "Devanagari",
+            "female": "Use feminine first-person forms: 'मैं कर सकती हूँ' (NOT सकता हूँ), 'मैं मदद करती हूँ' (NOT करता हूँ), 'मैंने तैयार कर दी है' (NOT कर दिया है).",
+            "male": "Use masculine first-person forms: 'मैं कर सकता हूँ', 'मैं मदद करता हूँ', 'मैंने तैयार कर दिया है'."
+        },
+        "gu": {
+            "name": "GUJARATI",
+            "native": "ગુજરાતી",
+            "script": "Gujarati",
+            "female": "Use feminine first-person forms in Gujarati.",
+            "male": "Use masculine first-person forms in Gujarati."
+        },
+        "ta": {
+            "name": "TAMIL",
+            "native": "தமிழ்",
+            "script": "Tamil",
+            "female": "Speak polite, conversational Tamil.",
+            "male": "Speak polite, conversational Tamil."
+        },
+        "te": {
+            "name": "TELUGU",
+            "native": "తెలుగు",
+            "script": "Telugu",
+            "female": "Speak polite, conversational Telugu.",
+            "male": "Speak polite, conversational Telugu."
+        },
+        "kn": {
+            "name": "KANNADA",
+            "native": "ಕನ್ನಡ",
+            "script": "Kannada",
+            "female": "Speak polite, conversational Kannada.",
+            "male": "Speak polite, conversational Kannada."
+        },
+        "bn": {
+            "name": "BENGALI",
+            "native": "বাংলা",
+            "script": "Bengali",
+            "female": "Speak polite, conversational Bengali.",
+            "male": "Speak polite, conversational Bengali."
+        },
+        "pa": {
+            "name": "PUNJABI",
+            "native": "ਪੰਜਾਬੀ",
+            "script": "Gurmukhi",
+            "female": "Speak polite, conversational Punjabi.",
+            "male": "Speak polite, conversational Punjabi."
+        },
+        "ml": {
+            "name": "MALAYALAM",
+            "native": "മലയാളം",
+            "script": "Malayalam",
+            "female": "Speak polite, conversational Malayalam.",
+            "male": "Speak polite, conversational Malayalam."
+        },
+        "es": {
+            "name": "SPANISH",
+            "native": "Español",
+            "script": "Latin",
+            "female": "Speak polite, conversational Spanish.",
+            "male": "Speak polite, conversational Spanish."
+        },
+        "en": {
+            "name": "ENGLISH",
+            "native": "English",
+            "script": "Latin",
+            "female": "Speak polite, professional English.",
+            "male": "Speak polite, professional English."
+        }
+    }
 
-        if voice_gender == "female":
-            if is_marathi:
-                persona_rules = "Use feminine first-person forms: 'मी करू शकते' (NOT शकतो), 'मी मदत करते' (NOT करतो), 'मी तयार केली आहे' (NOT केला)."
-            else:
-                persona_rules = "Use feminine first-person forms: 'मैं कर सकती हूँ' (NOT सकता हूँ), 'मैं मदद करती हूँ' (NOT करता हूँ), 'मैंने तैयार कर दी है' (NOT कर दिया है)."
+    if is_call and lang_key and lang_key in LANG_MAP:
+        target = LANG_MAP[lang_key]
+        if lang_key == "en":
             system_text += (
-                f"\n\nCRITICAL LANGUAGE & PERSONA DIRECTIVE:\n"
-                f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}.\n"
-                f"You are a female assistant. {persona_rules}"
+                f"\n\nCRITICAL LIVE VOICE CALL DIRECTIVE:\n"
+                f"You are currently speaking on a live two-way voice call with the user in English.\n"
+                f"1. Formulate your entire response in ENGLISH.\n"
+                f"2. Your response will be read aloud by Text-To-Speech (TTS). Keep it conversational, concise (2-4 spoken sentences), clear, and natural to hear.\n"
+                f"3. Do NOT output markdown tables, raw JSON, symbols, or long bullet points that sound awkward when spoken aloud. State key figures directly.\n"
+                f"4. Persona: You are a {voice_gender} voice assistant."
             )
         else:
             system_text += (
-                f"\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
-                f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}."
+                f"\n\nCRITICAL LIVE VOICE CALL DIRECTIVE:\n"
+                f"You are currently speaking on a live two-way voice call with the user.\n"
+                f"The user has explicitly selected to talk with you in {target['name']} ({target['native']}).\n"
+                f"1. You MUST speak and formulate your ENTIRE response in {target['name']} ({target['native']}) using {target['script']} script.\n"
+                f"2. Even if the user's speech transcript contains English or transliterated words, ALWAYS answer completely in {target['name']}.\n"
+                f"3. DO NOT reply in English unless the user explicitly asks for an English translation.\n"
+                f"4. Your response will be read aloud by Text-To-Speech (TTS). Keep it conversational, concise (2-4 spoken sentences), clear, and natural to hear. Avoid markdown tables, symbols, or raw JSON.\n"
+                f"5. Persona: You are a {voice_gender} assistant. {target.get(voice_gender, '')}"
             )
+    elif lang_key and lang_key in LANG_MAP and lang_key != "en":
+        target = LANG_MAP[lang_key]
+        system_text += (
+            f"\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
+            f"The user selected {target['name']} ({target['native']}). You MUST formulate your entire response in {target['name']} using {target['script']} script.\n"
+            f"Persona: You are a {voice_gender} assistant. {target.get(voice_gender, '')}"
+        )
+    else:
+        # Default fallback: check if user wrote in Devanagari
+        user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
+        has_devanagari = bool(re.search(r'[ऀ-ॿ]', user_prompt))
+
+        if not has_devanagari:
+            system_text += (
+                "\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
+                "The user asked their question in ENGLISH.\n"
+                "You MUST formulate your entire response (including summaries, table headers, descriptions, and charts) EXCLUSIVELY in ENGLISH.\n"
+                "DO NOT reply in Marathi or Hindi."
+            )
+        else:
+            # Devanagari detected: determine Marathi vs Hindi
+            marathi_markers = ['आहे', 'नावाने', 'करा', 'करायची', 'करायचे', 'करावे', 'केले', 'आणि', 'मध्ये', 'पाहिजे', 'हवे', 'द्या', 'पाठवा', 'झाले', 'हो', 'दाखवा']
+            is_marathi = any(m in user_prompt for m in marathi_markers)
+            lang_name = "MARATHI" if is_marathi else "HINDI"
+
+            if voice_gender == "female":
+                if is_marathi:
+                    persona_rules = "Use feminine first-person forms: 'मी करू शकते' (NOT शकतो), 'मी मदत करते' (NOT करतो), 'मी तयार केली आहे' (NOT केला)."
+                else:
+                    persona_rules = "Use feminine first-person forms: 'मैं कर सकती हूँ' (NOT सकता हूँ), 'मैं मदद करती हूँ' (NOT करता हूँ), 'मैंने तैयार कर दी है' (NOT कर दिया है)."
+                system_text += (
+                    f"\n\nCRITICAL LANGUAGE & PERSONA DIRECTIVE:\n"
+                    f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}.\n"
+                    f"You are a female assistant. {persona_rules}"
+                )
+            else:
+                system_text += (
+                    f"\n\nCRITICAL LANGUAGE DIRECTIVE:\n"
+                    f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}."
+                )
 
     # Convert chat history to Gemini format
     contents = []
-    for msg in history:
+    for i, msg in enumerate(history):
         text = msg.get("content", "")
         # Prevent contaminated history from leaking fake system prompts to model
         if text.startswith("[System:"):
             continue
         role = "model" if msg["role"] == "assistant" else "user"
+        
+        # In a voice call, explicitly attach the language command directive to the user's latest turn
+        if is_call and lang_key and lang_key in LANG_MAP and i == len(history) - 1 and role == "user":
+            target = LANG_MAP[lang_key]
+            command_prefix = (
+                f"[Voice Call Directive: Respond in {target['name']} ({target['native']}) using {target['script']} script. "
+                f"Keep response conversational, concise (2-4 spoken sentences), and natural for TTS. "
+                f"{target.get(voice_gender, '')}]\n\n"
+            )
+            if not text.startswith("[Voice Call Directive") and not text.startswith("[Command:"):
+                text = command_prefix + text
+
         contents.append({
             "role": role,
             "parts": [{"text": text}]

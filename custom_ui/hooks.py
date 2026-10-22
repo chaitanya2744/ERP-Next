@@ -2,10 +2,6 @@ app_name = "custom_ui"
 app_title = "Custom UI PRO"
 app_publisher = "Grutika"
 app_description = "Custom UI"
-app_name = "custom_ui"
-app_title = "Custom UI PRO"
-app_publisher = "Grutika"
-app_description = "Custom UI"
 app_email = "grutika@example.com"
 app_license = "mit"
 
@@ -13,11 +9,14 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = ["/assets/custom_ui/css/minimal_desk_v9.css"]
+app_include_css = [
+    "/assets/custom_ui/css/minimal_desk_v9.css?v=list_modal_fix_v57"
+]
 app_include_js = [
     "/assets/custom_ui/js/breadcrumb_chevron_fix.js",
     "/assets/custom_ui/js/ai/executive_prompts.js",
-    "/assets/custom_ui/js/ai_navigation.js"
+    "/assets/custom_ui/js/ai_navigation.js",
+    "/assets/custom_ui/js/theme_toggle.js?v=list_modal_fix_v57"
 ]
 
 # include js, css files in header of web template

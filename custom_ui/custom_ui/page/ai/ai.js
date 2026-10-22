@@ -29,7 +29,14 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   frappe.pages["ai"].on_page_show = function (wrapper) {
     $('body').addClass('ai-assistant-page-active');
     $(wrapper).show();
-    if (typeof scrollToBottom === 'function') scrollToBottom();
+    var msgs = wrapper.querySelector('#chat-messages');
+    if (msgs) {
+      if (typeof history !== 'undefined' && history && history.length > 0) {
+        if (typeof scrollToBottom === 'function') scrollToBottom();
+      } else {
+        msgs.scrollTop = 0;
+      }
+    }
     setTimeout(function() { if (typeof window.loadSessions === 'function') window.loadSessions(); }, 300);
   };
 
@@ -56,6 +63,24 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   var activeExecModule = "Manufacturing";
   var activeExecSearch = "";
+
+  function getCopilotSvg(size, className) {
+    size = size || 16;
+    className = className || 'copilot-glyph';
+    return `<svg class="${className}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle;">
+      <!-- Top Antenna & Transmitter Dot -->
+      <path d="M12 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="2" r="1.2" fill="currentColor"/>
+      <!-- Groq Bot Head Chassis -->
+      <rect x="4" y="5" width="16" height="14" rx="4" stroke="currentColor" stroke-width="1.85"/>
+      <!-- Cybernetic Visor / Sensor Eyes -->
+      <path d="M8 11.5H10.5M13.5 11.5H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Data Speaker / Mouth Slit -->
+      <path d="M9.5 15.2H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Side Communicator Nodes -->
+      <path d="M2 10.5V13.5M22 10.5V13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+  }
 
   function formatPromptTextForDisplay(text) {
     return text.replace(/\[([^\]]+)\]/g, function (match, placeholder) {
@@ -109,32 +134,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       cardsHtml = filtered.map(item => {
         const isCross = item.is_cross ? ' cross-modular' : '';
         const previewPrompt = formatPromptTextForDisplay(item.prompt);
-
-        let trailHtml = '';
-        if (item.cross_trail && item.cross_trail.length) {
-          trailHtml = `<div class="exec-cross-trail">
-            ${item.cross_trail.map((t, idx) => `<span class="exec-trail-step">${t}</span>${idx < item.cross_trail.length - 1 ? '<span class="exec-trail-arrow">➔</span>' : ''}`).join('')}
-          </div>`;
-        }
-
         return `
-          <div class="exec-card${isCross}" data-id="${item.id}" data-prompt="${item.prompt.replace(/"/g, '&quot;')}">
+          <div class="exec-card${isCross}" data-id="${item.id}" data-prompt="${item.prompt.replace(/"/g, '&quot;')}" title="Click to use: ${item.title}">
             <div class="exec-card-header">
-              <span class="exec-card-module-tag">${item.icon} ${item.module}</span>
-              <span class="exec-card-type-tag">${item.type}</span>
-            </div>
-            ${trailHtml}
-            <div>
-              <h4 class="exec-card-title">${item.title}</h4>
-              <p class="exec-card-desc">${item.desc}</p>
-            </div>
-            <div class="exec-card-prompt-preview">${previewPrompt}</div>
-            <div class="exec-card-footer">
-              <span class="exec-card-chart-badge">${item.chart}</span>
-              <div class="exec-card-actions">
-                <button type="button" class="exec-action-btn edit" title="Customize in chat input">Edit</button>
-                <button type="button" class="exec-action-btn run" title="Run query immediately">⚡ Run</button>
+              <div class="exec-card-meta-left">
+                <span class="exec-card-module-tag">${item.icon} ${item.module}</span>
+                <span class="exec-card-chart-badge">${item.chart}</span>
               </div>
+              <button type="button" class="exec-action-btn run" title="Run query immediately">⚡ Run</button>
+            </div>
+            <div class="exec-card-body">
+              <h4 class="exec-card-title">${item.title}</h4>
+              <div class="exec-card-prompt-preview">${previewPrompt}</div>
             </div>
           </div>
         `;
@@ -237,12 +248,154 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     renderExecutiveSuite();
   }
 
+  const AI_CAPABILITIES = [
+    { tag: "LIVE DATA", text: "I can read and write directly to all live ERPNext DocTypes in real-time." },
+    { tag: "VOICE CALLS", text: "I can conduct two-way ultra-low latency voice calls in English, Hindi and Marathi." },
+    { tag: "AUTOMATION", text: "I can draft and submit Quotations, Invoices, Work Orders and POs for you." },
+    { tag: "FACTORY", text: "I can pinpoint shop-floor bottlenecks and predict production delay risks." },
+    { tag: "INVENTORY", text: "I can forecast raw material stockouts before assembly line shortages occur." },
+    { tag: "COLLECTIONS", text: "I can track overdue receivables and generate personalized payment reminders." },
+    { tag: "FINANCE", text: "I can reconcile complex financial ledgers and calculate true product profit margins." }
+  ];
+
+  let capabilityTickerInterval = null;
+  function startCapabilityTicker() {
+    if (capabilityTickerInterval) clearInterval(capabilityTickerInterval);
+    let idx = 0;
+    const tickerEl = wrapper.querySelector('#ai-capability-text');
+    const tagEl = wrapper.querySelector('#ai-capability-tag');
+    const counterEl = wrapper.querySelector('#ai-capability-counter');
+    const avatarEl = wrapper.querySelector('#hero-avatar-core');
+
+    function renderItem(i) {
+      const item = AI_CAPABILITIES[i];
+      if (tagEl) {
+        tagEl.style.opacity = '0';
+        tagEl.style.transform = 'translateY(-2px)';
+        setTimeout(() => {
+          tagEl.textContent = item.tag;
+          tagEl.style.opacity = '1';
+          tagEl.style.transform = 'translateY(0)';
+        }, 120);
+      }
+      if (avatarEl) {
+        avatarEl.classList.add('bot-scanning');
+        setTimeout(() => avatarEl.classList.remove('bot-scanning'), 550);
+      }
+      if (tickerEl) {
+        tickerEl.style.opacity = '0';
+        tickerEl.style.transform = 'translateY(3px)';
+        setTimeout(() => {
+          tickerEl.textContent = item.text;
+          tickerEl.style.opacity = '1';
+          tickerEl.style.transform = 'translateY(0)';
+        }, 140);
+      }
+    }
+
+    capabilityTickerInterval = setInterval(() => {
+      if (!wrapper.querySelector('#ai-capability-text')) {
+        clearInterval(capabilityTickerInterval);
+        return;
+      }
+      idx = (idx + 1) % AI_CAPABILITIES.length;
+      renderItem(idx);
+    }, 4200);
+
+    const showcaseEl = wrapper.querySelector('#welcome-capability-showcase');
+    if (showcaseEl && !showcaseEl._hasClickListener) {
+      showcaseEl._hasClickListener = true;
+      showcaseEl.addEventListener('click', () => {
+        idx = (idx + 1) % AI_CAPABILITIES.length;
+        renderItem(idx);
+      });
+    }
+
+    wrapper.querySelectorAll('.capability-seg').forEach(seg => {
+      seg.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetIdx = parseInt(seg.getAttribute('data-index'), 10);
+        if (!isNaN(targetIdx)) {
+          idx = targetIdx;
+          renderItem(idx);
+        }
+      });
+    });
+  }
+
+  function getCleanUserName() {
+    let raw = "";
+    try {
+      if (frappe.boot && frappe.boot.user && frappe.boot.user.first_name) {
+        raw = frappe.boot.user.first_name;
+      } else if (frappe.session && frappe.session.user_fullname && !frappe.session.user_fullname.includes('@')) {
+        raw = frappe.session.user_fullname.split(" ")[0];
+      } else if (frappe.boot && frappe.boot.user && frappe.boot.user.name) {
+        raw = frappe.boot.user.name;
+      } else if (frappe.session && frappe.session.user) {
+        raw = frappe.session.user;
+      }
+    } catch (_) {}
+    if (!raw) return "";
+    raw = raw.trim();
+    if (raw.includes("@")) {
+      raw = raw.split("@")[0];
+    }
+    raw = raw.replace(/[._-]/g, " ");
+    const firstWord = raw.split(" ")[0];
+    return firstWord ? firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase() : "";
+  }
+
+  function getWelcomeHtml() {
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    const cleanName = getCleanUserName();
+    const greetingText = cleanName ? `${timeGreeting}, ${cleanName}` : `${timeGreeting}`;
+
+    return `
+      <div class="welcome-hero">
+        <!-- Ambient Radial Glow Backdrop -->
+        <div class="hero-ambient-glow"></div>
+
+        <!-- 1. Central Apple AI Glowing Orb with Multilayer Aurora Halo & Pulse Ring -->
+        <div class="hero-avatar-stage">
+          <div class="hero-avatar-halo"></div>
+          <div class="hero-avatar-ring"></div>
+          <div class="hero-avatar-core" id="hero-avatar-core">
+            ${getCopilotSvg(36)}
+            <span class="hero-status-ping" title="Online Copilot">
+              <span class="hero-ping-wave"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 2. Clean Greeting Headline -->
+        <h2 class="welcome-headline">${greetingText}</h2>
+
+        <!-- 3. Integrated Dynamic Siri Vocal Subtitle (Conversational & Frameless) -->
+        <div class="siri-vocal-subtitle" id="welcome-capability-showcase" title="Click to view next capability">
+          <span class="siri-vocal-tag" id="ai-capability-tag">${AI_CAPABILITIES[0].tag}</span>
+          <div class="voice-wave-bars" title="Active Siri Vocal Equalizer">
+            <span class="v-bar vb-1"></span>
+            <span class="v-bar vb-2"></span>
+            <span class="v-bar vb-3"></span>
+            <span class="v-bar vb-4"></span>
+          </div>
+          <span class="siri-vocal-text" id="ai-capability-text">${AI_CAPABILITIES[0].text}</span>
+        </div>
+      </div>
+      <div id="executive-suite-root"></div>
+    `;
+  }
+
+
 
 
     // Inline HTML markup directly to bypass template cache issues
   let html = `
     <div class="chat-layout">
-      <div id="chat-sidebar" class="chat-sidebar open">
+      <div id="chat-sidebar-backdrop" class="chat-sidebar-backdrop" onclick="toggleSidebar()"></div>
+      <div id="chat-sidebar" class="chat-sidebar closed">
         <div class="sidebar-header">
           <span class="sidebar-title">
              <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
@@ -256,7 +409,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
       <!-- Header -->
       <div id="chat-header">
-        <button id="floating-sidebar-toggle" onclick="toggleSidebar()" style="display: none;" title="Open Sidebar">☰</button>
+        <button id="floating-sidebar-toggle" onclick="toggleSidebar()" style="display: inline-flex !important;" title="Open Sidebar">☰</button>
         <div class="avatar">✦</div>
         <div class="info">
           <div class="name">AI Assistant</div>
@@ -267,18 +420,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       <!-- Messages -->
       <div id="chat-messages">
         <div id="chat-welcome">
-          <div class="welcome-hero">
-            <div class="welcome-icon-ring">
-              <div class="welcome-icon-glow"></div>
-              <div class="welcome-icon">✦</div>
-            </div>
-            <h2 class="welcome-headline">
-              Your Business,<br>
-              <span class="welcome-headline-accent">Instantly Understood</span>
-            </h2>
-            <p class="welcome-sub">Ask about <span class="welcome-kw">revenue</span>, <span class="welcome-kw">inventory</span>, <span class="welcome-kw">orders</span>, <span class="welcome-kw">cash flow</span> — get instant answers from your live ERP data.</p>
-          </div>
-          <div id="executive-suite-root"></div>
+          ${getWelcomeHtml()}
         </div>
       </div>
 
@@ -501,6 +643,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         </div>
       </div>
     </div>
+  </div>
   `;
 
   // Render HTML template into the page body
@@ -508,12 +651,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   // Initialize dynamic prompt suggestion component
   initExecutiveSuite();
+  startCapabilityTicker();
 
 
   // State
   var currentSessionId = null;
   var sessions = [];
-  var sidebarOpen = true;
+  var sidebarOpen = false;
   var history = [];
   var isLoading = false;
   var viewToken = 0;
@@ -588,7 +732,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   }
 
   function scrollToBottom() {
-    if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+    if (messagesEl && typeof history !== 'undefined' && history && history.length > 0) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
   }
 
   function appendMessage(role, content, tokenData) {
@@ -612,7 +758,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     bubble.className = 'msg-bubble';
 
     if (role === 'user') {
-      bubble.textContent = content;
+      if (content.indexOf('[Command:') === 0 || content.indexOf('[Language Switch:') === 0) {
+        var cleanNotice = content.replace(/^\[.*?\]\s*/, '');
+        if (!cleanNotice) cleanNotice = content.replace(/^\[(.*?)\]$/, '$1');
+        bubble.innerHTML = '<span style="font-style: italic; opacity: 0.85;">🌐 ' + _escapeHtml(cleanNotice) + '</span>';
+      } else {
+        bubble.textContent = content;
+      }
     } else {
       bubble.innerHTML = renderMarkdown(content);
 
@@ -735,18 +887,22 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   };
 
   window.selectSuggestion = function (text) {
-    inputEl.value = text;
-    autoResize(inputEl);
-    inputEl.focus();
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (!el) return;
+    el.value = text;
+    if (typeof autoResize === 'function') autoResize(el);
+    try { el.focus(); } catch (_) {}
 
     // Auto-highlight the first placeholder bracket [Placeholder] if present
     var start = text.indexOf('[');
     if (start !== -1) {
       var end = text.indexOf(']', start);
       if (end !== -1) {
-        // Use setTimeout to ensure selection is executed after browser focuses inputEl
         setTimeout(function () {
-          inputEl.setSelectionRange(start, end + 1);
+          var targetInput = el || inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+          if (targetInput && typeof targetInput.setSelectionRange === 'function') {
+            try { targetInput.setSelectionRange(start, end + 1); } catch (_) {}
+          }
         }, 50);
       }
     }
@@ -757,13 +913,19 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     sidebarOpen = !sidebarOpen;
     var sb = wrapper.querySelector('#chat-sidebar');
     var floatBtn = wrapper.querySelector('#floating-sidebar-toggle');
+    var backdrop = wrapper.querySelector('#chat-sidebar-backdrop');
     if (sb) {
       if (sidebarOpen) {
         sb.classList.remove('closed');
-        if (floatBtn) floatBtn.style.display = 'none';
+        sb.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+        if (typeof window.loadSessions === 'function') window.loadSessions();
+        if (floatBtn) floatBtn.style.setProperty('display', 'none', 'important');
       } else {
+        sb.classList.remove('open');
         sb.classList.add('closed');
-        if (floatBtn) floatBtn.style.display = 'flex';
+        if (backdrop) backdrop.classList.remove('active');
+        if (floatBtn) floatBtn.style.setProperty('display', 'inline-flex', 'important');
       }
     }
   };
@@ -807,6 +969,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   window.switchSession = function(id) {
     if (currentSessionId === id) return;
+    if (window.innerWidth <= 992 && sidebarOpen) { toggleSidebar(); }
     
     viewToken++;
     currentSessionId = id;
@@ -855,6 +1018,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     hideTyping();
     clearChat();
     renderSessions();
+    if (window.innerWidth <= 992 && sidebarOpen) {
+      toggleSidebar();
+    }
   };
 
   window.renameSession = function(id) {
@@ -1915,6 +2081,9 @@ window.clearChat = function () {
   function selectLangFromDropdown(langCode) {
     setVoiceLanguage(langCode);
     closeLangDropdown();
+    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
+      commandLLMVoiceLanguage(langCode);
+    }
   }
   window.selectLangFromDropdown = selectLangFromDropdown;
 
@@ -2697,34 +2866,34 @@ window.clearChat = function () {
     if (rawLang && _LANG_CONFIG[rawLang]) return rawLang;
 
     // Marathi
-    if (l.startsWith('mr') || n.includes('marathi') || n.includes('aarohi')) return 'mr-IN';
+    if (l.startsWith('mr') || n.includes('marathi') || n.includes('मराठी') || n.includes('aarohi') || n.includes('manohar') || n.includes('hemant')) return 'mr-IN';
 
     // Hindi
-    if (l.startsWith('hi') || n.includes('hindi') || n.includes('madhur') || n.includes('swara') || n.includes('kalpana')) return 'hi-IN';
+    if (l.startsWith('hi') || n.includes('hindi') || n.includes('हिन्दी') || n.includes('हिंदी') || n.includes('madhur') || n.includes('swara') || n.includes('kalpana')) return 'hi-IN';
 
     // English
     if (l.startsWith('en') || n.includes('english')) return 'en-IN';
 
     // Gujarati
-    if (l.startsWith('gu') || n.includes('gujarati')) return 'gu-IN';
+    if (l.startsWith('gu') || n.includes('gujarati') || n.includes('ગુજરાતી') || n.includes('dhwani') || n.includes('niranjan')) return 'gu-IN';
 
     // Tamil
-    if (l.startsWith('ta') || n.includes('tamil')) return 'ta-IN';
+    if (l.startsWith('ta') || n.includes('tamil') || n.includes('தமிழ்') || n.includes('pallavi') || n.includes('valluvar')) return 'ta-IN';
 
     // Telugu
-    if (l.startsWith('te') || n.includes('telugu')) return 'te-IN';
+    if (l.startsWith('te') || n.includes('telugu') || n.includes('తెలుగు') || n.includes('shruti') || n.includes('mohan')) return 'te-IN';
 
     // Kannada
-    if (l.startsWith('kn') || n.includes('kannada')) return 'kn-IN';
+    if (l.startsWith('kn') || n.includes('kannada') || n.includes('ಕನ್ನಡ') || n.includes('sapna') || n.includes('gagan')) return 'kn-IN';
 
     // Bengali
-    if (l.startsWith('bn') || n.includes('bengali') || n.includes('bangla')) return 'bn-IN';
+    if (l.startsWith('bn') || n.includes('bengali') || n.includes('বাংলা') || n.includes('bangla') || n.includes('bashkar') || n.includes('tanishaa')) return 'bn-IN';
 
     // Malayalam
-    if (l.startsWith('ml') || n.includes('malayalam')) return 'ml-IN';
+    if (l.startsWith('ml') || n.includes('malayalam') || n.includes('മലയാളം') || n.includes('midhun') || n.includes('sobhana')) return 'ml-IN';
 
     // Punjabi
-    if (l.startsWith('pa') || n.includes('punjabi')) return 'pa-IN';
+    if (l.startsWith('pa') || n.includes('punjabi') || n.includes('ਪੰਜਾਬੀ') || n.includes('harmohan') || n.includes('raaj')) return 'pa-IN';
 
     // Generic prefix match against _LANG_CONFIG
     var prefix = l.split('-')[0];
@@ -2765,9 +2934,31 @@ window.clearChat = function () {
     }
 
     closeVoicePickerDropdown();
-    _playVoicePreview(chosenVoice);
+
+    // Command the LLM to use that language while talking
+    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
+      commandLLMVoiceLanguage(targetLang);
+    } else {
+      _playVoicePreview(chosenVoice);
+    }
   }
   window.onUserVoiceSelected = onUserVoiceSelected;
+
+  function commandLLMVoiceLanguage(langCode) {
+    if (!langCode) return;
+    var langCfg = _LANG_CONFIG[langCode] || _LANG_CONFIG['en-IN'];
+    var langLabel = langCfg.name || langCfg.label || 'English';
+    var nativeLabel = langCfg.native || langLabel;
+    
+    if (typeof interruptVoiceSpeech === 'function') interruptVoiceSpeech();
+    
+    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
+      var cmd = "[Command: The user selected " + langLabel + " (" + nativeLabel + ") voice. Please acknowledge briefly in " + langLabel + " that you will now talk in " + langLabel + ".]";
+      inputEl.value = cmd;
+      sendMessage();
+    }
+  }
+  window.commandLLMVoiceLanguage = commandLLMVoiceLanguage;
 
   function _playVoicePreview(chosenVoice) {
     if (!window.speechSynthesis) return;
@@ -2784,6 +2975,22 @@ window.clearChat = function () {
         sample = (gender === 'female')
           ? 'नमस्ते! मैं आपकी क्या सहायता कर सकती हूँ?'
           : 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?';
+      } else if (_currentLang === 'gu-IN') {
+        sample = 'નમસ્તે! હું તમારી શું મદદ કરી શકું?';
+      } else if (_currentLang === 'ta-IN') {
+        sample = 'வணக்கம்! நான் உங்களுக்கு எப்படி உதவ முடியும்?';
+      } else if (_currentLang === 'te-IN') {
+        sample = 'నమస్కారం! నేను మీకు ఎలా సహాయపడగలను?';
+      } else if (_currentLang === 'kn-IN') {
+        sample = 'ನಮಸ್ಕಾರ! ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?';
+      } else if (_currentLang === 'bn-IN') {
+        sample = 'নমস্কার! আমি আপনাকে কীভাবে সাহায্য করতে পারি?';
+      } else if (_currentLang === 'pa-IN') {
+        sample = 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡੀ ਕੀ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?';
+      } else if (_currentLang === 'ml-IN') {
+        sample = 'നമസ്കാരം! ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കണം?';
+      } else if (_currentLang === 'es-ES') {
+        sample = '¡Hola! ¿En qué puedo ayudarte hoy?';
       } else {
         sample = 'Hello! How can I assist you today?';
       }
@@ -3025,8 +3232,13 @@ window.clearChat = function () {
     }
   }, false);
 
-  // Focus input
-  setTimeout(function () { inputEl.focus(); }, 300);
+  // Focus input safely
+  setTimeout(function () {
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (el && typeof el.focus === 'function') {
+      try { el.focus(); } catch (_) {}
+    }
+  }, 300);
 };
 
   // ══════════════════════════════════════════════════════════════════════════════

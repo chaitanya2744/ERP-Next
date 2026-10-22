@@ -1,48 +1,20 @@
 /* ================================================================
-   CUSTOM UI PRO v9 — Full-Width V16 Native Redesign
-   Suvarna / Calm-Teal Brand Theme
+   CUSTOM UI PRO — Dynamic Dual Theme & Apple HIG UX Engine
+   Supports: [ 🌿 V9 Calm Teal ] & [ 🍏 Apple HIG Liquid Glass ]
+   Includes: Spotlight (⌘K), macOS Dock, Sidebar Shortcut (⌘\), A11y
    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap');
 
 /* ──────────────────────────────────────────────────
-   1. FORCE 100% WIDTH FOR ENTIRE WORKSPACE & CARDS
+   1. GLOBAL COMMON LAYOUT (Force 100% Full-Width)
    ────────────────────────────────────────────────── */
 :root {
     --page-max-width: 100% !important;
-    --cu-primary:          #006269;
-    --cu-primary-dk:       #004a4f;
-    --cu-primary-lt:       #007f87;
-    --cu-accent:           #00A3AD;
-    --cu-accent-lt:        #B8E8EB;
-    --cu-accent-xlt:       #E8F7F8;
-    --cu-bg:               #EFF3F6;
-    --cu-surface:          #FFFFFF;
-    --cu-surface-2:        #F5F9FA;
-    --cu-border:           #C2DDE0;
-    --cu-border-soft:      #D8EAEC;
-    --cu-border-strong:    #95C5CA;
-    --cu-text:             #1A3333;
-    --cu-text-sub:         #2E4F4F;
-    --cu-text-muted:       #4D7272;
-    --cu-text-faint:       #7BA8A8;
-
-    /* Shadows — teal-tinted */
-    --cu-sh-xs:  0 1px 2px rgba(0,98,105,.06);
-    --cu-sh-sm:  0 2px 6px -1px rgba(0,98,105,.10), 0 1px 2px -1px rgba(0,98,105,.06);
-    --cu-sh-md:  0 4px 14px -2px rgba(0,98,105,.12), 0 2px 4px -2px rgba(0,98,105,.06);
-    --cu-sh-lg:  0 10px 30px -5px rgba(0,98,105,.14), 0 4px 8px -4px rgba(0,98,105,.07);
-    --cu-sh-xl:  0 20px 44px -8px rgba(0,98,105,.18), 0 8px 16px -6px rgba(0,98,105,.08);
-
-    /* Radii */
-    --cu-r-xs:   4px;
-    --cu-r-sm:   7px;
-    --cu-r-md:   11px;
-    --cu-r-lg:   15px;
-    --cu-r-xl:   20px;
+    --navbar-height: 0px !important;
 }
 
-/* Force container layout elements to stretch to full screen width */
+/* Full-Width Edge-to-Edge Layout (No extra padding) */
 body:not(.full-width) [data-page-route="Workspaces"] .layout-main,
 body:not(.full-width) .layout-main,
 body .layout-main,
@@ -60,232 +32,733 @@ body .layout-main,
     padding-right: 0 !important;
 }
 
-/* Ensure EditorJS content block inner wrappers occupy the full width of their grid block */
-.ce-block__content {
+.layout-main-section-wrapper {
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+
+
+.layout-main-section-wrapper {
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Detail Form View Sidebar Layout Support */
+body[data-route^="Form"] .layout-main-section-wrapper {
+    width: calc(100% - 264px) !important;
+    max-width: calc(100% - 264px) !important;
+}
+
+body[data-route^="Form"] .layout-main-section-wrapper:only-child,
+body[data-route^="Form"] .form-sidebar.hide + .layout-main-section-wrapper,
+body[data-route^="Form"]:has(.form-sidebar.hide) .layout-main-section-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+body.theme-apple .form-sidebar {
+    width: 244px !important;
+    min-width: 244px !important;
+    margin-left: 20px !important;
+    padding: 18px !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.07) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+    box-sizing: border-box !important;
+}
+
+.layout-main-section {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.editor-js-container,
+.codex-editor,
+.codex-editor__redactor {
     max-width: 100% !important;
     width: 100% !important;
 }
 
-/* Let the page workspace skeleton expand fully */
+.ce-block__content,
 .workspace-skeleton {
     max-width: 100% !important;
     width: 100% !important;
 }
 
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
-    background-color: var(--cu-bg) !important;
-    color: var(--cu-text) !important;
-    letter-spacing: -0.012em !important;
+/* ──────────────────────────────────────────────────
+   2. APPLE ACCESSIBILITY (A11y) STANDARDS
+   ────────────────────────────────────────────────── */
+/* High-Visibility Focus Rings for Keyboard Navigation */
+:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
+    border-color: #006269 !important;
 }
 
-html { background-color: var(--cu-bg) !important; }
+/* Motion Accessibility: Respect user's reduced motion system settings */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
 
-/* ──────────────────────────────────────────────────
-   2. GLOBAL NAVBAR (V16 Desk top header)
-   ────────────────────────────────────────────────── */
-.navbar {
+/* Touch & Click Target Ergonomics */
+button, .btn, .standard-sidebar-item .item-anchor {
+    min-height: 32px !important;
+}
+
+/* ================================================================
+   THEME 1: V9 CALM-TEAL (Suvarna Brand)
+   Active when: body:not(.theme-apple) or body.theme-v9
+   ================================================================ */
+:root,
+body.theme-v9 {
+    --cu-primary:          #006269;
+    --cu-primary-dk:       #004a4f;
+    --cu-primary-lt:       #007f87;
+    --cu-accent:           #00A3AD;
+    --cu-accent-lt:        #B8E8EB;
+    --cu-accent-xlt:       #E8F7F8;
+    --cu-bg:               #EFF3F6;
+    --cu-surface:          #FFFFFF;
+    --cu-surface-2:        #F5F9FA;
+    --cu-border:           #C2DDE0;
+    --cu-border-soft:      #D8EAEC;
+    --cu-border-strong:    #95C5CA;
+    --cu-text:             #1A3333;
+    --cu-text-sub:         #2E4F4F;
+    --cu-text-muted:       #4D7272;
+    --cu-text-faint:       #7BA8A8;
+
+    --cu-sh-xs:  0 1px 2px rgba(0,98,105,.06);
+    --cu-sh-sm:  0 2px 6px -1px rgba(0,98,105,.10), 0 1px 2px -1px rgba(0,98,105,.06);
+    --cu-sh-md:  0 4px 14px -2px rgba(0,98,105,.12), 0 2px 4px -2px rgba(0,98,105,.06);
+    --cu-sh-lg:  0 10px 30px -5px rgba(0,98,105,.14), 0 4px 8px -4px rgba(0,98,105,.07);
+    --cu-sh-xl:  0 20px 44px -8px rgba(0,98,105,.18), 0 8px 16px -6px rgba(0,98,105,.08);
+
+    --cu-r-xs:   4px;
+    --cu-r-sm:   7px;
+    --cu-r-md:   11px;
+    --cu-r-lg:   15px;
+    --cu-r-xl:   20px;
+}
+
+body.theme-v9,
+body:not(.theme-apple) {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+    background-color: #EFF3F6 !important;
+    color: #1A3333 !important;
+}
+
+html:not(.theme-apple),
+html.theme-v9 {
+    background-color: #EFF3F6 !important;
+}
+
+/* V9 Navbar */
+body.theme-v9 .navbar,
+body:not(.theme-apple) .navbar {
     background: #1A3333 !important;
     border-bottom: 1px solid rgba(0, 163, 173, 0.25) !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.14) !important;
 }
-.navbar .nav-link,
-.navbar .navbar-brand,
-.navbar .nav-item a,
-.navbar .nav-item span {
+body.theme-v9 .navbar .nav-link,
+body.theme-v9 .navbar .navbar-brand,
+body.theme-v9 .navbar .nav-item a,
+body.theme-v9 .navbar .nav-item span,
+body:not(.theme-apple) .navbar .nav-link,
+body:not(.theme-apple) .navbar .navbar-brand,
+body:not(.theme-apple) .navbar .nav-item a,
+body:not(.theme-apple) .navbar .nav-item span {
     color: rgba(255,255,255,.88) !important;
 }
-.navbar svg,
-.navbar use,
-.navbar .icon {
+body.theme-v9 .navbar svg,
+body.theme-v9 .navbar use,
+body.theme-v9 .navbar .icon,
+body:not(.theme-apple) .navbar svg,
+body:not(.theme-apple) .navbar use,
+body:not(.theme-apple) .navbar .icon {
     fill: rgba(255,255,255,.88) !important;
     stroke: rgba(255,255,255,.88) !important;
     color: rgba(255,255,255,.88) !important;
 }
 
-/* ──────────────────────────────────────────────────
-   3. BREADCRUMBS & PER-PAGE HEADER (.page-head)
-   ────────────────────────────────────────────────── */
-.page-head {
-    background: var(--cu-surface) !important;
-    border-bottom: 1px solid var(--cu-border-soft) !important;
-    box-shadow: var(--cu-sh-xs) !important;
-    z-index: 6 !important;
-}
-.page-head .page-head-content {
-    padding: 8px 20px !important;
-}
-.page-head .title-text,
-.page-head .page-title h3,
-.page-head h3 {
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    color: var(--cu-text) !important;
-}
-
-/* ──────────────────────────────────────────────────
-   4. SIDEBAR STYLING
-   ────────────────────────────────────────────────── */
-.body-sidebar-container,
-.body-sidebar-container.expanded {
-    position: relative !important;
-    z-index: 1030 !important;
-    border-right: 1px solid var(--cu-border) !important;
+/* V9 Sidebar */
+body.theme-v9 .body-sidebar-container,
+body:not(.theme-apple) .body-sidebar-container {
+    border-right: 1px solid #C2DDE0 !important;
     box-shadow: 2px 0 10px -4px rgba(0,98,105,.12) !important;
 }
-.body-sidebar {
-    position: relative;
-    z-index: 1032 !important;
+body.theme-v9 .body-sidebar,
+body:not(.theme-apple) .body-sidebar {
     background: linear-gradient(180deg, #FFFFFF 0%, #F0F7F8 100%) !important;
 }
-.body-sidebar-container.expanded .body-sidebar {
-    position: absolute !important;
-    z-index: 1032 !important;
-}
-.body-sidebar-container.expanded .overlay {
-    z-index: 1029 !important;
-}
-.standard-sidebar-item .item-anchor {
+body.theme-v9 .standard-sidebar-item .item-anchor,
+body:not(.theme-apple) .standard-sidebar-item .item-anchor {
     border-radius: 7px !important;
-    color: var(--cu-text-sub) !important;
+    color: #2E4F4F !important;
     font-weight: 500 !important;
     font-size: 13px !important;
 }
-.standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor {
+body.theme-v9 .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor,
+body:not(.theme-apple) .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor {
     background: rgba(0,98,105,.07) !important;
-    color: var(--cu-primary) !important;
+    color: #006269 !important;
 }
-
-/* Active item style */
-.active-sidebar {
-    background: linear-gradient(135deg, var(--cu-primary) 0%, var(--cu-accent) 100%) !important;
+body.theme-v9 .active-sidebar,
+body:not(.theme-apple) .active-sidebar {
+    background: linear-gradient(135deg, #006269 0%, #00A3AD 100%) !important;
     box-shadow: 0 3px 10px -2px rgba(0,163,173,.32) !important;
     border-radius: 8px !important;
 }
-.active-sidebar .item-anchor,
-.active-sidebar .sidebar-item-label,
-.active-sidebar .sidebar-item-icon svg,
-.active-sidebar .sidebar-item-icon use {
+body.theme-v9 .active-sidebar .item-anchor,
+body.theme-v9 .active-sidebar .sidebar-item-label,
+body.theme-v9 .active-sidebar .sidebar-item-icon svg,
+body:not(.theme-apple) .active-sidebar .item-anchor,
+body:not(.theme-apple) .active-sidebar .sidebar-item-label,
+body:not(.theme-apple) .active-sidebar .sidebar-item-icon svg {
     color: #fff !important;
     fill: #fff !important;
     stroke: #fff !important;
 }
 
-/* ──────────────────────────────────────────────────
-   5. WORKSPACE CONTAINER & WIDGET CARDS
-   ────────────────────────────────────────────────── */
-[data-page-route="Workspaces"] .layout-main-section {
-    padding: 20px 24px !important;
-    background: var(--cu-bg) !important;
+/* V9 Cards */
+body.theme-v9 .links-widget-box,
+body.theme-v9 .shortcut-widget-box,
+body.theme-v9 .number-widget-box,
+body.theme-v9 .dashboard-widget-box,
+body.theme-v9 .onboarding-widget-box,
+body.theme-v9 .chart-widget-box,
+body.theme-v9 .quick-list-widget-box,
+body.theme-v9 .custom-block-widget-box,
+body:not(.theme-apple) .links-widget-box,
+body:not(.theme-apple) .shortcut-widget-box,
+body:not(.theme-apple) .number-widget-box,
+body:not(.theme-apple) .dashboard-widget-box,
+body:not(.theme-apple) .chart-widget-box {
+    background: #FFFFFF !important;
+    border: 1px solid #D8EAEC !important;
+    border-top: 3px solid #006269 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 2px 6px -1px rgba(0,98,105,.10) !important;
+    padding: 20px 22px !important;
+}
+body.theme-v9 .widget-title,
+body:not(.theme-apple) .widget-title {
+    color: #1A3333 !important;
+    border-bottom: 2px solid #B8E8EB !important;
 }
 
-/* Make widget section groups occupy full width */
-.widget-group {
+/* ================================================================
+   THEME 2: APPLE HIG LIQUID GLASS & FLUID MOTION (macOS Style)
+   Active when: html.theme-apple or body.theme-apple
+   ================================================================ */
+html.theme-apple,
+body.theme-apple {
+    --cu-primary:          #006269;
+    --cu-primary-dk:       #004a4f;
+    --cu-primary-lt:       #00A3AD;
+    --cu-accent:           #00A3AD;
+    --cu-accent-lt:        #E8F7F8;
+    --cu-accent-xlt:       #F0F9FA;
+
+    --cu-bg:               #F5F5F7;
+    --cu-surface:          rgba(255, 255, 255, 0.82);
+    --cu-surface-solid:    #FFFFFF;
+    --cu-surface-2:        rgba(246, 246, 248, 0.75);
+
+    --cu-border:           rgba(0, 0, 0, 0.08);
+    --cu-border-soft:      rgba(0, 0, 0, 0.05);
+    --cu-border-strong:    rgba(0, 0, 0, 0.14);
+
+    --cu-text:             #1D1D1F;
+    --cu-text-sub:         #424245;
+    --cu-text-muted:       #86868B;
+    --cu-text-faint:       #A1A1A6;
+
+    --cu-sh-xs:  0 1px 2px rgba(0, 0, 0, 0.03);
+    --cu-sh-sm:  0 2px 6px -1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    --cu-sh-md:  0 4px 14px -2px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
+    --cu-sh-lg:  0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.03);
+    --cu-sh-xl:  0 20px 48px -6px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.04);
+
+    --cu-r-xs:   6px;
+    --cu-r-sm:   10px;
+    --cu-r-md:   14px;
+    --cu-r-lg:   18px;
+    --cu-r-xl:   24px;
+
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", Helvetica, Arial, sans-serif !important;
+    background-color: #F5F5F7 !important;
+    color: #1D1D1F !important;
+    letter-spacing: -0.011em !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+html.theme-apple {
+    background-color: #F5F5F7 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ORIGINAL DESK NAVBAR (/desk App Launcher with Logo, Search & Controls)
+   ───────────────────────────────────────────────────────────── */
+
+/* Hide empty header in main-section on workspaces/forms/lists so no blank bar appears */
+header:empty,
+.main-section > header:empty,
+header:not(.desktop-navbar):empty {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    pointer-events: none !important;
+}
+
+/* Original Desk Navbar on /desk: Always Visible with Logo & Controls */
+.desktop-navbar,
+.navbar-container,
+header.desktop-navbar,
+header.navbar-container {
+    display: flex !important;
+    visibility: visible !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
     width: 100% !important;
     max-width: 100% !important;
-    background: transparent !important;
-    padding: 0 !important;
-    border: none !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+    background: linear-gradient(180deg, rgba(20, 42, 42, 0.96) 0%, rgba(0, 74, 79, 0.94) 100%) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border-bottom: 1px solid rgba(0, 163, 173, 0.32) !important;
+    box-shadow: 0 4px 20px -2px rgba(10, 24, 24, 0.45) !important;
+}
+
+/* Navbar Brand Logo */
+.desktop-navbar .navbar-home,
+.navbar-container .navbar-home {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.desktop-navbar #brand-logo,
+.navbar-container #brand-logo,
+#brand-logo {
+    display: block !important;
+    visibility: visible !important;
+    max-height: 32px !important;
+    width: auto !important;
+    object-fit: contain !important;
+}
+
+/* Search Bar on /desk */
+.desktop-search-wrapper {
+    flex: 1 !important;
+    max-width: 480px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.desktop-navbar-modal-search {
+    background: rgba(255, 255, 255, 0.16) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 9999px !important;
+    color: #FFFFFF !important;
+    height: 34px !important;
+    padding: 0 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.desktop-navbar-modal-search:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.desktop-search-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+
+.desktop-search-icon svg {
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+
+.desktop-keyboard-shortcut {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #FFFFFF !important;
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-family: -apple-system, BlinkMacSystemFont, monospace !important;
+}
+
+/* Notifications Bell & Avatar Controls on /desk */
+.desktop-navbar .desktop-notifications button,
+.navbar-container .desktop-notifications button {
+    color: #FFFFFF !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px !important;
+    border-radius: 8px !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.desktop-navbar .desktop-notifications button:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.desktop-navbar .desktop-notifications svg,
+.navbar-container .desktop-notifications svg {
+    stroke: #FFFFFF !important;
+    fill: none !important;
+    color: #FFFFFF !important;
+}
+
+.desktop-avatar {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.desktop-avatar .avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Reset Desk Body top offset so content starts cleanly at the top of the viewport */
+body.theme-apple #body,
+body.theme-apple .main-section > #body,
+#body {
+    padding-top: 0 !important;
+    box-sizing: border-box !important;
+}
+body.theme-apple .navbar .nav-link,
+body.theme-apple .navbar .navbar-brand,
+body.theme-apple .navbar .nav-item a,
+body.theme-apple .navbar .nav-item span,
+body.theme-apple .navbar .navbar-home {
+    color: #FFFFFF !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    transition: opacity 150ms ease, color 150ms ease !important;
+}
+body.theme-apple .navbar .nav-link:hover,
+body.theme-apple .navbar .nav-item a:hover {
+    color: #E0F7F8 !important;
+    opacity: 0.95 !important;
+}
+body.theme-apple .navbar svg,
+body.theme-apple .navbar use,
+body.theme-apple .navbar .icon,
+body.theme-apple .navbar .es-icon {
+    fill: #E0F7F8 !important;
+    stroke: #E0F7F8 !important;
+    color: #E0F7F8 !important;
+    transition: transform 140ms ease, stroke 140ms ease !important;
+}
+body.theme-apple .navbar .nav-item:hover svg,
+body.theme-apple .navbar .nav-link:hover svg {
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+    transform: scale(1.05) !important;
+}
+body.theme-apple .navbar .search-bar input.form-control {
+    background: rgba(255, 255, 255, 0.16) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 9999px !important;
+    color: #FFFFFF !important;
+    font-size: 13px !important;
+    padding: 6px 14px 6px 34px !important;
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+body.theme-apple .navbar .search-bar input.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.68) !important;
+}
+body.theme-apple .navbar .search-bar input.form-control:focus {
+    background: rgba(255, 255, 255, 0.26) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
+    outline: none !important;
+}
+body.theme-apple .navbar .app-switcher-icon,
+body.theme-apple .navbar .navbar-brand {
+    color: #FFFFFF !important;
+}
+body.theme-apple .navbar .app-switcher-icon svg,
+body.theme-apple .navbar .navbar-brand svg {
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+body.theme-apple .navbar .dropdown-menu {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    border-radius: 12px !important;
+}
+
+/* Apple Page Head */
+body.theme-apple .page-head {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+body.theme-apple .page-head .title-text,
+body.theme-apple .page-head h3 {
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    letter-spacing: -0.018em !important;
+    color: #1D1D1F !important;
+}
+
+/* Apple Sidebar */
+body.theme-apple .body-sidebar-container {
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 2px 0 12px -4px rgba(0, 0, 0, 0.04) !important;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+body.theme-apple .body-sidebar {
+    background: rgba(246, 246, 248, 0.78) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+body.theme-apple .standard-sidebar-item .item-anchor {
+    border-radius: 8px !important;
+    color: #424245 !important;
+    font-weight: 500 !important;
+    margin: 2px 8px !important;
+    padding: 6px 10px !important;
+}
+body.theme-apple .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #1D1D1F !important;
+}
+body.theme-apple .active-sidebar {
+    background: rgba(0, 163, 173, 0.14) !important;
+    border-radius: 8px !important;
+    margin: 2px 8px !important;
     box-shadow: none !important;
-    margin-bottom: 24px !important;
+}
+body.theme-apple .active-sidebar .item-anchor,
+body.theme-apple .active-sidebar .sidebar-item-label {
+    color: #006269 !important;
+    font-weight: 600 !important;
+}
+body.theme-apple .active-sidebar .sidebar-item-icon svg {
+    color: #006269 !important;
+    fill: #006269 !important;
+    stroke: #006269 !important;
 }
 
-/* Widget Group Title */
-.widget-group .widget-group-head,
-.widget-group-title,
-.workspace-section-title {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: .08em !important;
-    color: var(--cu-text-faint) !important;
-    margin-bottom: 12px !important;
-    padding-bottom: 8px !important;
-    border-bottom: 1px solid var(--cu-border-soft) !important;
-    width: 100% !important;
-}
-
-/* The actual Card boxes (links, shortcuts, charts) */
-.links-widget-box,
-.shortcut-widget-box,
-.number-widget-box,
-.dashboard-widget-box,
-.onboarding-widget-box,
-.chart-widget-box,
-.quick-list-widget-box,
-.custom-block-widget-box {
-    background: var(--cu-surface) !important;
-    border: 1px solid var(--cu-border-soft) !important;
-    border-top: 3px solid var(--cu-primary) !important;
-    border-radius: var(--cu-r-lg) !important;
-    box-shadow: var(--cu-sh-sm) !important;
+/* Apple Content Layer Cards (Two-Layer Model: Solid Surface for Data Density) */
+body.theme-apple .links-widget-box,
+body.theme-apple .shortcut-widget-box,
+body.theme-apple .number-widget-box,
+body.theme-apple .dashboard-widget-box,
+body.theme-apple .onboarding-widget-box,
+body.theme-apple .chart-widget-box,
+body.theme-apple .quick-list-widget-box,
+body.theme-apple .custom-block-widget-box {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    border-radius: 14px !important;
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.03),
+        0 8px 24px -4px rgba(0, 98, 105, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
     padding: 20px 22px !important;
-    margin-bottom: 0 !important;
-    width: 100% !important;
-    transition: box-shadow .25s ease, transform .22s ease !important;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-.links-widget-box:hover,
-.shortcut-widget-box:hover,
-.number-widget-box:hover,
-.dashboard-widget-box:hover,
-.chart-widget-box:hover {
-    box-shadow: var(--cu-sh-lg) !important;
+body.theme-apple .links-widget-box:hover,
+body.theme-apple .shortcut-widget-box:hover,
+body.theme-apple .number-widget-box:hover,
+body.theme-apple .dashboard-widget-box:hover,
+body.theme-apple .chart-widget-box:hover {
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 14px 28px -4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 #FFFFFF !important;
+    transform: translateY(-2px) !important;
+}
+body.theme-apple .widget-title {
+    color: #1D1D1F !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+body.theme-apple .btn-primary {
+    background: linear-gradient(180deg, #007F87 0%, #006269 100%) !important;
+    border-color: #006269 !important;
+    border-radius: 8px !important;
+}
+body.theme-apple .btn:active,
+body.theme-apple .shortcut-widget-box:active {
+    transform: scale(0.97) !important;
+}
+
+/* Apple Spotlight Glass Search Modal Styling */
+body.theme-apple #search-modal .modal-content,
+body.theme-apple .search-modal .modal-content {
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+body.theme-apple #search-modal .modal-header,
+body.theme-apple .search-modal .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ──────────────────────────────────────────────────
+   macOS FLOATING QUICK DOCK & THEME SEGMENTED SWITCH
+   ────────────────────────────────────────────────── */
+.cu-theme-toggle-dock,
+#cu-theme-toggle-dock,
+.cu-segmented-switch {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.cu-macos-dock {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: rgba(28, 28, 30, 0.85) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    border-radius: 9999px !important;
+    padding: 4px 6px !important;
+    gap: 4px !important;
+}
+
+.cu-dock-btn {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    padding: 6px 10px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    cursor: pointer !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    outline: none !important;
+}
+
+.cu-dock-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
     transform: translateY(-2px) !important;
 }
 
-/* Widget Inner Title */
-.widget-title,
-.widget-head .widget-label .widget-title {
-    font-weight: 700 !important;
-    font-size: 13.5px !important;
-    color: var(--cu-text) !important;
-    border-bottom: 2px solid var(--cu-accent-lt) !important;
-    padding-bottom: 10px !important;
-    margin-bottom: 14px !important;
+.cu-dock-btn:active {
+    transform: scale(0.95) !important;
 }
 
-/* Links inside workspace widgets */
-.widget-link-item,
-.link-item {
-    border-radius: var(--cu-r-sm) !important;
-    padding: 7px 10px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: var(--cu-text-sub) !important;
-    text-decoration: none !important;
-    transition: background .12s, color .12s !important;
-}
-.widget-link-item:hover,
-.link-item:hover {
-    background: var(--cu-accent-xlt) !important;
-    color: var(--cu-primary) !important;
-    text-decoration: none !important;
+.cu-dock-badge {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #FFFFFF !important;
+    font-size: 10px !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    font-family: -apple-system, BlinkMacSystemFont, monospace !important;
 }
 
-/* ──────────────────────────────────────────────────
-   6. FORMS / LIST VIEWS
-   ────────────────────────────────────────────────── */
-.form-container {
-    background: var(--cu-surface) !important;
-    border-radius: var(--cu-r-lg) !important;
-    box-shadow: var(--cu-sh-sm) !important;
-    border: 1px solid var(--cu-border-soft) !important;
-    margin: 16px 20px !important;
-}
-.frappe-list {
-    background: var(--cu-surface) !important;
-    border-radius: var(--cu-r-lg) !important;
-    border: 1px solid var(--cu-border-soft) !important;
-    box-shadow: var(--cu-sh-sm) !important;
-    overflow: hidden !important;
-    margin: 16px 20px !important;
-    width: calc(100% - 40px) !important;
-}
-.list-row:hover,
-.list-row-container:hover {
-    background: var(--cu-accent-xlt) !important;
+.cu-dock-divider {
+    width: 1px !important;
+    height: 18px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    margin: 0 2px !important;
 }
 
+.cu-segmented-switch {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: rgba(0, 0, 0, 0.35) !important;
+    border-radius: 9999px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+}
+
+.cu-seg-btn {
+    border: none !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif !important;
+    padding: 6px 14px !important;
+    border-radius: 9999px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    outline: none !important;
+}
+
+.cu-seg-btn:hover {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.cu-seg-btn:active {
+    transform: scale(0.96) !important;
+}
+
+.cu-seg-btn#cu-theme-btn-v9.active {
+    background: #006269 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 10px rgba(0, 98, 105, 0.45) !important;
+}
+
+.cu-seg-btn#cu-theme-btn-apple.active {
+    background: linear-gradient(180deg, #007F87 0%, #006269 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 10px rgba(0, 163, 173, 0.45) !important;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    FLOATING MULTILINGUAL VOICE DOCK & MIC BUTTON
@@ -1133,4 +1606,1799 @@ html { background-color: var(--cu-bg) !important; }
   padding: 2px 6px !important;
   border-radius: 4px !important;
   flex-shrink: 0 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   APPLE TEAL GLASS: REFINED CARDS, FORMS, & LISTS (Right Canvas Vibrancy)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Number Card Widgets: Vibrant Gradient Metrics & Tinted Stat Pills ── */
+body.theme-apple .number-widget-box {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-top: 2px solid rgba(0, 163, 173, 0.5) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .number-widget-box::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, #00A3AD 0%, #006269 100%) !important;
+    opacity: 0.8 !important;
+}
+
+body.theme-apple .number-widget-box .number {
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif !important;
+    background: linear-gradient(135deg, #004a4f 0%, #006269 50%, #00A3AD 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    margin: 8px 0 !important;
+}
+
+body.theme-apple .card-stats {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    margin-top: 4px !important;
+}
+
+body.theme-apple .card-stats.green-stat {
+    background: rgba(52, 199, 89, 0.14) !important;
+    color: #15803D !important;
+    border: 1px solid rgba(52, 199, 89, 0.25) !important;
+}
+
+body.theme-apple .card-stats.red-stat {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #B91C1C !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+body.theme-apple .card-stats.grey-stat {
+    background: rgba(100, 116, 139, 0.12) !important;
+    color: #475569 !important;
+    border: 1px solid rgba(100, 116, 139, 0.2) !important;
+}
+
+/* ── 2. Shortcut Widgets: Apple Squircle Left Accent ── */
+body.theme-apple .shortcut-widget-box {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-left: 3px solid rgba(0, 163, 173, 0.4) !important;
+}
+
+body.theme-apple .shortcut-widget-box:hover {
+    border-left-color: #00A3AD !important;
+}
+
+body.theme-apple .shortcut-widget-box .widget-title {
+    font-weight: 600 !important;
+    color: #1D1D1F !important;
+}
+
+body.theme-apple .shortcut-widget-box .indicator-pill {
+    background: rgba(0, 163, 173, 0.14) !important;
+    color: #006269 !important;
+    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    border-radius: 9999px !important;
+    padding: 2px 8px !important;
+}
+
+/* ── 3. Links inside Workspace Widgets ── */
+body.theme-apple .widget-link-item,
+body.theme-apple .link-item {
+    border-radius: 8px !important;
+    padding: 7px 12px !important;
+    color: #2E4F4F !important;
+    font-weight: 500 !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .widget-link-item:hover,
+body.theme-apple .link-item:hover {
+    background: rgba(0, 163, 173, 0.08) !important;
+    color: #006269 !important;
+    transform: translateX(3px) !important;
+}
+
+/* ── 4. Refined Apple List Views & Data Tables ── */
+body.theme-apple .page-form {
+    background: transparent !important;
+    border: none !important;
+    padding: 12px 24px 8px 24px !important;
+    gap: 10px !important;
+}
+body.theme-apple .page-form .standard-filter-section {
+    gap: 10px !important;
+    align-items: center !important;
+}
+body.theme-apple .page-form .form-group {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body.theme-apple .page-form .input-with-feedback,
+body.theme-apple .page-form input.form-control {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 8px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+    padding: 4px 10px !important;
+}
+body.theme-apple .page-form .filter-section {
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+body.theme-apple .frappe-list {
+    margin: 0 24px 24px 24px !important;
+    background: #FFFFFF !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .frappe-list .result {
+    background: transparent !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.theme-apple .list-row-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    transition: background-color 120ms ease !important;
+}
+
+body.theme-apple .list-header,
+body.theme-apple .list-row-head {
+    background: #F8FAFC !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #64748B !important;
+    padding: 11px 20px !important;
+}
+
+body.theme-apple .list-row {
+    padding: 10px 20px !important;
+    min-height: 48px !important;
+    align-items: center !important;
+    border-bottom: none !important;
+    transition: background-color 120ms ease !important;
+}
+
+body.theme-apple .list-row-container:hover,
+body.theme-apple .list-row:hover {
+    background: rgba(0, 98, 105, 0.03) !important;
+}
+
+body.theme-apple .list-row .level-left {
+    padding: 0 !important;
+    gap: 12px !important;
+}
+
+body.theme-apple .list-row .level-right {
+    padding: 0 !important;
+    background: transparent !important;
+    border-left: none !important;
+    box-shadow: none !important;
+    gap: 8px !important;
+}
+
+body.theme-apple .list-row:hover .level-right {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.theme-apple .list-row-container:last-child {
+    border-bottom: none !important;
+}
+
+body.theme-apple .list-paging-area {
+    padding: 12px 20px !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: #F8FAFC !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+body.theme-apple .layout-side-section {
+    padding: 16px 20px !important;
+    background: transparent !important;
+}
+
+body.theme-apple .list-subject {
+    font-weight: 500 !important;
+    color: #1D1D1F !important;
+}
+
+body.theme-apple .list-subject a {
+    color: #006269 !important;
+    font-weight: 600 !important;
+    transition: color 0.12s ease !important;
+}
+
+body.theme-apple .list-subject a:hover {
+    color: #00A3AD !important;
+    text-decoration: none !important;
+}
+
+/* Apple Vibrant Status Badges / Indicator Pills */
+body.theme-apple .indicator-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    letter-spacing: 0.01em !important;
+}
+
+/* Green (Paid / Submitted / Active / Completed) */
+body.theme-apple .indicator-pill.green,
+body.theme-apple .indicator-pill-round.green {
+    background: rgba(52, 199, 89, 0.14) !important;
+    color: #15803D !important;
+    border: 1px solid rgba(52, 199, 89, 0.3) !important;
+}
+
+/* Orange / Yellow / Amber (Draft / Pending / Unpaid) */
+body.theme-apple .indicator-pill.orange,
+body.theme-apple .indicator-pill.yellow,
+body.theme-apple .indicator-pill-round.yellow {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #B45309 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Red (Cancelled / Overdue / Rejected / Failed) */
+body.theme-apple .indicator-pill.red,
+body.theme-apple .indicator-pill-round.red {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #B91C1C !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Blue / Teal / Cyan (In Progress / Open / Processing) */
+body.theme-apple .indicator-pill.blue,
+body.theme-apple .indicator-pill.cyan,
+body.theme-apple .indicator-pill-round.blue {
+    background: rgba(0, 163, 173, 0.14) !important;
+    color: #006269 !important;
+    border: 1px solid rgba(0, 163, 173, 0.3) !important;
+}
+
+/* Purple (Specialized / Review) */
+body.theme-apple .indicator-pill.purple {
+    background: rgba(139, 92, 246, 0.14) !important;
+    color: #6D28D9 !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+/* Gray (Closed / Inactive) */
+body.theme-apple .indicator-pill.gray,
+body.theme-apple .indicator-pill.grey {
+    background: rgba(100, 116, 139, 0.12) !important;
+    color: #475569 !important;
+    border: 1px solid rgba(100, 116, 139, 0.25) !important;
+}
+
+/* Filter Bar & Tag Pills */
+body.theme-apple .filter-pill,
+body.theme-apple .filter-selector {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    border-radius: 9999px !important;
+    font-weight: 500 !important;
+    color: #006269 !important;
+}
+
+body.theme-apple .filter-pill:hover {
+    border-color: #00A3AD !important;
+    box-shadow: 0 0 0 2px rgba(0, 163, 173, 0.15) !important;
+}
+
+/* ── 5. Refined Apple Form Views (DocType Edit Sheets) ── */
+body.theme-apple .form-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+body.theme-apple .form-page {
+    background: transparent !important;
+}
+
+/* Section Breaks as Liquid Glass Panes */
+body.theme-apple .form-section {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.07) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+    margin-bottom: 20px !important;
+    padding: 20px 24px !important;
+}
+
+body.theme-apple .form-section .section-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 16px !important;
+    color: #006269 !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    letter-spacing: -0.012em !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+body.theme-apple .form-section .section-head::before {
+    content: '' !important;
+    display: inline-block !important;
+    width: 3px !important;
+    height: 14px !important;
+    background: #00A3AD !important;
+    border-radius: 2px !important;
+    margin-right: 8px !important;
+}
+
+/* Form Tabs as Apple Segmented Controls */
+body.theme-apple .form-tabs .nav-tabs {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    gap: 6px !important;
+    margin-bottom: 18px !important;
+}
+
+body.theme-apple .form-tabs .nav-link {
+    border: none !important;
+    border-radius: 8px !important;
+    color: #64748B !important;
+    font-weight: 500 !important;
+    padding: 7px 16px !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .form-tabs .nav-link:hover {
+    background: rgba(0, 163, 173, 0.08) !important;
+    color: #006269 !important;
+}
+
+body.theme-apple .form-tabs .nav-link.active {
+    background: #006269 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+}
+
+/* Form Controls & Inputs */
+body.theme-apple .form-control,
+body.theme-apple .input-with-feedback {
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+    color: #1D1D1F !important;
+    font-size: 13.5px !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .form-control:focus,
+body.theme-apple .input-with-feedback:focus {
+    border-color: #00A3AD !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.25) !important;
+    background: #FFFFFF !important;
+}
+
+body.theme-apple .control-label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    letter-spacing: -0.01em !important;
+    margin-bottom: 5px !important;
+}
+
+body.theme-apple .reqd .control-label::after {
+    color: #FF3B30 !important;
+    font-weight: 700 !important;
+}
+
+/* Primary and Secondary Action Buttons in Forms */
+body.theme-apple .primary-action,
+body.theme-apple .page-head .btn-primary {
+    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
+    border-color: #006269 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+    transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease !important;
+}
+
+body.theme-apple .primary-action:hover,
+body.theme-apple .page-head .btn-primary:hover {
+    background: #004a4f !important;
+    box-shadow: 0 4px 12px rgba(0, 98, 105, 0.4) !important;
+}
+
+body.theme-apple .primary-action:active,
+body.theme-apple .page-head .btn-primary:active {
+    transform: scale(0.97) !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   TEAL APP ICONS (Sidebar, App Switcher, Workspaces, Widgets)
+   ───────────────────────────────────────────────────────────── */
+
+/* 1. Sidebar Header App Logo / Workspace Icon */
+body.theme-apple .sidebar-header .sidebar-item-icon,
+body.theme-v9 .sidebar-header .sidebar-item-icon {
+    background: linear-gradient(135deg, rgba(0, 163, 173, 0.16) 0%, rgba(0, 98, 105, 0.28) 100%) !important;
+    border: 1px solid rgba(0, 163, 173, 0.35) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.18) !important;
+    color: #006269 !important;
+    transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), box-shadow 160ms ease !important;
+}
+
+body.theme-apple .sidebar-header:hover .sidebar-item-icon,
+body.theme-v9 .sidebar-header:hover .sidebar-item-icon {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 98, 105, 0.28) !important;
+}
+
+body.theme-apple .sidebar-header .header-logo svg,
+body.theme-apple .sidebar-header .sidebar-item-icon svg,
+body.theme-v9 .sidebar-header .header-logo svg,
+body.theme-v9 .sidebar-header .sidebar-item-icon svg {
+    color: #006269 !important;
+    stroke: #006269 !important;
+    fill: #006269 !important;
+}
+
+/* 2. Sidebar Workspace / App Navigation Icons */
+body.theme-apple .desk-sidebar .sidebar-item-icon,
+body.theme-apple .standard-sidebar-item .sidebar-item-icon,
+body.theme-apple .sidebar-item-icon[item-icon] {
+    color: #007F87 !important;
+}
+
+body.theme-apple .desk-sidebar .sidebar-item-icon svg,
+body.theme-apple .standard-sidebar-item .sidebar-item-icon svg,
+body.theme-apple .sidebar-item-icon[item-icon] svg {
+    color: #007F87 !important;
+    stroke: #007F87 !important;
+    transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), stroke 150ms ease, color 150ms ease !important;
+}
+
+body.theme-apple .standard-sidebar-item:hover .sidebar-item-icon svg,
+body.theme-apple .sidebar-item-container:hover .sidebar-item-icon svg {
+    color: #004A4F !important;
+    stroke: #004A4F !important;
+    transform: scale(1.12) !important;
+}
+
+body.theme-apple .active-sidebar .sidebar-item-icon svg {
+    color: #006269 !important;
+    stroke: #006269 !important;
+    fill: #006269 !important;
+    transform: scale(1.08) !important;
+}
+
+/* Also for theme-v9 default sidebar */
+body.theme-v9 .desk-sidebar .sidebar-item-icon svg,
+body.theme-v9 .standard-sidebar-item .sidebar-item-icon svg,
+body.theme-v9 .sidebar-item-icon[item-icon] svg {
+    color: #007F87 !important;
+    stroke: #007F87 !important;
+}
+
+body.theme-v9 .active-sidebar .sidebar-item-icon svg {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    fill: #FFFFFF !important;
+}
+
+/* 3. App Switcher & Workspace Dropdown Menu Icons */
+body.theme-apple .dropdown-menu .sidebar-item-icon,
+body.theme-apple .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon,
+body.theme-apple .dropdown-item-icon,
+body.theme-apple .frappe-menu-item-icon,
+body.theme-v9 .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon {
+    background: rgba(0, 163, 173, 0.12) !important;
+    border: 1px solid rgba(0, 163, 173, 0.22) !important;
+    border-radius: 8px !important;
+    color: #006269 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 140ms ease !important;
+}
+
+body.theme-apple .dropdown-menu .sidebar-item-icon svg,
+body.theme-apple .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon svg,
+body.theme-apple .dropdown-item-icon svg,
+body.theme-apple .frappe-menu-item-icon svg,
+body.theme-v9 .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon svg {
+    color: #006269 !important;
+    stroke: #006269 !important;
+}
+
+body.theme-apple .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon,
+body.theme-v9 .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon {
+    background: #006269 !important;
+    border-color: #006269 !important;
+}
+
+body.theme-apple .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon svg,
+body.theme-v9 .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon svg {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+
+/* 4. Desk Workspace Shortcut, Link & Card Icons */
+body.theme-apple .shortcut-widget-box .widget-head svg,
+body.theme-apple .shortcut-widget-box .widget-title svg,
+body.theme-v9 .shortcut-widget-box .widget-head svg,
+body.theme-v9 .shortcut-widget-box .widget-title svg {
+    color: #007F87 !important;
+    stroke: #007F87 !important;
+    transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), stroke 150ms ease !important;
+}
+
+body.theme-apple .shortcut-widget-box:hover .widget-head svg,
+body.theme-apple .shortcut-widget-box:hover .widget-title svg {
+    color: #004A4F !important;
+    stroke: #004A4F !important;
+    transform: scale(1.1) !important;
+}
+
+body.theme-apple .widget-link-item svg,
+body.theme-apple .link-item svg,
+body.theme-apple .widget-link-item .link-icon svg,
+body.theme-v9 .widget-link-item svg,
+body.theme-v9 .link-item svg {
+    color: #00878F !important;
+    stroke: #00878F !important;
+}
+
+body.theme-apple .number-widget-box .widget-head svg,
+body.theme-v9 .number-widget-box .widget-head svg {
+    color: #00A3AD !important;
+    stroke: #00A3AD !important;
+}
+
+/* 5. Navbar App Launcher & Icons (Teal Glass Navbar) */
+body.theme-apple .navbar .app-switcher-icon svg,
+body.theme-apple .navbar .navbar-brand svg,
+body.theme-apple .navbar .navbar-brand .app-logo,
+body.theme-apple .navbar .nav-link .icon,
+body.theme-apple .navbar .notifications-icon svg {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+
+body.theme-apple .navbar .app-switcher-icon:hover svg,
+body.theme-apple .navbar .navbar-brand:hover svg {
+    color: #004A4F !important;
+    stroke: #004A4F !important;
+    transform: scale(1.08) !important;
+}
+
+
+/* 6. App Icon Images (ERPNext logo, workspace module logos) */
+body.theme-apple .sidebar-header .header-logo img,
+body.theme-apple .sidebar-item-icon img,
+body.theme-apple .header-logo img,
+body.theme-apple img.app-icon,
+body.theme-apple .desktop-icon .icon-container img,
+body.theme-v9 .sidebar-header .header-logo img,
+body.theme-v9 .sidebar-item-icon img,
+body.theme-v9 .header-logo img,
+body.theme-v9 img.app-icon,
+body.theme-v9 .desktop-icon .icon-container img {
+    border-radius: 8px !important;
+    transition: transform 160ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+body.theme-apple .sidebar-header:hover .header-logo img,
+body.theme-v9 .sidebar-header:hover .header-logo img {
+    transform: scale(1.05) !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   APPLE RIGHT-SIDE CANVAS HIG & FLUID MOTION ARCHITECTURE
+   ───────────────────────────────────────────────────────────── */
+
+/* Apple Canvas Workspace Background & Typography */
+body.theme-apple .page-container,
+body.theme-apple .layout-main,
+body.theme-apple .layout-main-section,
+body.theme-apple .workspace-page {
+    background: #F5F5F7 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+/* Page Toolbar & Title Head */
+body.theme-apple .page-head {
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02) !important;
+    padding: 14px 24px !important;
+}
+
+body.theme-apple .page-head .title-text,
+body.theme-apple .page-head h3,
+body.theme-apple .page-title .title-text {
+    font-weight: 700 !important;
+    font-size: 20px !important;
+    letter-spacing: -0.025em !important;
+    color: #1D1D1F !important;
+}
+
+body.theme-apple .page-head .sub-title {
+    font-size: 13px !important;
+    color: #64748B !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* Apple Buttons (Fluid Physics & 1:1 Response) */
+body.theme-apple .btn {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    letter-spacing: -0.01em !important;
+    transition: transform 100ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease, background-color 150ms ease !important;
+}
+
+body.theme-apple .btn:active,
+body.theme-apple .shortcut-widget-box:active,
+body.theme-apple .number-widget-box:active {
+    transform: scale(0.97) !important;
+}
+
+body.theme-apple .btn-secondary,
+body.theme-apple .btn-default {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #1D1D1F !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-apple .btn-secondary:hover,
+body.theme-apple .btn-default:hover {
+    background: #F8FAFC !important;
+    border-color: rgba(0, 98, 105, 0.25) !important;
+    color: #006269 !important;
+}
+
+body.theme-apple .primary-action,
+body.theme-apple .btn-primary {
+    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
+    border: 1px solid #006269 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+}
+
+body.theme-apple .primary-action:hover,
+body.theme-apple .btn-primary:hover {
+    background: #004A4F !important;
+    box-shadow: 0 4px 14px rgba(0, 98, 105, 0.4) !important;
+}
+
+/* ── 1. Apple Number / Metric Cards ── */
+body.theme-apple .number-widget-box,
+body.theme-apple .widget.number-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.07) !important;
+    padding: 20px 22px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .number-widget-box::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3.5px !important;
+    background: linear-gradient(90deg, #00A3AD 0%, #006269 100%) !important;
+}
+
+body.theme-apple .number-widget-box:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 16px 32px -4px rgba(0, 98, 105, 0.14) !important;
+    border-color: rgba(0, 163, 173, 0.35) !important;
+}
+
+body.theme-apple .number-widget-box .widget-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #64748B !important;
+    margin-bottom: 8px !important;
+    border-bottom: none !important;
+}
+
+body.theme-apple .number-widget-box .widget-num {
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    font-variant-numeric: tabular-nums !important;
+    background: linear-gradient(135deg, #004A4F 0%, #007F87 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    line-height: 1.15 !important;
+}
+
+body.theme-apple .card-stats {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    margin-top: 6px !important;
+}
+
+body.theme-apple .card-stats.green-stat {
+    background: rgba(52, 199, 89, 0.15) !important;
+    color: #107C41 !important;
+    border: 1px solid rgba(52, 199, 89, 0.28) !important;
+}
+
+body.theme-apple .card-stats.red-stat {
+    background: rgba(255, 59, 48, 0.13) !important;
+    color: #C42B1C !important;
+    border: 1px solid rgba(255, 59, 48, 0.25) !important;
+}
+
+/* ── 2. Apple Shortcut Tiles (Upgraded Control Center Architecture) ── */
+body.theme-apple .shortcut-widget-box,
+body.theme-apple .widget.shortcut-widget-box,
+body.theme-v9 .shortcut-widget-box,
+body.theme-v9 .widget.shortcut-widget-box {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5FAFA 100%) !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 163, 173, 0.24) !important;
+    box-shadow: 0 2px 8px -2px rgba(0, 98, 105, 0.08), 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+    padding: 14px 18px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms ease, border-color 160ms ease, background 160ms ease !important;
+}
+
+/* Luminous Teal Indicator Pill Strip */
+body.theme-apple .shortcut-widget-box::before,
+body.theme-apple .widget.shortcut-widget-box::before,
+body.theme-v9 .shortcut-widget-box::before,
+body.theme-v9 .widget.shortcut-widget-box::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 10px !important;
+    bottom: 10px !important;
+    width: 4px !important;
+    border-radius: 0 4px 4px 0 !important;
+    background: linear-gradient(180deg, #00A3AD 0%, #006269 100%) !important;
+    transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Shortcut Hover Lift & Fluid Expansion */
+body.theme-apple .shortcut-widget-box:hover,
+body.theme-apple .widget.shortcut-widget-box:hover,
+body.theme-v9 .shortcut-widget-box:hover,
+body.theme-v9 .widget.shortcut-widget-box:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, #FFFFFF 0%, #EEF7F8 100%) !important;
+    border-color: #00A3AD !important;
+    box-shadow: 0 8px 24px -4px rgba(0, 98, 105, 0.16), 0 2px 6px rgba(0, 163, 173, 0.08), inset 0 1px 0 #FFFFFF !important;
+}
+
+body.theme-apple .shortcut-widget-box:hover::before,
+body.theme-v9 .shortcut-widget-box:hover::before {
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 5px !important;
+    background: linear-gradient(180deg, #006269 0%, #004A4F 100%) !important;
+}
+
+/* Tactile Active Response (<100ms) */
+body.theme-apple .shortcut-widget-box:active,
+body.theme-v9 .shortcut-widget-box:active {
+    transform: scale(0.97) !important;
+    transition: transform 90ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/* Shortcut Title Typography */
+body.theme-apple .shortcut-widget-box .widget-title,
+body.theme-v9 .shortcut-widget-box .widget-title {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    letter-spacing: -0.015em !important;
+    color: #0F282A !important;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+}
+
+/* Action Area & Controls */
+body.theme-apple .shortcut-widget-box .widget-control,
+body.theme-v9 .shortcut-widget-box .widget-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Apple Count Capsule Badge */
+body.theme-apple .shortcut-widget-box .indicator-pill,
+body.theme-v9 .shortcut-widget-box .indicator-pill {
+    background: rgba(0, 163, 173, 0.12) !important;
+    color: #006269 !important;
+    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    border-radius: 9999px !important;
+    padding: 2px 9px !important;
+    letter-spacing: 0.01em !important;
+    line-height: 1.25 !important;
+    transition: all 140ms ease !important;
+}
+
+body.theme-apple .shortcut-widget-box:hover .indicator-pill,
+body.theme-v9 .shortcut-widget-box:hover .indicator-pill {
+    background: rgba(0, 98, 105, 0.18) !important;
+    border-color: #006269 !important;
+}
+
+/* Micro-Squircle Arrow Action Button */
+body.theme-apple .shortcut-widget-box .widget-control svg,
+body.theme-apple .shortcut-widget-box .widget-head svg,
+body.theme-v9 .shortcut-widget-box .widget-control svg,
+body.theme-v9 .shortcut-widget-box .widget-head svg {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 7px !important;
+    background: rgba(0, 163, 173, 0.08) !important;
+    color: #007F87 !important;
+    stroke: #007F87 !important;
+    padding: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 160ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+body.theme-apple .shortcut-widget-box:hover .widget-control svg,
+body.theme-apple .shortcut-widget-box:hover .widget-head svg,
+body.theme-v9 .shortcut-widget-box:hover .widget-control svg,
+body.theme-v9 .shortcut-widget-box:hover .widget-head svg {
+    background: #006269 !important;
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    transform: translate(1px, -1px) scale(1.08) !important;
+}
+
+/* ── 3. Apple Links Cards & Navigation Lists ── */
+body.theme-apple .links-widget-box,
+body.theme-apple .widget.links-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    padding: 18px 20px !important;
+}
+
+body.theme-apple .links-widget-box .widget-title {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #475569 !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding-bottom: 8px !important;
+}
+
+body.theme-apple .widget-link-item,
+body.theme-apple .link-item {
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: #1E293B !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: transform 140ms cubic-bezier(0.2, 0, 0, 1), background-color 140ms ease !important;
+}
+
+body.theme-apple .widget-link-item:hover,
+body.theme-apple .link-item:hover {
+    background: rgba(0, 163, 173, 0.08) !important;
+    color: #006269 !important;
+    transform: translateX(4px) !important;
+}
+
+/* ── 4. Apple Quick Lists & Tables ── */
+body.theme-apple .quick-list-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), 0 8px 24px -4px rgba(0, 98, 105, 0.05) !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .list-row-head,
+body.theme-apple .frappe-list .list-header {
+    background: #F8FAFC !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #64748B !important;
+    padding: 10px 16px !important;
+}
+
+body.theme-apple .list-row-container:hover,
+body.theme-apple .list-row:hover {
+    background: rgba(0, 163, 173, 0.04) !important;
+    transition: background-color 120ms ease !important;
+}
+
+/* ── 5. Apple Form Views (Refined Glass Panes & Ergonomic Field Gutter Spacing) ── */
+body.theme-apple .form-section {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+    margin-bottom: 22px !important;
+    padding: 22px 26px !important;
+    box-sizing: border-box !important;
+}
+
+body.theme-apple .form-section .section-body {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+}
+
+body.theme-apple .form-section .form-column {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    box-sizing: border-box !important;
+}
+
+body.theme-apple .frappe-control {
+    margin-bottom: 18px !important;
+}
+
+body.theme-apple .frappe-control .control-label {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    margin-bottom: 7px !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.theme-apple .frappe-control .form-control {
+    height: 38px !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    background: #FFFFFF !important;
+    border: 1.2px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+body.theme-apple .frappe-control .form-control:focus {
+    border-color: #00A3AD !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.22) !important;
+}
+
+/* Child Table Ergonomics */
+body.theme-apple .form-grid {
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    margin-top: 12px !important;
+    margin-bottom: 20px !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-apple .form-grid .grid-heading-row {
+    background: #F8FAFC !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+    padding: 10px 14px !important;
+}
+
+body.theme-apple .form-grid .grid-row {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    min-height: 42px !important;
+}
+
+body.theme-apple .form-grid .grid-row:hover {
+    background: rgba(0, 163, 173, 0.04) !important;
+}
+
+body.theme-apple .section-head {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    letter-spacing: -0.015em !important;
+    color: #0F172A !important;
+    margin-bottom: 14px !important;
+}
+
+/* ── Apple Segmented Tab Navigation Architecture (macOS / iPadOS Style) ── */
+body.theme-apple .form-tabs-list,
+body.theme-v9 .form-tabs-list {
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
+    box-shadow: 0 4px 16px -4px rgba(0, 50, 54, 0.05) !important;
+    padding: 8px 16px !important;
+    margin-bottom: 20px !important;
+    border-radius: 14px 14px 0 0 !important;
+    position: sticky !important;
+    z-index: 1005 !important;
+    top: 102px !important;
+}
+
+/* Recessed Segmented Capsule Track */
+body.theme-apple .form-tabs-list .form-tabs,
+body.theme-v9 .form-tabs-list .form-tabs {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: rgba(0, 98, 105, 0.06) !important;
+    border: 1px solid rgba(0, 98, 105, 0.12) !important;
+    border-radius: 11px !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    overflow-x: auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+body.theme-apple .form-tabs .nav-item,
+body.theme-v9 .form-tabs .nav-item {
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Tab Button Item */
+body.theme-apple .form-tabs-list .nav-link,
+body.theme-v9 .form-tabs-list .nav-link {
+    background: transparent !important;
+    border: none !important;
+    color: #4A6363 !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    letter-spacing: -0.01em !important;
+    padding: 6px 16px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Tab Button Hover */
+body.theme-apple .form-tabs-list .nav-link:hover,
+body.theme-v9 .form-tabs-list .nav-link:hover {
+    color: #004A4F !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Active Segmented Pill (Elevated Apple Capsule) */
+body.theme-apple .form-tabs-list .nav-link.active,
+body.theme-v9 .form-tabs-list .nav-link.active {
+    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.32), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transform: scale(1.02) !important;
+}
+
+/* Active Press (<100ms fluid physics) */
+body.theme-apple .form-tabs-list .nav-link:active,
+body.theme-v9 .form-tabs-list .nav-link:active {
+    transform: scale(0.97) !important;
+    transition: transform 90ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/* High Visibility Keyboard Focus Ring */
+body.theme-apple .form-tabs-list .nav-link:focus-visible,
+body.theme-v9 .form-tabs-list .nav-link:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
+}
+
+/* Smooth Tab Pane Content Transition */
+body.theme-apple .form-tab-content > .tab-pane,
+body.theme-v9 .form-tab-content > .tab-pane {
+    display: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .form-tab-content > .tab-pane.active.show,
+body.theme-apple .form-tab-content > .tab-pane.active,
+body.theme-v9 .form-tab-content > .tab-pane.active.show,
+body.theme-v9 .form-tab-content > .tab-pane.active {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Child Table Grid Row Tabs Styling */
+body.theme-apple .form-grid .form-tabs-list,
+body.theme-v9 .form-grid .form-tabs-list {
+    background: rgba(0, 98, 105, 0.04) !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    border-radius: 10px !important;
+    padding: 4px 8px !important;
+    margin-bottom: 12px !important;
+}
+
+body.theme-apple .form-control {
+    border-radius: 8px !important;
+    border: 1px solid #CBD5E1 !important;
+    font-size: 13px !important;
+    color: #0F172A !important;
+    transition: border-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+body.theme-apple .form-control:focus {
+    border-color: #00A3AD !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.28) !important;
+    outline: none !important;
+}
+
+/* ── 6. Accessibility & Fluid Physics ── */
+@media (prefers-reduced-motion: reduce) {
+    body.theme-apple *,
+    body.theme-apple *::before,
+    body.theme-apple *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   APPLE MASTER CANVAS: CHARTS, QUICK LISTS, ONBOARDING & SKELETONS
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Component 2: Analytics & Frappe Charts ── */
+body.theme-apple .dashboard-widget-box,
+body.theme-apple .chart-widget-box,
+body.theme-apple .widget.chart-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.07) !important;
+    padding: 20px 22px !important;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease !important;
+}
+
+body.theme-apple .dashboard-widget-box:hover,
+body.theme-apple .chart-widget-box:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 14px 28px -4px rgba(0, 98, 105, 0.12) !important;
+    border-color: rgba(0, 163, 173, 0.35) !important;
+}
+
+body.theme-apple .dashboard-widget-box .widget-title,
+body.theme-apple .chart-widget-box .widget-title {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #475569 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 14px !important;
+}
+
+/* Frappe Chart SVG Bar Squircle Caps & Smooth Transitions */
+body.theme-apple .frappe-chart rect.bar {
+    rx: 4px !important;
+    ry: 4px !important;
+    transition: transform 150ms ease, opacity 150ms ease !important;
+}
+
+body.theme-apple .frappe-chart rect.bar:hover {
+    opacity: 0.88 !important;
+    filter: brightness(1.05) !important;
+}
+
+/* Liquid Glass Chart Tooltip */
+body.theme-apple .graph-svg-tip {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(0, 98, 105, 0.18) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px -4px rgba(0, 50, 54, 0.18), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    color: #0F282A !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* ── Component 3: Quick Lists & Activity Records ── */
+body.theme-apple .quick-list-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    padding: 18px 20px !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .quick-list-widget-box .widget-title {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #475569 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+body.theme-apple .quick-list-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    margin: 3px 0 !important;
+    border-radius: 9px !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+    transition: all 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .quick-list-item:hover {
+    background: rgba(0, 163, 173, 0.05) !important;
+    border-color: rgba(0, 163, 173, 0.15) !important;
+    transform: translateX(3px) !important;
+}
+
+body.theme-apple .quick-list-item .title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #0F282A !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.theme-apple .quick-list-item .timestamp {
+    font-size: 11px !important;
+    color: #64748B !important;
+    font-weight: 500 !important;
+    margin-top: 2px !important;
+}
+
+/* Micro-Squircle Arrow on Quick List Item */
+body.theme-apple .quick-list-item .right-arrow {
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 6px !important;
+    background: rgba(0, 163, 173, 0.08) !important;
+    color: #007F87 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 140ms ease !important;
+}
+
+body.theme-apple .quick-list-item:hover .right-arrow {
+    background: #006269 !important;
+    color: #FFFFFF !important;
+    transform: translateX(2px) !important;
+}
+
+body.theme-apple .quick-list-item:hover .right-arrow svg {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+
+/* ── Component 5: Onboarding & Step Progress Blocks ── */
+body.theme-apple .onboarding-widget-box {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    padding: 20px 24px !important;
+}
+
+body.theme-apple .onboarding-widget-box .onboarding-step {
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin: 4px 0 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 140ms ease !important;
+}
+
+body.theme-apple .onboarding-widget-box .onboarding-step.complete {
+    color: #107C41 !important;
+    background: rgba(52, 199, 89, 0.08) !important;
+}
+
+body.theme-apple .onboarding-widget-box .onboarding-step.active-step {
+    background: rgba(0, 163, 173, 0.1) !important;
+    color: #006269 !important;
+    font-weight: 600 !important;
+    border-left: 3px solid #006269 !important;
+}
+
+/* ── Component 6: Form Tables & Grids ── */
+body.theme-apple .form-grid {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+body.theme-apple .form-grid:not(:has(.grid-row-open)) {
+    overflow: hidden !important;
+}
+
+body.theme-apple .form-grid:has(.grid-row-open),
+body.theme-apple .form-grid-container:has(.grid-row.grid-row-open),
+body.theme-apple .grid-row-open {
+    overflow: visible !important;
+}
+
+/* Grid Row In-Form Edit Modal (Fixes item list modal freeze) */
+body.theme-apple .grid-row-open .form-in-grid,
+body.theme-apple .form-in-grid {
+    z-index: 1060 !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.theme-apple #freeze.grid-form {
+    z-index: 1050 !important;
+}
+
+body.theme-apple .grid-heading-row {
+    background: #F8FAFC !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #64748B !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+body.theme-apple .grid-row:hover {
+    background: rgba(0, 163, 173, 0.03) !important;
+}
+
+body.theme-apple .grid-row-open {
+    background: #FAFDFD !important;
+    border-top: 1px solid rgba(0, 163, 173, 0.25) !important;
+    border-bottom: 1px solid rgba(0, 163, 173, 0.25) !important;
+}
+
+/* ── Component 7: Loading Skeletons & Empty States ── */
+@keyframes apple-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+body.theme-apple .skeleton-card,
+body.theme-apple .skeleton,
+body.theme-apple .list-loading-state {
+    background: linear-gradient(90deg, #F1F5F9 0%, #E2E8F0 50%, #F1F5F9 100%) !important;
+    background-size: 200% 100% !important;
+    animation: apple-shimmer 1.8s infinite ease-in-out !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-apple .empty-state,
+body.theme-apple .list-no-data-state {
+    background: #FFFFFF !important;
+    border-radius: 14px !important;
+    border: 1px dashed rgba(0, 98, 105, 0.2) !important;
+    padding: 32px 24px !important;
+    text-align: center !important;
+    color: #64748B !important;
+}
+
+/* High Visibility Keyboard Focus Ring */
+body.theme-apple :focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.35) !important;
+    border-color: #00A3AD !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   APPLE HIG HARMONIOUS TYPOGRAPHIC SCALE & VISUAL HIERARCHY
+   ───────────────────────────────────────────────────────────── */
+
+/* Global Right-Side Canvas Base Scale (Natural 13.5px Apple baseline) */
+body.theme-apple .layout-main-section,
+body.theme-apple .workspace-page,
+body.theme-apple .frappe-list,
+body.theme-apple .form-layout,
+body.theme-apple .page-container,
+body.theme-v9 .layout-main-section,
+body.theme-v9 .workspace-page,
+body.theme-v9 .frappe-list,
+body.theme-v9 .form-layout {
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+}
+
+/* 1. Primary Page & Workspace Headings (20px Bold) */
+body.theme-apple .page-head .title-text,
+body.theme-apple .page-title .title-text,
+body.theme-apple .page-head h3,
+body.theme-v9 .page-head .title-text {
+    font-weight: 700 !important;
+    font-size: 20px !important;
+    letter-spacing: -0.02em !important;
+    color: #0F172A !important;
+}
+
+/* 2. Form Section Break Headings (15px Semi-Bold Section Divider) */
+body.theme-apple .form-section .section-head,
+body.theme-apple .section-head,
+body.theme-v9 .form-section .section-head {
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    letter-spacing: -0.015em !important;
+    color: #0F172A !important;
+    margin-bottom: 8px !important;
+}
+
+/* 3. Card, Shortcut & Widget Titles (14px Semi-Bold) */
+body.theme-apple .widget-title,
+body.theme-apple .widget .widget-title,
+body.theme-apple .shortcut-widget-box .widget-title,
+body.theme-apple .number-widget-box .widget-title,
+body.theme-apple .dashboard-widget-box .widget-title,
+body.theme-apple .links-widget-box .widget-title,
+body.theme-apple .quick-list-widget-box .widget-title,
+body.theme-v9 .widget-title,
+body.theme-v9 .shortcut-widget-box .widget-title {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #0F172A !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* 4. Form Controls & Inputs (13.5px Clean Apple Inputs) */
+body.theme-apple .form-control,
+body.theme-v9 .form-control,
+body.theme-apple input.form-control,
+body.theme-apple select.form-control,
+body.theme-apple textarea.form-control {
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    color: #0F172A !important;
+    line-height: 1.45 !important;
+}
+
+/* 5. Clean Micro Field Labels (12.5px Crisp Above Inputs) */
+body.theme-apple .reqd .control-label,
+body.theme-apple .control-label,
+body.theme-v9 .reqd .control-label,
+body.theme-v9 .control-label {
+    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    color: #475569 !important;
+    letter-spacing: -0.005em !important;
+    margin-bottom: 4px !important;
+}
+
+body.theme-apple .reqd .control-label::after,
+body.theme-v9 .reqd .control-label::after {
+    color: #FF3B30 !important;
+    font-weight: 700 !important;
+    margin-left: 2px !important;
+}
+
+/* 6. Primary Record Identifiers in Tables & Lists (13px Semi-Bold) */
+body.theme-apple .list-subject,
+body.theme-apple .list-subject a,
+body.theme-apple .frappe-list .level-item.ellipsis a,
+body.theme-apple .frappe-list .list-row-col:first-child a,
+body.theme-apple .list-row .bold,
+body.theme-v9 .list-subject,
+body.theme-v9 .list-subject a {
+    font-weight: 600 !important;
+    color: #0F172A !important;
+    font-size: 13px !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.theme-apple .list-subject a:hover,
+body.theme-v9 .list-subject a:hover {
+    color: #006269 !important;
+}
+
+/* 7. Quick List Item Titles (13px) */
+body.theme-apple .quick-list-item .title,
+body.theme-v9 .quick-list-item .title {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #0F172A !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* 8. Segmented Navigation Tabs (13px Balanced) */
+body.theme-apple .form-tabs-list .nav-link,
+body.theme-v9 .form-tabs-list .nav-link {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+
+/* 9. Table Totals & Summary Calculations (13px Tabular) */
+body.theme-apple .totals-row,
+body.theme-apple .grid-totals,
+body.theme-apple .grand-total,
+body.theme-apple .report-summary .summary-value,
+body.theme-v9 .totals-row {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #0F172A !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* 10. Status Badges & Metrics (11.5px Pill Size) */
+body.theme-apple .indicator-pill,
+body.theme-apple .status.indicator-pill,
+body.theme-apple .card-stats,
+body.theme-v9 .indicator-pill {
+    font-weight: 600 !important;
+    font-size: 11.5px !important;
+    letter-spacing: 0.01em !important;
+}
+
+/* 11. Helper Text, Placeholders & Secondary Meta (12px Subordinate) */
+body.theme-apple .form-text,
+body.theme-apple .help-box,
+body.theme-apple .text-muted,
+body.theme-v9 .form-text,
+body.theme-v9 .help-box {
+    font-size: 12px !important;
+    color: #64748B !important;
+}
+
+/* 12. Number / Metric KPI Figure (28px Bold Figure) */
+body.theme-apple .number-widget-box .widget-num,
+body.theme-v9 .number-widget-box .widget-num {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+}
+/* ─────────────────────────────────────────────────────────────
+   APPLE HIG ELEVATION & Z-INDEX HIERARCHY STACK (AUDITED & STANDARDIZED)
+   ─────────────────────────────────────────────────────────────
+   Layer 1:  Canvas Base Content (z-index: 1)
+   Layer 2:  Form Sticky Tabs (z-index: 1005, top: 102px)
+   Layer 3:  Sticky Page Head (z-index: 1010, top: 48px)
+   Layer 4:  Sticky Navbar (z-index: 1020, top: 0)
+   Layer 5:  Floating Voice Call Dock (z-index: 1040)
+   Layer 6:  Modal Backdrops (z-index: 1050)
+   Layer 7:  Modals, Dialogs & Spotlight (z-index: 1055)
+   Layer 8:  Dropdown Menus & Awesomplete Autocomplete (z-index: 1065) -- CRITICAL FIX for dialogs
+   Layer 9:  Datepickers, Popovers & Tooltips (z-index: 1075)
+   Layer 10: System Notifications & Alerts (z-index: 1100)
+   ───────────────────────────────────────────────────────────── */
+
+/* Layer 1: Base Content Layer */
+body.theme-apple .page-container,
+body.theme-apple .layout-main,
+body.theme-apple .workspace-page,
+body.theme-apple .widget {
+    position: relative;
+    z-index: 1;
+}
+
+/* Layer 2: Form Sticky Tabs */
+body.theme-apple .form-tabs-list {
+    position: sticky !important;
+    top: 54px !important;
+    z-index: 1005 !important;
+}
+
+/* Layer 3: Sticky Page Head / Toolbar */
+body.theme-apple .page-head {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1010 !important;
+}
+
+/* Layer 4: Empty Navbar Hidden */
+header:empty, .navbar:empty { display: none !important; }
+
+/* Layer 5: Floating Multilingual Voice Call Dock */
+#voice-overlay.voice-floating-dock {
+    z-index: 1040 !important;
+}
+
+/* Layer 6: Modal Backdrops */
+body.theme-apple .modal-backdrop,
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+/* Layer 7: Modals, Dialogs & Spotlight Search */
+body.theme-apple .modal,
+body.theme-apple #search-modal,
+body.theme-apple .search-modal,
+.modal {
+    z-index: 1060 !important;
+}
+
+body.theme-apple .modal.show,
+.modal.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+body.theme-apple .modal-dialog {
+    z-index: 1061 !important;
+    margin: 1.75rem auto !important;
+}
+
+/* Apple Spotlight & Dialog Glass Modal Styling */
+body.theme-apple .modal-content {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .modal-header {
+    background: #FFFFFF !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 16px 22px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+body.theme-apple .modal-header .modal-title {
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    color: #1D1D1F !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.theme-apple .modal-body {
+    padding: 20px 22px !important;
+    background: #FFFFFF !important;
+}
+
+body.theme-apple .modal-footer {
+    background: #F8FAFC !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 14px 22px !important;
+}
+
+/* Layer 8: Dropdown Menus & Autocomplete (Higher than modals so dropdowns in quick-entry work!) */
+body.theme-apple .dropdown-menu,
+body.theme-apple .navbar .dropdown-menu,
+.awesomplete > ul,
+.dropdown-menu {
+    z-index: 1070 !important;
+}
+
+/* Layer 9: Datepickers, Popovers, & Tooltips (Always on Top of Dialogs) */
+body.theme-apple .datepicker,
+.datepicker,
+body.theme-apple .popover,
+.popover,
+body.theme-apple .tooltip,
+.tooltip {
+    z-index: 1080 !important;
+}
+
+/* Layer 10: System Notifications / Alerts (Topmost System Feedback) */
+.desk-alert,
+.alert-message,
+#alert-container {
+    z-index: 1100 !important;
+}
+
+/* Workspace Modules Card Layout & Gutter Rhythm */
+body.theme-apple .workspace-page .widget-group {
+    margin-bottom: 24px !important;
+}
+body.theme-apple .workspace-page .widget {
+    margin-bottom: 16px !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   WORKSPACE SPECIFIC: REMOVE EXTRA NAVBAR & FIX PAGEFLEX HEADER
+   ───────────────────────────────────────────────────────────── */
+/* Workspaces hide empty header only */
+[data-page-route="Workspaces"] header:empty { display: none !important; }
+
+body.is-workspace-view #body,
+body[data-route^="workspaces"] #body,
+body[data-route^="Workspaces"] #body,
+body:has([data-page-route="Workspaces"]:not([style*="display: none"])) #body {
+    padding-top: 0 !important;
+}
+
+/* Fix the pageflex header (.page-head.flex) to the very top in Workspaces */
+body.is-workspace-view .page-head,
+body.is-workspace-view .page-head.flex,
+body[data-route^="workspaces"] .page-head,
+body[data-route^="Workspaces"] .page-head,
+body:has([data-page-route="Workspaces"]:not([style*="display: none"])) .page-head {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1020 !important;
+    margin-top: 0 !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+    padding: 12px 24px !important;
+}
+
+body.is-workspace-view .page-head .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
 }
