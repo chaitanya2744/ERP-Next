@@ -1930,12 +1930,10 @@ body.theme-apple .form-page {
     background: transparent !important;
 }
 
-/* Section Breaks as Liquid Glass Panes */
+/* Section Breaks as Clean Apple Panes (No backdrop-filter to prevent stacking trap) */
 body.theme-apple .form-section {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(16px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-    border: 1px solid rgba(0, 0, 0, 0.07) !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 16px !important;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
     margin-bottom: 20px !important;
@@ -2574,11 +2572,9 @@ body.theme-apple .list-row:hover {
     transition: background-color 120ms ease !important;
 }
 
-/* ── 5. Apple Form Views (Refined Glass Panes & Ergonomic Field Gutter Spacing) ── */
+/* ── 5. Apple Form Views (Refined Panes & Ergonomic Field Gutter Spacing) ── */
 body.theme-apple .form-section {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    background: #FFFFFF !important;
     border-radius: 16px !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
@@ -2995,18 +2991,72 @@ body.theme-apple .grid-row-open {
     overflow: visible !important;
 }
 
-/* Grid Row In-Form Edit Modal (Fixes item list modal freeze) */
-body.theme-apple .grid-row-open .form-in-grid,
-body.theme-apple .form-in-grid {
-    z-index: 1060 !important;
-    background: #FFFFFF !important;
-    border: 1px solid rgba(0, 0, 0, 0.12) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+/* Grid Row In-Form Edit Modal (Top-Level Front Elevation) */
+body.theme-apple .grid-row-open,
+body.theme-apple .grid-row.grid-row-open {
+    overflow: visible !important;
+    z-index: 1065 !important;
 }
 
-body.theme-apple #freeze.grid-form {
+body.theme-apple .grid-row-open .form-in-grid,
+body.theme-apple .form-in-grid,
+body .grid-row-open .form-in-grid,
+.grid-row-open .form-in-grid {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1070 !important;
+    width: 92% !important;
+    max-width: 960px !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+    opacity: 1 !important;
+    display: block !important;
+    pointer-events: auto !important;
+}
+
+body.theme-apple .grid-row-open .form-in-grid .grid-form-heading {
+    padding: 16px 24px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: #F8FAFC !important;
+    border-radius: 18px 18px 0 0 !important;
+}
+
+body.theme-apple .grid-row-open .form-in-grid .grid-form-heading .panel-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1D1D1F !important;
+}
+
+body.theme-apple .grid-row-open .form-in-grid .grid-form-body {
+    padding: 24px !important;
+    background: #FFFFFF !important;
+    max-height: calc(85vh - 120px) !important;
+    overflow-y: auto !important;
+}
+
+body.theme-apple .grid-row-open .form-in-grid .grid-footer-toolbar {
+    padding: 14px 24px !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: #F8FAFC !important;
+    border-radius: 0 0 18px 18px !important;
+}
+
+body.theme-apple #freeze,
+body.theme-apple #freeze.grid-form,
+body.theme-apple .modal-backdrop,
+#freeze,
+.modal-backdrop {
     z-index: 1050 !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    opacity: 1 !important;
 }
 
 body.theme-apple .grid-heading-row {
@@ -3238,13 +3288,23 @@ body.theme-v9 .number-widget-box .widget-num {
    Layer 10: System Notifications & Alerts (z-index: 1100)
    ───────────────────────────────────────────────────────────── */
 
-/* Layer 1: Base Content Layer */
+/* Layer 1: Base Content Layer (z-index: auto to allow child fixed modals to escape) */
 body.theme-apple .page-container,
 body.theme-apple .layout-main,
 body.theme-apple .workspace-page,
 body.theme-apple .widget {
     position: relative;
-    z-index: 1;
+    z-index: auto !important;
+}
+
+body.has-grid-row-open .layout-main,
+body.has-grid-row-open .page-container,
+body.has-grid-row-open .active-grid-row-section,
+body.theme-apple .form-section:has(.grid-row-open) {
+    z-index: 1060 !important;
+    position: relative !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 /* Layer 2: Form Sticky Tabs */

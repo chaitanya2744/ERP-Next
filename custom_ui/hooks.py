@@ -10,13 +10,13 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 app_include_css = [
-    "/assets/custom_ui/css/minimal_desk_v9.css?v=list_modal_fix_v57"
+    "/assets/custom_ui/css/minimal_desk_v9.css?v=grid_modal_focus_v58"
 ]
 app_include_js = [
     "/assets/custom_ui/js/breadcrumb_chevron_fix.js",
     "/assets/custom_ui/js/ai/executive_prompts.js",
     "/assets/custom_ui/js/ai_navigation.js",
-    "/assets/custom_ui/js/theme_toggle.js?v=list_modal_fix_v57"
+    "/assets/custom_ui/js/theme_toggle.js?v=grid_modal_focus_v58"
 ]
 
 # include js, css files in header of web template

@@ -3534,8 +3534,8 @@ body.theme-apple #chat-input-wrap {
 }
 
 body.theme-apple #chat-input-wrap:focus-within {
-  border-color: rgba(0, 163, 173, 0.5) !important;
-  box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.2), 0 12px 36px -4px rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.12) !important;
   background: #FFFFFF !important;
 }
 
@@ -3981,8 +3981,8 @@ body.theme-apple .welcome-headline {
 }
 
 #chat-input-wrap:focus-within {
-  border-color: rgba(0, 163, 173, 0.5) !important;
-  box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.18), 0 12px 36px -4px rgba(0, 98, 105, 0.14) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.12) !important;
   background: #FFFFFF !important;
 }
 
