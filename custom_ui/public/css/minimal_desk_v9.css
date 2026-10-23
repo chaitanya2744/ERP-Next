@@ -2750,13 +2750,13 @@ body.theme-v9 .form-tabs-list .nav-link:focus-visible {
     box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
 }
 
-/* Smooth Tab Pane Content Transition */
+/* Tab Pane Content Transition (NO transform to keep fixed child modals in viewport stacking context) */
 body.theme-apple .form-tab-content > .tab-pane,
 body.theme-v9 .form-tab-content > .tab-pane {
     display: none;
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: opacity 180ms ease !important;
+    transform: none !important;
 }
 
 body.theme-apple .form-tab-content > .tab-pane.active.show,
@@ -2765,7 +2765,7 @@ body.theme-v9 .form-tab-content > .tab-pane.active.show,
 body.theme-v9 .form-tab-content > .tab-pane.active {
     display: block !important;
     opacity: 1 !important;
-    transform: translateY(0) !important;
+    transform: none !important;
 }
 
 /* Child Table Grid Row Tabs Styling */
@@ -2991,40 +2991,58 @@ body.theme-apple .grid-row-open {
     overflow: visible !important;
 }
 
-/* Grid Row In-Form Edit Modal (Top-Level Front Elevation) */
+/* Strictly hide closed child table row forms */
+.grid-row:not(.grid-row-open) .form-in-grid,
+body.theme-apple .grid-row:not(.grid-row-open) .form-in-grid {
+    display: none !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: static !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Grid Row In-Form Edit Modal (Top-Level Front Elevation - ONLY when open) */
 body.theme-apple .grid-row-open,
 body.theme-apple .grid-row.grid-row-open {
     overflow: visible !important;
-    z-index: 1065 !important;
+    z-index: 2400 !important;
 }
 
 body.theme-apple .grid-row-open .form-in-grid,
-body.theme-apple .form-in-grid,
 body .grid-row-open .form-in-grid,
 .grid-row-open .form-in-grid {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    z-index: 1070 !important;
+    z-index: 2500 !important;
     width: 92% !important;
     max-width: 960px !important;
     max-height: 85vh !important;
-    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
     background: #FFFFFF !important;
     border: 1px solid rgba(0, 0, 0, 0.15) !important;
     border-radius: 18px !important;
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(0, 0, 0, 0.08) !important;
     opacity: 1 !important;
-    display: block !important;
     pointer-events: auto !important;
 }
 
 body.theme-apple .grid-row-open .form-in-grid .grid-form-heading {
+    flex-shrink: 0 !important;
     padding: 16px 24px !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
     background: #F8FAFC !important;
     border-radius: 18px 18px 0 0 !important;
+}
+
+body.theme-apple .grid-row-open .form-in-grid .grid-header-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
 }
 
 body.theme-apple .grid-row-open .form-in-grid .grid-form-heading .panel-title {
@@ -3034,6 +3052,7 @@ body.theme-apple .grid-row-open .form-in-grid .grid-form-heading .panel-title {
 }
 
 body.theme-apple .grid-row-open .form-in-grid .grid-form-body {
+    flex: 1 1 auto !important;
     padding: 24px !important;
     background: #FFFFFF !important;
     max-height: calc(85vh - 120px) !important;
@@ -3041,22 +3060,35 @@ body.theme-apple .grid-row-open .form-in-grid .grid-form-body {
 }
 
 body.theme-apple .grid-row-open .form-in-grid .grid-footer-toolbar {
+    flex-shrink: 0 !important;
     padding: 14px 24px !important;
     border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
     background: #F8FAFC !important;
     border-radius: 0 0 18px 18px !important;
 }
 
+/* Dim backdrop for both Frappe freeze and standard modals */
 body.theme-apple #freeze,
 body.theme-apple #freeze.grid-form,
+body.theme-apple #freeze.in,
 body.theme-apple .modal-backdrop,
 #freeze,
+#freeze.grid-form,
+#freeze.in,
 .modal-backdrop {
-    z-index: 1050 !important;
-    background: rgba(15, 23, 42, 0.45) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 2000 !important;
+    background: rgba(15, 23, 42, 0.5) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
     opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 body.theme-apple .grid-heading-row {
@@ -3297,14 +3329,41 @@ body.theme-apple .widget {
     z-index: auto !important;
 }
 
-body.has-grid-row-open .layout-main,
-body.has-grid-row-open .page-container,
-body.has-grid-row-open .active-grid-row-section,
+body:has(.grid-row-open) .layout-main,
+body:has(.grid-row-open) .page-container,
+body:has(.grid-row-open) .form-section:has(.grid-row-open),
 body.theme-apple .form-section:has(.grid-row-open) {
-    z-index: 1060 !important;
+    z-index: 2100 !important;
     position: relative !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+}
+
+body:has(.grid-row-open) .form-layout,
+body:has(.grid-row-open) .form-page,
+body:has(.grid-row-open) .form-tab-content,
+body:has(.grid-row-open) .tab-pane,
+body:has(.grid-row-open) .form-section,
+body:has(.grid-row-open) .section-body,
+body:has(.grid-row-open) .form-column,
+body:has(.grid-row-open) .frappe-control,
+body:has(.grid-row-open) .form-grid-container,
+body:has(.grid-row-open) .form-grid,
+body:has(.grid-row-open) .grid-body,
+body:has(.grid-row-open) .rows {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    contain: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body:has(.grid-row-open) .form-tabs-list,
+body:has(.grid-row-open) .page-head,
+body:has(.grid-row-open) .form-footer,
+body:has(.grid-row-open) .timeline {
+    z-index: 1 !important;
 }
 
 /* Layer 2: Form Sticky Tabs */
