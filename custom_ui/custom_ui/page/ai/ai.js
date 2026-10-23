@@ -249,78 +249,69 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   }
 
   const AI_CAPABILITIES = [
-    { tag: "LIVE DATA", text: "I can read and write directly to all live ERPNext DocTypes in real-time." },
-    { tag: "VOICE CALLS", text: "I can conduct two-way ultra-low latency voice calls in English, Hindi and Marathi." },
-    { tag: "AUTOMATION", text: "I can draft and submit Quotations, Invoices, Work Orders and POs for you." },
-    { tag: "FACTORY", text: "I can pinpoint shop-floor bottlenecks and predict production delay risks." },
-    { tag: "INVENTORY", text: "I can forecast raw material stockouts before assembly line shortages occur." },
-    { tag: "COLLECTIONS", text: "I can track overdue receivables and generate personalized payment reminders." },
-    { tag: "FINANCE", text: "I can reconcile complex financial ledgers and calculate true product profit margins." }
+    "read and write directly to all live ERPNext DocTypes in real-time.",
+    "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
+    "draft and submit Quotations, Invoices, Work Orders and POs for you.",
+    "pinpoint shop-floor bottlenecks and predict production delay risks.",
+    "forecast raw material stockouts before assembly line shortages occur.",
+    "track overdue receivables and generate personalized payment reminders.",
+    "reconcile complex financial ledgers and calculate true product profit margins."
   ];
 
-  let capabilityTickerInterval = null;
-  function startCapabilityTicker() {
-    if (capabilityTickerInterval) clearInterval(capabilityTickerInterval);
-    let idx = 0;
-    const tickerEl = wrapper.querySelector('#ai-capability-text');
-    const tagEl = wrapper.querySelector('#ai-capability-tag');
-    const counterEl = wrapper.querySelector('#ai-capability-counter');
-    const avatarEl = wrapper.querySelector('#hero-avatar-core');
+  let typewriterTimeout = null;
+  function startCapabilityTypewriter() {
+    if (typewriterTimeout) clearTimeout(typewriterTimeout);
 
-    function renderItem(i) {
-      const item = AI_CAPABILITIES[i];
-      if (tagEl) {
-        tagEl.style.opacity = '0';
-        tagEl.style.transform = 'translateY(-2px)';
-        setTimeout(() => {
-          tagEl.textContent = item.tag;
-          tagEl.style.opacity = '1';
-          tagEl.style.transform = 'translateY(0)';
-        }, 120);
-      }
-      if (avatarEl) {
-        avatarEl.classList.add('bot-scanning');
-        setTimeout(() => avatarEl.classList.remove('bot-scanning'), 550);
-      }
-      if (tickerEl) {
-        tickerEl.style.opacity = '0';
-        tickerEl.style.transform = 'translateY(3px)';
-        setTimeout(() => {
-          tickerEl.textContent = item.text;
-          tickerEl.style.opacity = '1';
-          tickerEl.style.transform = 'translateY(0)';
-        }, 140);
+    const textEl = wrapper.querySelector('#ai-capability-text');
+    if (!textEl) return;
+
+    let phraseIdx = 0;
+    let charIdx = AI_CAPABILITIES[0].length;
+    let isDeleting = true;
+
+    function typeStep() {
+      if (!wrapper.querySelector('#ai-capability-text')) return;
+
+      const currentPhrase = AI_CAPABILITIES[phraseIdx];
+
+      if (!isDeleting) {
+        charIdx++;
+        textEl.textContent = currentPhrase.substring(0, charIdx);
+
+        if (charIdx === currentPhrase.length) {
+          isDeleting = true;
+          typewriterTimeout = setTimeout(typeStep, 3400); // reading pause
+          return;
+        }
+        typewriterTimeout = setTimeout(typeStep, 36);
+      } else {
+        charIdx--;
+        textEl.textContent = currentPhrase.substring(0, charIdx);
+
+        if (charIdx === 0) {
+          isDeleting = false;
+          phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+          typewriterTimeout = setTimeout(typeStep, 350);
+          return;
+        }
+        typewriterTimeout = setTimeout(typeStep, 18);
       }
     }
 
-    capabilityTickerInterval = setInterval(() => {
-      if (!wrapper.querySelector('#ai-capability-text')) {
-        clearInterval(capabilityTickerInterval);
-        return;
-      }
-      idx = (idx + 1) % AI_CAPABILITIES.length;
-      renderItem(idx);
-    }, 4200);
+    typewriterTimeout = setTimeout(typeStep, 3400);
 
     const showcaseEl = wrapper.querySelector('#welcome-capability-showcase');
     if (showcaseEl && !showcaseEl._hasClickListener) {
       showcaseEl._hasClickListener = true;
       showcaseEl.addEventListener('click', () => {
-        idx = (idx + 1) % AI_CAPABILITIES.length;
-        renderItem(idx);
+        if (typewriterTimeout) clearTimeout(typewriterTimeout);
+        phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+        charIdx = AI_CAPABILITIES[phraseIdx].length;
+        textEl.textContent = AI_CAPABILITIES[phraseIdx];
+        isDeleting = true;
+        typewriterTimeout = setTimeout(typeStep, 3400);
       });
     }
-
-    wrapper.querySelectorAll('.capability-seg').forEach(seg => {
-      seg.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const targetIdx = parseInt(seg.getAttribute('data-index'), 10);
-        if (!isNaN(targetIdx)) {
-          idx = targetIdx;
-          renderItem(idx);
-        }
-      });
-    });
   }
 
   function getCleanUserName() {
@@ -372,16 +363,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         <!-- 2. Clean Greeting Headline -->
         <h2 class="welcome-headline">${greetingText}</h2>
 
-        <!-- 3. Integrated Dynamic Siri Vocal Subtitle (Conversational & Frameless) -->
-        <div class="siri-vocal-subtitle" id="welcome-capability-showcase" title="Click to view next capability">
-          <span class="siri-vocal-tag" id="ai-capability-tag">${AI_CAPABILITIES[0].tag}</span>
-          <div class="voice-wave-bars" title="Active Siri Vocal Equalizer">
-            <span class="v-bar vb-1"></span>
-            <span class="v-bar vb-2"></span>
-            <span class="v-bar vb-3"></span>
-            <span class="v-bar vb-4"></span>
-          </div>
-          <span class="siri-vocal-text" id="ai-capability-text">${AI_CAPABILITIES[0].text}</span>
+        <!-- 3. Clean Subtitle with Rotating Typewriter Effect (Zero Borders / Zero Pills) -->
+        <div class="welcome-typewriter-wrap" id="welcome-capability-showcase" title="Click to view next capability">
+          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${AI_CAPABILITIES[0]}</span><span class="typewriter-cursor">|</span>
         </div>
       </div>
       <div id="executive-suite-root"></div>
@@ -398,23 +382,64 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       <div id="chat-sidebar" class="chat-sidebar closed">
         <div class="sidebar-header">
           <span class="sidebar-title">
-             <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-             AI Chat
+            <button id="sidebar-toggle" class="sidebar-close-btn" onclick="toggleSidebar()" title="Close Sidebar" type="button">✕</button>
+            AI Assistant
           </span>
-          <button id="new-chat-btn" onclick="startNewChat()">＋ New</button>
+          <button id="new-chat-btn" onclick="startNewChat()" type="button" title="Start New Conversation">＋ New</button>
         </div>
+
+        <!-- Direct ERPNext Workspaces Navigation -->
+        <div class="sidebar-nav-section">
+          <button type="button" class="sidebar-desk-btn" onclick="goToDesk()" title="Navigate to ERPNext Workspaces & Modules">
+            <span class="desk-btn-icon-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </span>
+            <span class="desk-btn-content">
+              <span class="desk-btn-primary">ERPNext Workspaces</span>
+              <span class="desk-btn-secondary">Accounting, Stock, CRM…</span>
+            </span>
+            <span class="desk-nav-arrow">→</span>
+          </button>
+        </div>
+
+        <div class="sidebar-section-divider">
+          <span>Recent Conversations</span>
+        </div>
+
         <div id="session-list"></div>
       </div>
       <div id="ai-chat-root">
 
       <!-- Header -->
       <div id="chat-header">
-        <button id="floating-sidebar-toggle" onclick="toggleSidebar()" style="display: inline-flex !important;" title="Open Sidebar">☰</button>
-        <div class="avatar">✦</div>
-        <div class="info">
-          <div class="name">AI Assistant</div>
+        <div class="chat-header-left">
+          <button type="button" class="chat-header-desk-btn" onclick="goToDesk()" title="Back to ERPNext Workspaces / Desk">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="desk-btn-label">Desk</span>
+          </button>
+          <button id="floating-sidebar-toggle" onclick="toggleSidebar()" type="button" title="Chat History & Sessions">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span class="sidebar-toggle-label">History</span>
+          </button>
         </div>
-        <button class="clear-btn" onclick="clearChat()">Clear chat</button>
+        <div class="chat-header-center">
+          <div class="avatar">✦</div>
+          <div class="info">
+            <div class="name">AI Assistant</div>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <button class="clear-btn" onclick="clearChat()" title="Clear chat messages" type="button">Clear chat</button>
+        </div>
       </div>
 
       <!-- Messages -->
@@ -651,7 +676,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   // Initialize dynamic prompt suggestion component
   initExecutiveSuite();
-  startCapabilityTicker();
+  startCapabilityTypewriter();
 
 
   // State
@@ -737,7 +762,30 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     }
   }
 
+  function hideWelcome() {
+    var wel = wrapper.querySelector('#chat-welcome');
+    if (wel) {
+      wel.classList.add('chat-welcome-hidden');
+      wel.style.setProperty('display', 'none', 'important');
+      wel.remove();
+      welcomeEl = null;
+    }
+    if (messagesEl) {
+      messagesEl.classList.add('has-conversation');
+    }
+  }
+
+  window.runSuggestionDirectly = function(promptText) {
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (el) {
+      el.value = promptText;
+      if (typeof autoResize === 'function') autoResize(el);
+    }
+    sendMessage();
+  };
+
   function appendMessage(role, content, tokenData) {
+    hideWelcome();
     if (role === 'ai') {
       try {
         if (typeof _voiceOverlayOpen !== 'undefined' && _voiceOverlayOpen) {
@@ -790,7 +838,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
       copyBtn.onclick = function () {
         navigator.clipboard.writeText(content);
-        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#0099A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--cu-accent, #0099A3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
         setTimeout(() => {
           copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         }, 2000);
@@ -909,6 +957,15 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   };
 
   
+  window.goToDesk = function() {
+    $('body').removeClass('ai-assistant-page-active');
+    if (window.frappe && typeof frappe.set_route === 'function') {
+      frappe.set_route('');
+    } else {
+      window.location.href = '/app';
+    }
+  };
+
   window.toggleSidebar = function() {
     sidebarOpen = !sidebarOpen;
     var sb = wrapper.querySelector('#chat-sidebar');
@@ -920,12 +977,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         sb.classList.add('open');
         if (backdrop) backdrop.classList.add('active');
         if (typeof window.loadSessions === 'function') window.loadSessions();
-        if (floatBtn) floatBtn.style.setProperty('display', 'none', 'important');
+        if (floatBtn) floatBtn.classList.add('active');
       } else {
         sb.classList.remove('open');
         sb.classList.add('closed');
         if (backdrop) backdrop.classList.remove('active');
-        if (floatBtn) floatBtn.style.setProperty('display', 'inline-flex', 'important');
+        if (floatBtn) floatBtn.classList.remove('active');
       }
     }
   };
@@ -1064,20 +1121,17 @@ window.clearChat = function () {
     hideTyping();
     history = [];
     messagesEl.innerHTML = '';
+    messagesEl.classList.remove('has-conversation');
 
-    // recreate welcome area with animation reset
+    // Recreate full modern welcome area with fluid hero & executive prompt suite
     var welcome = document.createElement('div');
     welcome.id = 'chat-welcome';
-    welcome.innerHTML = `
-      <div class="icon">✦</div>
-      <h3>What can I help you with?</h3>
-      <p>Ask me anything about your ERPNext data — invoices, stock, sales orders, reports, and more.</p>
-      <div id="executive-suite-root"></div>
-    `;
+    welcome.innerHTML = getWelcomeHtml();
     messagesEl.appendChild(welcome);
     welcomeEl = welcome;
 
     initExecutiveSuite();
+    startCapabilityTypewriter();
   };
 
   let typingStatusInterval;
@@ -1093,6 +1147,7 @@ window.clearChat = function () {
   function sendMessage() {
     var text = inputEl.value.trim();
     if (!text || isLoading) return;
+    hideWelcome();
 
     var requestViewToken = viewToken;
     var requestSessionId = currentSessionId;

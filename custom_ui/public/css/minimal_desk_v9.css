@@ -96,10 +96,30 @@ body.theme-apple .form-sidebar {
    2. APPLE ACCESSIBILITY (A11y) STANDARDS
    ────────────────────────────────────────────────── */
 /* High-Visibility Focus Rings for Keyboard Navigation */
-:focus-visible {
+:focus-visible:not(#chat-input):not(#chat-input-wrap):not(#chat-input-wrap *) {
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
-    border-color: #006269 !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
+    border-color: var(--cu-primary, #006269) !important;
+}
+
+#chat-input,
+#chat-input:focus,
+#chat-input:focus-visible,
+#chat-input:active,
+#chat-input-wrap,
+#chat-input-wrap:focus,
+#chat-input-wrap:focus-within,
+#chat-input-wrap:focus-visible {
+    outline: none !important;
+}
+
+#chat-input,
+#chat-input:focus,
+#chat-input:focus-visible,
+#chat-input:active {
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
 }
 
 /* Motion Accessibility: Respect user's reduced motion system settings */
@@ -123,28 +143,28 @@ button, .btn, .standard-sidebar-item .item-anchor {
    ================================================================ */
 :root,
 body.theme-v9 {
-    --cu-primary:          #006269;
-    --cu-primary-dk:       #004a4f;
-    --cu-primary-lt:       #007f87;
-    --cu-accent:           #00A3AD;
-    --cu-accent-lt:        #B8E8EB;
-    --cu-accent-xlt:       #E8F7F8;
+    --cu-primary:          var(--cu-primary, #006269);
+    --cu-primary-dk:       var(--cu-primary-dk, #004a4f);
+    --cu-primary-lt:       var(--cu-primary-lt, #007f87);
+    --cu-accent:           var(--cu-accent, #00A3AD);
+    --cu-accent-lt:        var(--cu-accent-lt, #B8E8EB);
+    --cu-accent-xlt:       var(--cu-accent-xlt, #E8F7F8);
     --cu-bg:               #EFF3F6;
     --cu-surface:          #FFFFFF;
     --cu-surface-2:        #F5F9FA;
-    --cu-border:           #C2DDE0;
-    --cu-border-soft:      #D8EAEC;
-    --cu-border-strong:    #95C5CA;
+    --cu-border:           rgba(var(--cu-primary-rgb, 0, 98, 105), 0.15);
+    --cu-border-soft:      rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1);
+    --cu-border-strong:    rgba(var(--cu-primary-rgb, 0, 98, 105), 0.25);
     --cu-text:             #1A3333;
     --cu-text-sub:         #2E4F4F;
     --cu-text-muted:       #4D7272;
     --cu-text-faint:       #7BA8A8;
 
-    --cu-sh-xs:  0 1px 2px rgba(0,98,105,.06);
-    --cu-sh-sm:  0 2px 6px -1px rgba(0,98,105,.10), 0 1px 2px -1px rgba(0,98,105,.06);
-    --cu-sh-md:  0 4px 14px -2px rgba(0,98,105,.12), 0 2px 4px -2px rgba(0,98,105,.06);
-    --cu-sh-lg:  0 10px 30px -5px rgba(0,98,105,.14), 0 4px 8px -4px rgba(0,98,105,.07);
-    --cu-sh-xl:  0 20px 44px -8px rgba(0,98,105,.18), 0 8px 16px -6px rgba(0,98,105,.08);
+    --cu-sh-xs:  0 1px 2px rgba(var(--cu-primary-rgb, 0, 98, 105), .06);
+    --cu-sh-sm:  0 2px 6px -1px rgba(var(--cu-primary-rgb, 0, 98, 105), .10), 0 1px 2px -1px rgba(var(--cu-primary-rgb, 0, 98, 105), .06);
+    --cu-sh-md:  0 4px 14px -2px rgba(var(--cu-primary-rgb, 0, 98, 105), .12), 0 2px 4px -2px rgba(var(--cu-primary-rgb, 0, 98, 105), .06);
+    --cu-sh-lg:  0 10px 30px -5px rgba(var(--cu-primary-rgb, 0, 98, 105), .14), 0 4px 8px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), .07);
+    --cu-sh-xl:  0 20px 44px -8px rgba(var(--cu-primary-rgb, 0, 98, 105), .18), 0 8px 16px -6px rgba(var(--cu-primary-rgb, 0, 98, 105), .08);
 
     --cu-r-xs:   4px;
     --cu-r-sm:   7px;
@@ -169,7 +189,7 @@ html.theme-v9 {
 body.theme-v9 .navbar,
 body:not(.theme-apple) .navbar {
     background: #1A3333 !important;
-    border-bottom: 1px solid rgba(0, 163, 173, 0.25) !important;
+    border-bottom: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.14) !important;
 }
 body.theme-v9 .navbar .nav-link,
@@ -196,8 +216,8 @@ body:not(.theme-apple) .navbar .icon {
 /* V9 Sidebar */
 body.theme-v9 .body-sidebar-container,
 body:not(.theme-apple) .body-sidebar-container {
-    border-right: 1px solid #C2DDE0 !important;
-    box-shadow: 2px 0 10px -4px rgba(0,98,105,.12) !important;
+    border-right: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.15) !important;
+    box-shadow: 2px 0 10px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), .12) !important;
 }
 body.theme-v9 .body-sidebar,
 body:not(.theme-apple) .body-sidebar {
@@ -212,13 +232,13 @@ body:not(.theme-apple) .standard-sidebar-item .item-anchor {
 }
 body.theme-v9 .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor,
 body:not(.theme-apple) .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover .item-anchor {
-    background: rgba(0,98,105,.07) !important;
-    color: #006269 !important;
+    background: rgba(var(--cu-primary-rgb, 0, 98, 105), .07) !important;
+    color: var(--cu-primary, #006269) !important;
 }
 body.theme-v9 .active-sidebar,
 body:not(.theme-apple) .active-sidebar {
-    background: linear-gradient(135deg, #006269 0%, #00A3AD 100%) !important;
-    box-shadow: 0 3px 10px -2px rgba(0,163,173,.32) !important;
+    background: linear-gradient(135deg, var(--cu-primary, #006269) 0%, var(--cu-accent, #00A3AD) 100%) !important;
+    box-shadow: 0 3px 10px -2px rgba(var(--cu-accent-rgb, 0, 163, 173), .32) !important;
     border-radius: 8px !important;
 }
 body.theme-v9 .active-sidebar .item-anchor,
@@ -247,16 +267,16 @@ body:not(.theme-apple) .number-widget-box,
 body:not(.theme-apple) .dashboard-widget-box,
 body:not(.theme-apple) .chart-widget-box {
     background: #FFFFFF !important;
-    border: 1px solid #D8EAEC !important;
-    border-top: 3px solid #006269 !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    border-top: 3px solid var(--cu-primary, #006269) !important;
     border-radius: 15px !important;
-    box-shadow: 0 2px 6px -1px rgba(0,98,105,.10) !important;
+    box-shadow: 0 2px 6px -1px rgba(var(--cu-primary-rgb, 0, 98, 105), .10) !important;
     padding: 20px 22px !important;
 }
 body.theme-v9 .widget-title,
 body:not(.theme-apple) .widget-title {
     color: #1A3333 !important;
-    border-bottom: 2px solid #B8E8EB !important;
+    border-bottom: 2px solid var(--cu-accent-lt, #B8E8EB) !important;
 }
 
 /* ================================================================
@@ -265,11 +285,11 @@ body:not(.theme-apple) .widget-title {
    ================================================================ */
 html.theme-apple,
 body.theme-apple {
-    --cu-primary:          #006269;
-    --cu-primary-dk:       #004a4f;
-    --cu-primary-lt:       #00A3AD;
-    --cu-accent:           #00A3AD;
-    --cu-accent-lt:        #E8F7F8;
+    --cu-primary:          var(--cu-primary, #006269);
+    --cu-primary-dk:       var(--cu-primary-dk, #004a4f);
+    --cu-primary-lt:       var(--cu-accent, #00A3AD);
+    --cu-accent:           var(--cu-accent, #00A3AD);
+    --cu-accent-lt:        var(--cu-accent-xlt, #E8F7F8);
     --cu-accent-xlt:       #F0F9FA;
 
     --cu-bg:               #F5F5F7;
@@ -346,11 +366,11 @@ header.navbar-container {
     position: sticky !important;
     top: 0 !important;
     z-index: 1030 !important;
-    background: linear-gradient(180deg, rgba(20, 42, 42, 0.96) 0%, rgba(0, 74, 79, 0.94) 100%) !important;
+    background: linear-gradient(180deg, var(--cu-primary-dk, rgba(20, 42, 42, 0.96)) 0%, var(--cu-primary, rgba(0, 74, 79, 0.94)) 100%) !important;
     backdrop-filter: blur(24px) saturate(190%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-    border-bottom: 1px solid rgba(0, 163, 173, 0.32) !important;
-    box-shadow: 0 4px 20px -2px rgba(10, 24, 24, 0.45) !important;
+    border-bottom: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.32) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Navbar Brand Logo */
@@ -511,7 +531,7 @@ body.theme-apple .navbar .search-bar input.form-control::placeholder {
 body.theme-apple .navbar .search-bar input.form-control:focus {
     background: rgba(255, 255, 255, 0.26) !important;
     border-color: rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
     outline: none !important;
 }
 body.theme-apple .navbar .app-switcher-icon,
@@ -571,20 +591,20 @@ body.theme-apple .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-
     color: #1D1D1F !important;
 }
 body.theme-apple .active-sidebar {
-    background: rgba(0, 163, 173, 0.14) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.14) !important;
     border-radius: 8px !important;
     margin: 2px 8px !important;
     box-shadow: none !important;
 }
 body.theme-apple .active-sidebar .item-anchor,
 body.theme-apple .active-sidebar .sidebar-item-label {
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
     font-weight: 600 !important;
 }
 body.theme-apple .active-sidebar .sidebar-item-icon svg {
-    color: #006269 !important;
-    fill: #006269 !important;
-    stroke: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
+    fill: var(--cu-primary, #006269) !important;
+    stroke: var(--cu-primary, #006269) !important;
 }
 
 /* Apple Content Layer Cards (Two-Layer Model: Solid Surface for Data Density) */
@@ -597,11 +617,11 @@ body.theme-apple .chart-widget-box,
 body.theme-apple .quick-list-widget-box,
 body.theme-apple .custom-block-widget-box {
     background: #FFFFFF !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
     border-radius: 14px !important;
     box-shadow: 
         0 1px 3px rgba(0, 0, 0, 0.03),
-        0 8px 24px -4px rgba(0, 98, 105, 0.07),
+        0 8px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.07),
         inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
     padding: 20px 22px !important;
     transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -622,8 +642,8 @@ body.theme-apple .widget-title {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 body.theme-apple .btn-primary {
-    background: linear-gradient(180deg, #007F87 0%, #006269 100%) !important;
-    border-color: #006269 !important;
+    background: linear-gradient(180deg, var(--cu-primary-lt, #007F87) 0%, var(--cu-primary, #006269) 100%) !important;
+    border-color: var(--cu-primary, #006269) !important;
     border-radius: 8px !important;
 }
 body.theme-apple .btn:active,
@@ -749,15 +769,15 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .cu-seg-btn#cu-theme-btn-v9.active {
-    background: #006269 !important;
+    background: var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 2px 10px rgba(0, 98, 105, 0.45) !important;
+    box-shadow: 0 2px 10px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.45) !important;
 }
 
 .cu-seg-btn#cu-theme-btn-apple.active {
-    background: linear-gradient(180deg, #007F87 0%, #006269 100%) !important;
+    background: linear-gradient(180deg, var(--cu-primary-lt, #007F87) 0%, var(--cu-primary, #006269) 100%) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 2px 10px rgba(0, 163, 173, 0.45) !important;
+    box-shadow: 0 2px 10px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -785,9 +805,9 @@ body.theme-apple .search-modal .modal-header {
 }
 
 #mic-btn:hover {
-  background: rgba(0, 98, 105, 0.08) !important;
-  border-color: var(--pro-primary, #006269) !important;
-  color: var(--pro-primary, #006269) !important;
+  background: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.08) !important;
+  border-color: var(--pro-primary, var(--cu-primary, #006269)) !important;
+  color: var(--pro-primary, var(--cu-primary, #006269)) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -844,7 +864,7 @@ body.theme-apple .search-modal .modal-header {
   display: flex;
   flex-direction: column;
   background: rgba(15, 23, 42, 0.95);
-  border: 1.5px solid rgba(0, 153, 163, 0.4);
+  border: 1.5px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4);
   border-radius: 20px;
   padding: 14px 18px 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -919,9 +939,9 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-lang-btn.active {
-  background: linear-gradient(135deg, #0099A3 0%, #006269 100%);
+  background: linear-gradient(135deg, var(--cu-accent, #0099A3) 0%, var(--cu-primary, #006269) 100%);
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(0, 153, 163, 0.4);
+  box-shadow: 0 2px 8px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4);
 }
 
 .voice-dock-actions {
@@ -970,20 +990,20 @@ body.theme-apple .search-modal .modal-header {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0099A3 0%, #006269 100%);
+  background: linear-gradient(135deg, var(--cu-accent, #0099A3) 0%, var(--cu-primary, #006269) 100%);
   color: #FFFFFF;
   font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 0 16px rgba(0, 153, 163, 0.5);
+  box-shadow: 0 0 16px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.5);
   animation: orb-breathe 2.2s infinite alternate;
 }
 
 @keyframes orb-breathe {
-  0% { transform: scale(0.96); box-shadow: 0 0 12px rgba(0, 153, 163, 0.4); }
-  100% { transform: scale(1.04); box-shadow: 0 0 22px rgba(0, 153, 163, 0.7); }
+  0% { transform: scale(0.96); box-shadow: 0 0 12px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4); }
+  100% { transform: scale(1.04); box-shadow: 0 0 22px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.7); }
 }
 
 .voice-avatar-orb.thinking {
@@ -1043,7 +1063,7 @@ body.theme-apple .search-modal .modal-header {
 .voice-waveform .vbar {
   width: 3px;
   height: 100%;
-  background: linear-gradient(180deg, #38BDF8 0%, #0099A3 100%);
+  background: linear-gradient(180deg, #38BDF8 0%, var(--cu-accent, #0099A3) 100%);
   border-radius: 99px;
   transform: scaleY(0.2);
   transition: transform 0.08s ease-out;
@@ -1065,7 +1085,7 @@ body.theme-apple .search-modal .modal-header {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #0099A3;
+  color: var(--cu-accent, #0099A3);
   margin-bottom: 3px;
   display: flex;
   align-items: center;
@@ -1195,14 +1215,14 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .vbtn-send {
-  background: linear-gradient(135deg, #0099A3 0%, #006269 100%);
+  background: linear-gradient(135deg, var(--cu-accent, #0099A3) 0%, var(--cu-primary, #006269) 100%);
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(0, 153, 163, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4);
 }
 
 .vbtn-send:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(0, 153, 163, 0.6);
+  box-shadow: 0 5px 16px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.6);
 }
 
 .vbtn-send:active {
@@ -1215,7 +1235,7 @@ body.theme-apple .search-modal .modal-header {
   align-items: center;
   justify-content: space-between;
   background: rgba(15, 23, 42, 0.95);
-  border: 1.5px solid rgba(0, 153, 163, 0.4);
+  border: 1.5px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4);
   border-radius: 999px;
   padding: 6px 14px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
@@ -1254,7 +1274,7 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-mini-lang {
-  background: rgba(0, 153, 163, 0.25);
+  background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25);
   color: #38BDF8;
   font-size: 9.5px;
   font-weight: 700;
@@ -1284,7 +1304,7 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .vbtn-mini-send {
-  background: #0099A3;
+  background: var(--cu-accent, #0099A3);
   color: #FFFFFF;
 }
 
@@ -1318,8 +1338,8 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-picker-trigger:hover {
-  background: rgba(0, 153, 163, 0.2) !important;
-  border-color: rgba(0, 180, 216, 0.45) !important;
+  background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.2) !important;
+  border-color: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
   color: #FFFFFF !important;
 }
 
@@ -1336,7 +1356,7 @@ body.theme-apple .search-modal .modal-header {
   right: 0 !important;
   width: 270px !important;
   background: rgba(15, 23, 42, 0.98) !important;
-  border: 1.5px solid rgba(0, 180, 216, 0.35) !important;
+  border: 1.5px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
   border-radius: 14px !important;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65) !important;
   backdrop-filter: blur(20px) !important;
@@ -1399,7 +1419,7 @@ body.theme-apple .search-modal .modal-header {
   font-size: 9px !important;
   font-weight: 700 !important;
   letter-spacing: 0.05em !important;
-  color: #00B4D8 !important;
+  color: var(--cu-accent, #00B4D8) !important;
   padding: 6px 8px 3px !important;
   margin-top: 4px !important;
 }
@@ -1416,12 +1436,12 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-picker-item:hover {
-  background: rgba(0, 153, 163, 0.22) !important;
+  background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.22) !important;
   color: #FFFFFF !important;
 }
 
 .voice-picker-item.selected {
-  background: linear-gradient(135deg, rgba(0, 153, 163, 0.45) 0%, rgba(0, 98, 105, 0.55) 100%) !important;
+  background: linear-gradient(135deg, rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) 0%, rgba(var(--cu-primary-rgb, 0, 98, 105), 0.55) 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
 }
@@ -1458,7 +1478,7 @@ body.theme-apple .search-modal .modal-header {
   width: 290px !important;
   max-width: 90vw !important;
   background: rgba(15, 23, 42, 0.98) !important;
-  border: 1.5px solid rgba(0, 180, 216, 0.35) !important;
+  border: 1.5px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
   border-radius: 16px !important;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(24px) !important;
@@ -1496,9 +1516,9 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-picker-search-box:focus-within {
-  border-color: #00B4D8 !important;
-  box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.25) !important;
-  color: #00B4D8 !important;
+  border-color: var(--cu-accent, #00B4D8) !important;
+  box-shadow: 0 0 0 2px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
+  color: var(--cu-accent, #00B4D8) !important;
 }
 
 .voice-picker-search-box input {
@@ -1568,12 +1588,12 @@ body.theme-apple .search-modal .modal-header {
 }
 
 .voice-picker-item:hover {
-  background: rgba(0, 153, 163, 0.25) !important;
+  background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
   color: #FFFFFF !important;
 }
 
 .voice-picker-item.selected {
-  background: linear-gradient(135deg, rgba(0, 153, 163, 0.45) 0%, rgba(0, 98, 105, 0.6) 100%) !important;
+  background: linear-gradient(135deg, rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) 0%, rgba(var(--cu-primary-rgb, 0, 98, 105), 0.6) 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
 }
@@ -1616,7 +1636,7 @@ body.theme-apple .search-modal .modal-header {
 /* ── 1. Number Card Widgets: Vibrant Gradient Metrics & Tinted Stat Pills ── */
 body.theme-apple .number-widget-box {
     background: rgba(255, 255, 255, 0.88) !important;
-    border-top: 2px solid rgba(0, 163, 173, 0.5) !important;
+    border-top: 2px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.5) !important;
     position: relative !important;
     overflow: hidden !important;
 }
@@ -1628,7 +1648,7 @@ body.theme-apple .number-widget-box::before {
     left: 0 !important;
     right: 0 !important;
     height: 3px !important;
-    background: linear-gradient(90deg, #00A3AD 0%, #006269 100%) !important;
+    background: linear-gradient(90deg, var(--cu-accent, #00A3AD) 0%, var(--cu-primary, #006269) 100%) !important;
     opacity: 0.8 !important;
 }
 
@@ -1637,7 +1657,7 @@ body.theme-apple .number-widget-box .number {
     font-weight: 700 !important;
     letter-spacing: -0.03em !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif !important;
-    background: linear-gradient(135deg, #004a4f 0%, #006269 50%, #00A3AD 100%) !important;
+    background: linear-gradient(135deg, var(--cu-primary-dk, #004a4f) 0%, var(--cu-primary, #006269) 50%, var(--cu-accent, #00A3AD) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     margin: 8px 0 !important;
@@ -1674,11 +1694,11 @@ body.theme-apple .card-stats.grey-stat {
 /* ── 2. Shortcut Widgets: Apple Squircle Left Accent ── */
 body.theme-apple .shortcut-widget-box {
     background: rgba(255, 255, 255, 0.88) !important;
-    border-left: 3px solid rgba(0, 163, 173, 0.4) !important;
+    border-left: 3px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.4) !important;
 }
 
 body.theme-apple .shortcut-widget-box:hover {
-    border-left-color: #00A3AD !important;
+    border-left-color: var(--cu-accent, #00A3AD) !important;
 }
 
 body.theme-apple .shortcut-widget-box .widget-title {
@@ -1687,9 +1707,9 @@ body.theme-apple .shortcut-widget-box .widget-title {
 }
 
 body.theme-apple .shortcut-widget-box .indicator-pill {
-    background: rgba(0, 163, 173, 0.14) !important;
-    color: #006269 !important;
-    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.14) !important;
+    color: var(--cu-primary, #006269) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
     font-weight: 600 !important;
     font-size: 11px !important;
     border-radius: 9999px !important;
@@ -1708,8 +1728,8 @@ body.theme-apple .link-item {
 
 body.theme-apple .widget-link-item:hover,
 body.theme-apple .link-item:hover {
-    background: rgba(0, 163, 173, 0.08) !important;
-    color: #006269 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    color: var(--cu-primary, #006269) !important;
     transform: translateX(3px) !important;
 }
 
@@ -1787,7 +1807,7 @@ body.theme-apple .list-row {
 
 body.theme-apple .list-row-container:hover,
 body.theme-apple .list-row:hover {
-    background: rgba(0, 98, 105, 0.03) !important;
+    background: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.03) !important;
 }
 
 body.theme-apple .list-row .level-left {
@@ -1832,13 +1852,13 @@ body.theme-apple .list-subject {
 }
 
 body.theme-apple .list-subject a {
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
     font-weight: 600 !important;
     transition: color 0.12s ease !important;
 }
 
 body.theme-apple .list-subject a:hover {
-    color: #00A3AD !important;
+    color: var(--cu-accent, #00A3AD) !important;
     text-decoration: none !important;
 }
 
@@ -1883,9 +1903,9 @@ body.theme-apple .indicator-pill-round.red {
 body.theme-apple .indicator-pill.blue,
 body.theme-apple .indicator-pill.cyan,
 body.theme-apple .indicator-pill-round.blue {
-    background: rgba(0, 163, 173, 0.14) !important;
-    color: #006269 !important;
-    border: 1px solid rgba(0, 163, 173, 0.3) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.14) !important;
+    color: var(--cu-primary, #006269) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.3) !important;
 }
 
 /* Purple (Specialized / Review) */
@@ -1907,15 +1927,15 @@ body.theme-apple .indicator-pill.grey {
 body.theme-apple .filter-pill,
 body.theme-apple .filter-selector {
     background: rgba(255, 255, 255, 0.85) !important;
-    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
     border-radius: 9999px !important;
     font-weight: 500 !important;
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
 }
 
 body.theme-apple .filter-pill:hover {
-    border-color: #00A3AD !important;
-    box-shadow: 0 0 0 2px rgba(0, 163, 173, 0.15) !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
+    box-shadow: 0 0 0 2px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.15) !important;
 }
 
 /* ── 5. Refined Apple Form Views (DocType Edit Sheets) ── */
@@ -1944,7 +1964,7 @@ body.theme-apple .form-section .section-head {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
     padding-bottom: 12px !important;
     margin-bottom: 16px !important;
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
     font-weight: 600 !important;
     font-size: 14px !important;
     letter-spacing: -0.012em !important;
@@ -1957,7 +1977,7 @@ body.theme-apple .form-section .section-head::before {
     display: inline-block !important;
     width: 3px !important;
     height: 14px !important;
-    background: #00A3AD !important;
+    background: var(--cu-accent, #00A3AD) !important;
     border-radius: 2px !important;
     margin-right: 8px !important;
 }
@@ -1979,14 +1999,14 @@ body.theme-apple .form-tabs .nav-link {
 }
 
 body.theme-apple .form-tabs .nav-link:hover {
-    background: rgba(0, 163, 173, 0.08) !important;
-    color: #006269 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    color: var(--cu-primary, #006269) !important;
 }
 
 body.theme-apple .form-tabs .nav-link.active {
-    background: #006269 !important;
+    background: var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.3) !important;
 }
 
 /* Form Controls & Inputs */
@@ -2002,8 +2022,8 @@ body.theme-apple .input-with-feedback {
 
 body.theme-apple .form-control:focus,
 body.theme-apple .input-with-feedback:focus {
-    border-color: #00A3AD !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.25) !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
     background: #FFFFFF !important;
 }
 
@@ -2023,19 +2043,19 @@ body.theme-apple .reqd .control-label::after {
 /* Primary and Secondary Action Buttons in Forms */
 body.theme-apple .primary-action,
 body.theme-apple .page-head .btn-primary {
-    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
-    border-color: #006269 !important;
+    background: linear-gradient(180deg, var(--cu-primary-lt, #00878F) 0%, var(--cu-primary, #006269) 100%) !important;
+    border-color: var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.3) !important;
     transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease !important;
 }
 
 body.theme-apple .primary-action:hover,
 body.theme-apple .page-head .btn-primary:hover {
-    background: #004a4f !important;
-    box-shadow: 0 4px 12px rgba(0, 98, 105, 0.4) !important;
+    background: var(--cu-primary-dk, #004a4f) !important;
+    box-shadow: 0 4px 12px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.4) !important;
 }
 
 body.theme-apple .primary-action:active,
@@ -2051,55 +2071,55 @@ body.theme-apple .page-head .btn-primary:active {
 /* 1. Sidebar Header App Logo / Workspace Icon */
 body.theme-apple .sidebar-header .sidebar-item-icon,
 body.theme-v9 .sidebar-header .sidebar-item-icon {
-    background: linear-gradient(135deg, rgba(0, 163, 173, 0.16) 0%, rgba(0, 98, 105, 0.28) 100%) !important;
-    border: 1px solid rgba(0, 163, 173, 0.35) !important;
+    background: linear-gradient(135deg, rgba(var(--cu-accent-rgb, 0, 163, 173), 0.16) 0%, rgba(var(--cu-primary-rgb, 0, 98, 105), 0.28) 100%) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
     border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.18) !important;
-    color: #006269 !important;
+    box-shadow: 0 2px 8px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.18) !important;
+    color: var(--cu-primary, #006269) !important;
     transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), box-shadow 160ms ease !important;
 }
 
 body.theme-apple .sidebar-header:hover .sidebar-item-icon,
 body.theme-v9 .sidebar-header:hover .sidebar-item-icon {
     transform: scale(1.05) !important;
-    box-shadow: 0 4px 12px rgba(0, 98, 105, 0.28) !important;
+    box-shadow: 0 4px 12px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.28) !important;
 }
 
 body.theme-apple .sidebar-header .header-logo svg,
 body.theme-apple .sidebar-header .sidebar-item-icon svg,
 body.theme-v9 .sidebar-header .header-logo svg,
 body.theme-v9 .sidebar-header .sidebar-item-icon svg {
-    color: #006269 !important;
-    stroke: #006269 !important;
-    fill: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
+    stroke: var(--cu-primary, #006269) !important;
+    fill: var(--cu-primary, #006269) !important;
 }
 
 /* 2. Sidebar Workspace / App Navigation Icons */
 body.theme-apple .desk-sidebar .sidebar-item-icon,
 body.theme-apple .standard-sidebar-item .sidebar-item-icon,
 body.theme-apple .sidebar-item-icon[item-icon] {
-    color: #007F87 !important;
+    color: var(--cu-primary-lt, #007F87) !important;
 }
 
 body.theme-apple .desk-sidebar .sidebar-item-icon svg,
 body.theme-apple .standard-sidebar-item .sidebar-item-icon svg,
 body.theme-apple .sidebar-item-icon[item-icon] svg {
-    color: #007F87 !important;
-    stroke: #007F87 !important;
+    color: var(--cu-primary-lt, #007F87) !important;
+    stroke: var(--cu-primary-lt, #007F87) !important;
     transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), stroke 150ms ease, color 150ms ease !important;
 }
 
 body.theme-apple .standard-sidebar-item:hover .sidebar-item-icon svg,
 body.theme-apple .sidebar-item-container:hover .sidebar-item-icon svg {
-    color: #004A4F !important;
-    stroke: #004A4F !important;
+    color: var(--cu-primary-dk, #004a4f) !important;
+    stroke: var(--cu-primary-dk, #004a4f) !important;
     transform: scale(1.12) !important;
 }
 
 body.theme-apple .active-sidebar .sidebar-item-icon svg {
-    color: #006269 !important;
-    stroke: #006269 !important;
-    fill: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
+    stroke: var(--cu-primary, #006269) !important;
+    fill: var(--cu-primary, #006269) !important;
     transform: scale(1.08) !important;
 }
 
@@ -2107,8 +2127,8 @@ body.theme-apple .active-sidebar .sidebar-item-icon svg {
 body.theme-v9 .desk-sidebar .sidebar-item-icon svg,
 body.theme-v9 .standard-sidebar-item .sidebar-item-icon svg,
 body.theme-v9 .sidebar-item-icon[item-icon] svg {
-    color: #007F87 !important;
-    stroke: #007F87 !important;
+    color: var(--cu-primary-lt, #007F87) !important;
+    stroke: var(--cu-primary-lt, #007F87) !important;
 }
 
 body.theme-v9 .active-sidebar .sidebar-item-icon svg {
@@ -2123,10 +2143,10 @@ body.theme-apple .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon,
 body.theme-apple .dropdown-item-icon,
 body.theme-apple .frappe-menu-item-icon,
 body.theme-v9 .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon {
-    background: rgba(0, 163, 173, 0.12) !important;
-    border: 1px solid rgba(0, 163, 173, 0.22) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.12) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.22) !important;
     border-radius: 8px !important;
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2138,14 +2158,14 @@ body.theme-apple .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon svg
 body.theme-apple .dropdown-item-icon svg,
 body.theme-apple .frappe-menu-item-icon svg,
 body.theme-v9 .sidebar-header-menu .dropdown-menu-item .sidebar-item-icon svg {
-    color: #006269 !important;
-    stroke: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
+    stroke: var(--cu-primary, #006269) !important;
 }
 
 body.theme-apple .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon,
 body.theme-v9 .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon {
-    background: #006269 !important;
-    border-color: #006269 !important;
+    background: var(--cu-primary, #006269) !important;
+    border-color: var(--cu-primary, #006269) !important;
 }
 
 body.theme-apple .sidebar-header-menu .dropdown-menu-item:hover .sidebar-item-icon svg,
@@ -2159,15 +2179,15 @@ body.theme-apple .shortcut-widget-box .widget-head svg,
 body.theme-apple .shortcut-widget-box .widget-title svg,
 body.theme-v9 .shortcut-widget-box .widget-head svg,
 body.theme-v9 .shortcut-widget-box .widget-title svg {
-    color: #007F87 !important;
-    stroke: #007F87 !important;
+    color: var(--cu-primary-lt, #007F87) !important;
+    stroke: var(--cu-primary-lt, #007F87) !important;
     transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), stroke 150ms ease !important;
 }
 
 body.theme-apple .shortcut-widget-box:hover .widget-head svg,
 body.theme-apple .shortcut-widget-box:hover .widget-title svg {
-    color: #004A4F !important;
-    stroke: #004A4F !important;
+    color: var(--cu-primary-dk, #004a4f) !important;
+    stroke: var(--cu-primary-dk, #004a4f) !important;
     transform: scale(1.1) !important;
 }
 
@@ -2176,14 +2196,14 @@ body.theme-apple .link-item svg,
 body.theme-apple .widget-link-item .link-icon svg,
 body.theme-v9 .widget-link-item svg,
 body.theme-v9 .link-item svg {
-    color: #00878F !important;
-    stroke: #00878F !important;
+    color: var(--cu-primary-lt, #00878F) !important;
+    stroke: var(--cu-primary-lt, #00878F) !important;
 }
 
 body.theme-apple .number-widget-box .widget-head svg,
 body.theme-v9 .number-widget-box .widget-head svg {
-    color: #00A3AD !important;
-    stroke: #00A3AD !important;
+    color: var(--cu-accent, #00A3AD) !important;
+    stroke: var(--cu-accent, #00A3AD) !important;
 }
 
 /* 5. Navbar App Launcher & Icons (Teal Glass Navbar) */
@@ -2198,8 +2218,8 @@ body.theme-apple .navbar .notifications-icon svg {
 
 body.theme-apple .navbar .app-switcher-icon:hover svg,
 body.theme-apple .navbar .navbar-brand:hover svg {
-    color: #004A4F !important;
-    stroke: #004A4F !important;
+    color: var(--cu-primary-dk, #004a4f) !important;
+    stroke: var(--cu-primary-dk, #004a4f) !important;
     transform: scale(1.08) !important;
 }
 
@@ -2244,7 +2264,7 @@ body.theme-apple .page-head {
     background: rgba(255, 255, 255, 0.82) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
+    border-bottom: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.12) !important;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02) !important;
     padding: 14px 24px !important;
 }
@@ -2290,23 +2310,23 @@ body.theme-apple .btn-default {
 body.theme-apple .btn-secondary:hover,
 body.theme-apple .btn-default:hover {
     background: #F8FAFC !important;
-    border-color: rgba(0, 98, 105, 0.25) !important;
-    color: #006269 !important;
+    border-color: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.25) !important;
+    color: var(--cu-primary, #006269) !important;
 }
 
 body.theme-apple .primary-action,
 body.theme-apple .btn-primary {
-    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
-    border: 1px solid #006269 !important;
+    background: linear-gradient(180deg, var(--cu-primary-lt, #00878F) 0%, var(--cu-primary, #006269) 100%) !important;
+    border: 1px solid var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
     font-weight: 600 !important;
-    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.3) !important;
 }
 
 body.theme-apple .primary-action:hover,
 body.theme-apple .btn-primary:hover {
-    background: #004A4F !important;
-    box-shadow: 0 4px 14px rgba(0, 98, 105, 0.4) !important;
+    background: var(--cu-primary-dk, #004a4f) !important;
+    box-shadow: 0 4px 14px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.4) !important;
 }
 
 /* ── 1. Apple Number / Metric Cards ── */
@@ -2314,8 +2334,8 @@ body.theme-apple .number-widget-box,
 body.theme-apple .widget.number-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.07) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.07) !important;
     padding: 20px 22px !important;
     position: relative !important;
     overflow: hidden !important;
@@ -2329,13 +2349,13 @@ body.theme-apple .number-widget-box::before {
     left: 0 !important;
     right: 0 !important;
     height: 3.5px !important;
-    background: linear-gradient(90deg, #00A3AD 0%, #006269 100%) !important;
+    background: linear-gradient(90deg, var(--cu-accent, #00A3AD) 0%, var(--cu-primary, #006269) 100%) !important;
 }
 
 body.theme-apple .number-widget-box:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 16px 32px -4px rgba(0, 98, 105, 0.14) !important;
-    border-color: rgba(0, 163, 173, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 16px 32px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.14) !important;
+    border-color: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
 }
 
 body.theme-apple .number-widget-box .widget-title {
@@ -2353,7 +2373,7 @@ body.theme-apple .number-widget-box .widget-num {
     font-weight: 800 !important;
     letter-spacing: -0.03em !important;
     font-variant-numeric: tabular-nums !important;
-    background: linear-gradient(135deg, #004A4F 0%, #007F87 100%) !important;
+    background: linear-gradient(135deg, var(--cu-primary-dk, #004a4f) 0%, var(--cu-primary-lt, #007F87) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     line-height: 1.15 !important;
@@ -2388,8 +2408,8 @@ body.theme-v9 .shortcut-widget-box,
 body.theme-v9 .widget.shortcut-widget-box {
     background: linear-gradient(135deg, #FFFFFF 0%, #F5FAFA 100%) !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 163, 173, 0.24) !important;
-    box-shadow: 0 2px 8px -2px rgba(0, 98, 105, 0.08), 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.24) !important;
+    box-shadow: 0 2px 8px -2px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.08), 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
     padding: 14px 18px !important;
     position: relative !important;
     overflow: hidden !important;
@@ -2409,7 +2429,7 @@ body.theme-v9 .widget.shortcut-widget-box::before {
     bottom: 10px !important;
     width: 4px !important;
     border-radius: 0 4px 4px 0 !important;
-    background: linear-gradient(180deg, #00A3AD 0%, #006269 100%) !important;
+    background: linear-gradient(180deg, var(--cu-accent, #00A3AD) 0%, var(--cu-primary, #006269) 100%) !important;
     transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -2420,8 +2440,8 @@ body.theme-v9 .shortcut-widget-box:hover,
 body.theme-v9 .widget.shortcut-widget-box:hover {
     transform: translateY(-3px) !important;
     background: linear-gradient(135deg, #FFFFFF 0%, #EEF7F8 100%) !important;
-    border-color: #00A3AD !important;
-    box-shadow: 0 8px 24px -4px rgba(0, 98, 105, 0.16), 0 2px 6px rgba(0, 163, 173, 0.08), inset 0 1px 0 #FFFFFF !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
+    box-shadow: 0 8px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.16), 0 2px 6px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08), inset 0 1px 0 #FFFFFF !important;
 }
 
 body.theme-apple .shortcut-widget-box:hover::before,
@@ -2429,7 +2449,7 @@ body.theme-v9 .shortcut-widget-box:hover::before {
     top: 0 !important;
     bottom: 0 !important;
     width: 5px !important;
-    background: linear-gradient(180deg, #006269 0%, #004A4F 100%) !important;
+    background: linear-gradient(180deg, var(--cu-primary, #006269) 0%, var(--cu-primary-dk, #004a4f) 100%) !important;
 }
 
 /* Tactile Active Response (<100ms) */
@@ -2461,9 +2481,9 @@ body.theme-v9 .shortcut-widget-box .widget-control {
 /* Apple Count Capsule Badge */
 body.theme-apple .shortcut-widget-box .indicator-pill,
 body.theme-v9 .shortcut-widget-box .indicator-pill {
-    background: rgba(0, 163, 173, 0.12) !important;
-    color: #006269 !important;
-    border: 1px solid rgba(0, 163, 173, 0.25) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.12) !important;
+    color: var(--cu-primary, #006269) !important;
+    border: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
     font-weight: 700 !important;
     font-size: 11px !important;
     border-radius: 9999px !important;
@@ -2475,8 +2495,8 @@ body.theme-v9 .shortcut-widget-box .indicator-pill {
 
 body.theme-apple .shortcut-widget-box:hover .indicator-pill,
 body.theme-v9 .shortcut-widget-box:hover .indicator-pill {
-    background: rgba(0, 98, 105, 0.18) !important;
-    border-color: #006269 !important;
+    background: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.18) !important;
+    border-color: var(--cu-primary, #006269) !important;
 }
 
 /* Micro-Squircle Arrow Action Button */
@@ -2487,9 +2507,9 @@ body.theme-v9 .shortcut-widget-box .widget-head svg {
     width: 24px !important;
     height: 24px !important;
     border-radius: 7px !important;
-    background: rgba(0, 163, 173, 0.08) !important;
-    color: #007F87 !important;
-    stroke: #007F87 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    color: var(--cu-primary-lt, #007F87) !important;
+    stroke: var(--cu-primary-lt, #007F87) !important;
     padding: 4px !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -2501,7 +2521,7 @@ body.theme-apple .shortcut-widget-box:hover .widget-control svg,
 body.theme-apple .shortcut-widget-box:hover .widget-head svg,
 body.theme-v9 .shortcut-widget-box:hover .widget-control svg,
 body.theme-v9 .shortcut-widget-box:hover .widget-head svg {
-    background: #006269 !important;
+    background: var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
     stroke: #FFFFFF !important;
     transform: translate(1px, -1px) scale(1.08) !important;
@@ -2512,8 +2532,8 @@ body.theme-apple .links-widget-box,
 body.theme-apple .widget.links-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.06) !important;
     padding: 18px 20px !important;
 }
 
@@ -2540,8 +2560,8 @@ body.theme-apple .link-item {
 
 body.theme-apple .widget-link-item:hover,
 body.theme-apple .link-item:hover {
-    background: rgba(0, 163, 173, 0.08) !important;
-    color: #006269 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    color: var(--cu-primary, #006269) !important;
     transform: translateX(4px) !important;
 }
 
@@ -2550,7 +2570,7 @@ body.theme-apple .quick-list-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
     border: 1px solid rgba(0, 0, 0, 0.06) !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), 0 8px 24px -4px rgba(0, 98, 105, 0.05) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), 0 8px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.05) !important;
     overflow: hidden !important;
 }
 
@@ -2568,7 +2588,7 @@ body.theme-apple .frappe-list .list-header {
 
 body.theme-apple .list-row-container:hover,
 body.theme-apple .list-row:hover {
-    background: rgba(0, 163, 173, 0.04) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.04) !important;
     transition: background-color 120ms ease !important;
 }
 
@@ -2618,8 +2638,8 @@ body.theme-apple .frappe-control .form-control {
 }
 
 body.theme-apple .frappe-control .form-control:focus {
-    border-color: #00A3AD !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.22) !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.22) !important;
 }
 
 /* Child Table Ergonomics */
@@ -2648,7 +2668,7 @@ body.theme-apple .form-grid .grid-row {
 }
 
 body.theme-apple .form-grid .grid-row:hover {
-    background: rgba(0, 163, 173, 0.04) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.04) !important;
 }
 
 body.theme-apple .section-head {
@@ -2665,8 +2685,8 @@ body.theme-v9 .form-tabs-list {
     background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
-    box-shadow: 0 4px 16px -4px rgba(0, 50, 54, 0.05) !important;
+    border-bottom: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.12) !important;
+    box-shadow: 0 4px 16px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.05) !important;
     padding: 8px 16px !important;
     margin-bottom: 20px !important;
     border-radius: 14px 14px 0 0 !important;
@@ -2680,8 +2700,8 @@ body.theme-apple .form-tabs-list .form-tabs,
 body.theme-v9 .form-tabs-list .form-tabs {
     display: inline-flex !important;
     align-items: center !important;
-    background: rgba(0, 98, 105, 0.06) !important;
-    border: 1px solid rgba(0, 98, 105, 0.12) !important;
+    background: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.06) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.12) !important;
     border-radius: 11px !important;
     padding: 3px !important;
     gap: 3px !important;
@@ -2720,7 +2740,7 @@ body.theme-v9 .form-tabs-list .nav-link {
 /* Tab Button Hover */
 body.theme-apple .form-tabs-list .nav-link:hover,
 body.theme-v9 .form-tabs-list .nav-link:hover {
-    color: #004A4F !important;
+    color: var(--cu-primary-dk, #004a4f) !important;
     background: rgba(255, 255, 255, 0.7) !important;
     transform: translateY(-1px) !important;
 }
@@ -2728,11 +2748,11 @@ body.theme-v9 .form-tabs-list .nav-link:hover {
 /* Active Segmented Pill (Elevated Apple Capsule) */
 body.theme-apple .form-tabs-list .nav-link.active,
 body.theme-v9 .form-tabs-list .nav-link.active {
-    background: linear-gradient(180deg, #00878F 0%, #006269 100%) !important;
+    background: linear-gradient(180deg, var(--cu-primary-lt, #00878F) 0%, var(--cu-primary, #006269) 100%) !important;
     color: #FFFFFF !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(0, 98, 105, 0.32), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 2px 8px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.32), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     transform: scale(1.02) !important;
 }
 
@@ -2747,7 +2767,7 @@ body.theme-v9 .form-tabs-list .nav-link:active {
 body.theme-apple .form-tabs-list .nav-link:focus-visible,
 body.theme-v9 .form-tabs-list .nav-link:focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.45) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
 }
 
 /* Tab Pane Content Transition (NO transform to keep fixed child modals in viewport stacking context) */
@@ -2771,8 +2791,8 @@ body.theme-v9 .form-tab-content > .tab-pane.active {
 /* Child Table Grid Row Tabs Styling */
 body.theme-apple .form-grid .form-tabs-list,
 body.theme-v9 .form-grid .form-tabs-list {
-    background: rgba(0, 98, 105, 0.04) !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
+    background: rgba(var(--cu-primary-rgb, 0, 98, 105), 0.04) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
     border-radius: 10px !important;
     padding: 4px 8px !important;
     margin-bottom: 12px !important;
@@ -2787,8 +2807,8 @@ body.theme-apple .form-control {
 }
 
 body.theme-apple .form-control:focus {
-    border-color: #00A3AD !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.28) !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.28) !important;
     outline: none !important;
 }
 
@@ -2815,8 +2835,8 @@ body.theme-apple .chart-widget-box,
 body.theme-apple .widget.chart-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.07) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.07) !important;
     padding: 20px 22px !important;
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease !important;
 }
@@ -2824,8 +2844,8 @@ body.theme-apple .widget.chart-widget-box {
 body.theme-apple .dashboard-widget-box:hover,
 body.theme-apple .chart-widget-box:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 14px 28px -4px rgba(0, 98, 105, 0.12) !important;
-    border-color: rgba(0, 163, 173, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), 0 14px 28px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.12) !important;
+    border-color: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
 }
 
 body.theme-apple .dashboard-widget-box .widget-title,
@@ -2857,9 +2877,9 @@ body.theme-apple .graph-svg-tip {
     background: rgba(255, 255, 255, 0.94) !important;
     backdrop-filter: blur(16px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-    border: 1px solid rgba(0, 98, 105, 0.18) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.18) !important;
     border-radius: 8px !important;
-    box-shadow: 0 8px 24px -4px rgba(0, 50, 54, 0.18), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 8px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.18), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
     color: #0F282A !important;
     font-size: 12px !important;
     font-weight: 600 !important;
@@ -2871,8 +2891,8 @@ body.theme-apple .graph-svg-tip {
 body.theme-apple .quick-list-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.06) !important;
     padding: 18px 20px !important;
     overflow: hidden !important;
 }
@@ -2901,8 +2921,8 @@ body.theme-apple .quick-list-item {
 }
 
 body.theme-apple .quick-list-item:hover {
-    background: rgba(0, 163, 173, 0.05) !important;
-    border-color: rgba(0, 163, 173, 0.15) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.05) !important;
+    border-color: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.15) !important;
     transform: translateX(3px) !important;
 }
 
@@ -2925,8 +2945,8 @@ body.theme-apple .quick-list-item .right-arrow {
     width: 22px !important;
     height: 22px !important;
     border-radius: 6px !important;
-    background: rgba(0, 163, 173, 0.08) !important;
-    color: #007F87 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    color: var(--cu-primary-lt, #007F87) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2934,7 +2954,7 @@ body.theme-apple .quick-list-item .right-arrow {
 }
 
 body.theme-apple .quick-list-item:hover .right-arrow {
-    background: #006269 !important;
+    background: var(--cu-primary, #006269) !important;
     color: #FFFFFF !important;
     transform: translateX(2px) !important;
 }
@@ -2948,8 +2968,8 @@ body.theme-apple .quick-list-item:hover .right-arrow svg {
 body.theme-apple .onboarding-widget-box {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(0, 98, 105, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 98, 105, 0.06) !important;
+    border: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(var(--cu-primary-rgb, 0, 98, 105), 0.06) !important;
     padding: 20px 24px !important;
 }
 
@@ -2968,10 +2988,10 @@ body.theme-apple .onboarding-widget-box .onboarding-step.complete {
 }
 
 body.theme-apple .onboarding-widget-box .onboarding-step.active-step {
-    background: rgba(0, 163, 173, 0.1) !important;
-    color: #006269 !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.1) !important;
+    color: var(--cu-primary, #006269) !important;
     font-weight: 600 !important;
-    border-left: 3px solid #006269 !important;
+    border-left: 3px solid var(--cu-primary, #006269) !important;
 }
 
 /* ── Component 6: Form Tables & Grids ── */
@@ -3006,7 +3026,7 @@ body.theme-apple .grid-row:not(.grid-row-open) .form-in-grid {
 body.theme-apple .grid-row-open,
 body.theme-apple .grid-row.grid-row-open {
     overflow: visible !important;
-    z-index: 2400 !important;
+    z-index: 1045 !important;
 }
 
 body.theme-apple .grid-row-open .form-in-grid,
@@ -3016,7 +3036,7 @@ body .grid-row-open .form-in-grid,
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    z-index: 2500 !important;
+    z-index: 1050 !important;
     width: 92% !important;
     max-width: 960px !important;
     max-height: 85vh !important;
@@ -3083,7 +3103,7 @@ body.theme-apple .modal-backdrop,
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    z-index: 2000 !important;
+    z-index: 1040 !important;
     background: rgba(15, 23, 42, 0.5) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
@@ -3102,13 +3122,13 @@ body.theme-apple .grid-heading-row {
 }
 
 body.theme-apple .grid-row:hover {
-    background: rgba(0, 163, 173, 0.03) !important;
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.03) !important;
 }
 
 body.theme-apple .grid-row-open {
     background: #FAFDFD !important;
-    border-top: 1px solid rgba(0, 163, 173, 0.25) !important;
-    border-bottom: 1px solid rgba(0, 163, 173, 0.25) !important;
+    border-top: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
+    border-bottom: 1px solid rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
 }
 
 /* ── Component 7: Loading Skeletons & Empty States ── */
@@ -3131,7 +3151,7 @@ body.theme-apple .empty-state,
 body.theme-apple .list-no-data-state {
     background: #FFFFFF !important;
     border-radius: 14px !important;
-    border: 1px dashed rgba(0, 98, 105, 0.2) !important;
+    border: 1px dashed rgba(var(--cu-primary-rgb, 0, 98, 105), 0.2) !important;
     padding: 32px 24px !important;
     text-align: center !important;
     color: #64748B !important;
@@ -3140,8 +3160,8 @@ body.theme-apple .list-no-data-state {
 /* High Visibility Keyboard Focus Ring */
 body.theme-apple :focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.35) !important;
-    border-color: #00A3AD !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
+    border-color: var(--cu-accent, #00A3AD) !important;
 }
 
 
@@ -3248,7 +3268,7 @@ body.theme-v9 .list-subject a {
 
 body.theme-apple .list-subject a:hover,
 body.theme-v9 .list-subject a:hover {
-    color: #006269 !important;
+    color: var(--cu-primary, #006269) !important;
 }
 
 /* 7. Quick List Item Titles (13px) */
@@ -3333,7 +3353,7 @@ body:has(.grid-row-open) .layout-main,
 body:has(.grid-row-open) .page-container,
 body:has(.grid-row-open) .form-section:has(.grid-row-open),
 body.theme-apple .form-section:has(.grid-row-open) {
-    z-index: 2100 !important;
+    z-index: 1035 !important;
     position: relative !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -3511,7 +3531,7 @@ body:has([data-page-route="Workspaces"]:not([style*="display: none"])) .page-hea
     background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(20px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border-bottom: 1px solid rgba(0, 98, 105, 0.12) !important;
+    border-bottom: 1px solid rgba(var(--cu-primary-rgb, 0, 98, 105), 0.12) !important;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
     padding: 12px 24px !important;
 }
@@ -3520,4 +3540,281 @@ body.is-workspace-view .page-head .container {
     max-width: 100% !important;
     width: 100% !important;
     padding: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ENLARGED APPLE HIG DESKTOP ICONS & FOLDERS (68px Squircle Launchpad Grid)
+   ───────────────────────────────────────────────────────────── */
+body.theme-apple .desktop-wrapper > .icons-container > .icons > .desktop-icon,
+body.theme-v9 .desktop-wrapper > .icons-container > .icons > .desktop-icon,
+.desktop-icon:not(.in-folder):not(.folder-icon *) {
+    gap: 8px !important;
+    width: 120px !important;
+    height: 120px !important;
+    padding: 8px 6px !important;
+}
+
+body.theme-apple .desktop-wrapper > .icons-container > .icons > .desktop-icon > .icon-container,
+body.theme-apple .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container,
+body.theme-v9 .desktop-wrapper > .icons-container > .icons > .desktop-icon > .icon-container,
+body.theme-v9 .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container,
+.desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container {
+    width: 68px !important;
+    height: 68px !important;
+    min-width: 68px !important;
+    min-height: 68px !important;
+    max-width: 68px !important;
+    max-height: 68px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 22px -4px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease !important;
+}
+
+body.theme-apple .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:hover,
+body.theme-v9 .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:hover,
+.desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:hover {
+    transform: translateY(-4px) scale(1.06) !important;
+    box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.18), 0 4px 10px -2px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.theme-apple .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon),
+body.theme-v9 .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon),
+.desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) {
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) img,
+body.theme-apple .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) svg,
+body.theme-v9 .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) img,
+body.theme-v9 .desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) svg,
+.desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) img,
+.desktop-icon:not(.in-folder):not(.folder-icon *) > .icon-container:not(.folder-icon) svg,
+.modal-body .icons .desktop-icon .icon-container img,
+.modal-body .icons .desktop-icon .icon-container svg {
+    width: 68px !important;
+    height: 68px !important;
+    min-width: 68px !important;
+    min-height: 68px !important;
+    max-width: 68px !important;
+    max-height: 68px !important;
+    border-radius: 16px !important;
+    display: block !important;
+}
+
+/* Folder Container (e.g. Accounting) */
+body.theme-apple .desktop-icon > .icon-container.folder-icon,
+body.theme-v9 .desktop-icon > .icon-container.folder-icon,
+.desktop-icon > .icon-container.folder-icon {
+    width: 68px !important;
+    height: 68px !important;
+    min-width: 68px !important;
+    min-height: 68px !important;
+    max-width: 68px !important;
+    max-height: 68px !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(25px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+body.theme-apple .folder-icon .icons,
+body.theme-v9 .folder-icon .icons,
+.folder-icon .icons {
+    gap: 5px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, 20px) !important;
+    grid-template-rows: repeat(2, 20px) !important;
+    justify-content: center !important;
+    align-content: center !important;
+    width: 45px !important;
+    height: 45px !important;
+    margin: auto !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+body.theme-apple .folder-icon .desktop-icon,
+body.theme-apple .folder-icon .icons .desktop-icon,
+body.theme-v9 .folder-icon .desktop-icon,
+body.theme-v9 .folder-icon .icons .desktop-icon,
+.folder-icon .desktop-icon,
+.folder-icon .icons .desktop-icon {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.theme-apple .folder-icon .desktop-icon .icon-container,
+body.theme-apple .folder-icon .icons .desktop-icon .icon-container,
+body.theme-v9 .folder-icon .desktop-icon .icon-container,
+body.theme-v9 .folder-icon .icons .desktop-icon .icon-container,
+.folder-icon .desktop-icon .icon-container,
+.folder-icon .icons .desktop-icon .icon-container {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    transform: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.theme-apple .folder-icon .desktop-icon .icon-container img,
+body.theme-apple .folder-icon .desktop-icon .icon-container svg,
+body.theme-apple .folder-icon .icons .desktop-icon .icon-container img,
+body.theme-apple .folder-icon .icons .desktop-icon .icon-container svg,
+body.theme-v9 .folder-icon .desktop-icon .icon-container img,
+body.theme-v9 .folder-icon .desktop-icon .icon-container svg,
+body.theme-v9 .folder-icon .icons .desktop-icon .icon-container img,
+body.theme-v9 .folder-icon .icons .desktop-icon .icon-container svg,
+.folder-icon .desktop-icon .icon-container img,
+.folder-icon .desktop-icon .icon-container svg,
+.folder-icon .icons .desktop-icon .icon-container img,
+.folder-icon .icons .desktop-icon .icon-container svg {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    border-radius: 5px !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.theme-apple .desktop-icon .icon-title,
+body.theme-v9 .desktop-icon .icon-title,
+.desktop-icon .icon-title {
+    font-size: 13.5px !important;
+    font-weight: 550 !important;
+    letter-spacing: -0.012em !important;
+    color: #1D1D1F !important;
+    text-align: center !important;
+    line-height: 1.3 !important;
+}
+
+
+/* Zero weird border/ring on chat input focus/click */
+#chat-input,
+#chat-input:focus,
+#chat-input:focus-visible,
+#chat-input:active,
+body.theme-apple #chat-input,
+body.theme-apple #chat-input:focus,
+body.theme-apple #chat-input:focus-visible,
+body.theme-apple #chat-input:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+#chat-input-wrap,
+#chat-input-wrap:focus,
+#chat-input-wrap:focus-within,
+#chat-input-wrap:focus-visible,
+body.theme-apple #chat-input-wrap,
+body.theme-apple #chat-input-wrap:focus,
+body.theme-apple #chat-input-wrap:focus-within,
+body.theme-apple #chat-input-wrap:focus-visible {
+  outline: none !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   FRAPPE FORMS, MODALS & DROPDOWNS Z-INDEX MASTER HIERARCHY
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Backdrop Layers (Always behind modals and dialogs) */
+body.theme-apple #freeze,
+body.theme-apple #freeze.grid-form,
+body.theme-apple #freeze.in,
+body.theme-apple .modal-backdrop,
+#freeze,
+#freeze.grid-form,
+#freeze.in,
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* 2. Modals, Quick Entry Dialogs, and In-Grid Child Table Popups */
+body.theme-apple .modal,
+body.theme-apple #search-modal,
+body.theme-apple .search-modal,
+.modal,
+body.theme-apple .grid-row-open .form-in-grid,
+body .grid-row-open .form-in-grid,
+.grid-row-open .form-in-grid {
+    z-index: 1050 !important;
+}
+
+body.theme-apple .modal-dialog,
+.modal-dialog {
+    z-index: 1051 !important;
+}
+
+/* 3. Autocomplete, Link Field Search & Dropdown Menus (ALWAYS ON TOP OF MODALS) */
+body.theme-apple .awesomplete > ul,
+.awesomplete > ul,
+body.theme-apple .dropdown-menu,
+.dropdown-menu,
+.ui-autocomplete,
+.select2-dropdown,
+.search-results,
+.search-list {
+    z-index: 3000 !important;
+    position: absolute !important;
+}
+
+/* 4. Datepickers, Flatpickr & Popovers (ALWAYS ON TOP) */
+body.theme-apple .datepicker,
+.datepicker,
+.flatpickr-calendar,
+body.theme-apple .popover,
+.popover,
+.color-picker {
+    z-index: 3100 !important;
+}
+
+/* 5. Tooltips */
+body.theme-apple .tooltip,
+.tooltip {
+    z-index: 3200 !important;
+}
+
+/* 6. System Alerts & Notifications (Topmost Feedback) */
+.desk-alert,
+.alert-message,
+#alert-container {
+    z-index: 99999 !important;
 }

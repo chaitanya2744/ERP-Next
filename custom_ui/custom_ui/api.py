@@ -87,3 +87,41 @@ def rename_session(session_id, new_title):
         frappe.throw("Session not found or access denied")
     frappe.db.set_value("AI Chat Session", session_id, "title", new_title)
     return True
+
+@frappe.whitelist()
+def save_theme_colors(colors):
+    """Save global theme colors (admin level) and clear cache"""
+    if "System Manager" not in frappe.get_roles() and frappe.session.user != "Administrator":
+        frappe.throw("Only System Managers / Administrators can change global theme colors")
+    
+    frappe.db.set_default("custom_ui_theme_colors", colors)
+    frappe.clear_cache()
+    frappe.db.commit()
+    return {"status": "success", "message": "Global theme colors updated and cache cleared"}
+
+@frappe.whitelist()
+def get_theme_colors():
+    """Retrieve global theme colors"""
+    colors = frappe.db.get_default("custom_ui_theme_colors")
+    if colors:
+        try:
+            return json.loads(colors) if isinstance(colors, str) else colors
+        except Exception:
+            return colors
+    return None
+
+def add_theme_colors_to_bootinfo(bootinfo):
+    """Inject theme colors into bootinfo on every desk session"""
+    colors = frappe.db.get_default("custom_ui_theme_colors")
+    if colors:
+        try:
+            val = json.loads(colors) if isinstance(colors, str) else colors
+        except Exception:
+            val = colors
+        
+        try:
+            bootinfo.custom_ui_theme_colors = val
+        except Exception:
+            pass
+        if isinstance(bootinfo, dict):
+            bootinfo["custom_ui_theme_colors"] = val
