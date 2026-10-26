@@ -96,7 +96,7 @@ body.theme-apple .form-sidebar {
    2. APPLE ACCESSIBILITY (A11y) STANDARDS
    ────────────────────────────────────────────────── */
 /* High-Visibility Focus Rings for Keyboard Navigation */
-:focus-visible:not(#chat-input):not(#chat-input-wrap):not(#chat-input-wrap *) {
+:focus-visible:not(#chat-input):not(#chat-input-wrap):not(#chat-input-wrap *):not(#navbar-search):not(.navbar-modal-wrapper *):not(.search-input):not(.search-dialog *):not(.awesomebar-input-row *) {
     outline: none !important;
     box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.45) !important;
     border-color: var(--cu-primary, #006269) !important;
@@ -3783,9 +3783,9 @@ body.theme-apple .modal-dialog,
     z-index: 1051 !important;
 }
 
-/* 3. Autocomplete, Link Field Search & Dropdown Menus (ALWAYS ON TOP OF MODALS) */
-body.theme-apple .awesomplete > ul,
-.awesomplete > ul,
+/* 3. Autocomplete, Link Field Search & Dropdown Menus (ALWAYS ON TOP OF MODALS, EXCEPT INLINE COMMAND BAR) */
+body.theme-apple .awesomplete > ul:not(.navbar-modal-wrapper .awesomplete > ul),
+.awesomplete > ul:not(.navbar-modal-wrapper .awesomplete > ul),
 body.theme-apple .dropdown-menu,
 .dropdown-menu,
 .ui-autocomplete,
@@ -3817,4 +3817,348 @@ body.theme-apple .tooltip,
 .alert-message,
 #alert-container {
     z-index: 99999 !important;
+}
+
+/* ================================================================
+   RADIO BUTTONS & CHECKBOXES - VISUAL SELECTION FIX (APPLE HIG)
+   Resolves missing check/dot indicator on selected inputs
+   ================================================================ */
+
+/* Radio Button Base */
+input[type="radio"],
+.radio input[type="radio"],
+.form-check-input[type="radio"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    position: relative !important;
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    margin: 0 8px 0 0 !important;
+    vertical-align: middle !important;
+    border: 1.5px solid var(--gray-400, #94A3B8) !important;
+    border-radius: 50% !important;
+    background-color: var(--pro-surface, #FFFFFF) !important;
+    outline: none !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Radio Button: Checked State (Solid Theme Dot on Theme Background) */
+input[type="radio"]:checked,
+.radio input[type="radio"]:checked,
+.form-check-input[type="radio"]:checked {
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+    background-color: var(--cu-primary, var(--primary, #006269)) !important;
+    background-image: radial-gradient(circle, #FFFFFF 0%, #FFFFFF 36%, transparent 40%) !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 100% !important;
+}
+
+/* Hide legacy pseudo-elements that fail in Blink/WebKit on replaced inputs */
+input[type="radio"]::before,
+input[type="radio"]::after,
+input[type="radio"]:before,
+input[type="radio"]:after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Radio Button: Hover */
+input[type="radio"]:hover:not(:disabled),
+.radio input[type="radio"]:hover:not(:disabled) {
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+}
+
+/* Radio Button: Focus */
+input[type="radio"]:focus-visible,
+.radio input[type="radio"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+}
+
+/* Checkbox Base */
+input[type="checkbox"],
+.checkbox input[type="checkbox"],
+.form-check-input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    position: relative !important;
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    margin: 0 8px 0 0 !important;
+    vertical-align: middle !important;
+    border: 1.5px solid var(--gray-400, #94A3B8) !important;
+    border-radius: 4px !important;
+    background-color: var(--pro-surface, #FFFFFF) !important;
+    outline: none !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Checkbox: Checked State (Crisp White SVG Checkmark on Theme Background) */
+input[type="checkbox"]:checked,
+.checkbox input[type="checkbox"]:checked,
+.form-check-input[type="checkbox"]:checked {
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+    background-color: var(--cu-primary, var(--primary, #006269)) !important;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 80% 80% !important;
+}
+
+/* Checkbox: Focus */
+input[type="checkbox"]:focus-visible,
+.checkbox input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.35) !important;
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+}
+
+/* Dark Mode Harmonization */
+[data-theme="dark"] input[type="radio"],
+body.theme-apple.dark input[type="radio"],
+[data-theme="dark"] input[type="checkbox"],
+body.theme-apple.dark input[type="checkbox"] {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] input[type="radio"]:checked,
+body.theme-apple.dark input[type="radio"]:checked,
+[data-theme="dark"] input[type="checkbox"]:checked,
+body.theme-apple.dark input[type="checkbox"]:checked {
+    background-color: var(--cu-primary, var(--primary, #006269)) !important;
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+}
+
+
+/* ================================================================
+   COMMAND PALETTE & SPOTLIGHT AWESOMEBAR (APPLE HIG)
+   Resolves header display bug, text/footer collision, and focus rings
+   ================================================================ */
+
+/* 1. Modal Container & Hide Redundant Header */
+.modal:has(.navbar-modal-wrapper) .modal-header,
+.modal:has(#navbar-search) .modal-header,
+#search-modal .modal-header,
+.search-modal .modal-header {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+
+.modal:has(.navbar-modal-wrapper) .modal-body,
+.modal:has(#navbar-search) .modal-body {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.modal:has(.navbar-modal-wrapper) .modal-content,
+.modal:has(#navbar-search) .modal-content {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    background: var(--pro-surface, #FFFFFF) !important;
+}
+
+/* 2. Search Input Row */
+.navbar-modal-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    position: relative !important;
+}
+
+.navbar-modal-wrapper .modal-divider {
+    display: none !important; /* Eliminate slicing line */
+}
+
+.navbar-modal-wrapper .awesomebar-input-row {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: transparent !important;
+}
+
+.navbar-modal-wrapper .awesomebar-search-icon {
+    display: flex !important;
+    align-items: center !important;
+    color: var(--text-muted, #94A3B8) !important;
+    padding-right: 8px !important;
+}
+
+#navbar-search,
+.navbar-modal-wrapper #navbar-search,
+.navbar-modal-wrapper input#navbar-search {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    padding: 8px 6px !important;
+    color: var(--text-color, #1E293B) !important;
+}
+
+#navbar-search:focus,
+#navbar-search:focus-visible {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* 3. Results List (In-Flow to prevent collision with footer) */
+.navbar-modal-wrapper .awesomplete {
+    width: 100% !important;
+    position: relative !important;
+    display: block !important;
+}
+
+.navbar-modal-wrapper .awesomplete > ul,
+.modal:has(.navbar-modal-wrapper) .awesomplete > ul,
+.modal:has(#navbar-search) .awesomplete > ul {
+    position: relative !important;
+    z-index: 1 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-height: 360px !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    list-style: none !important;
+}
+
+.navbar-modal-wrapper .awesomplete > ul > li,
+.modal:has(.navbar-modal-wrapper) .awesomplete > ul > li {
+    padding: 10px 14px !important;
+    margin: 2px 0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    color: var(--text-color, #334155) !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.navbar-modal-wrapper .awesomplete > ul > li:hover,
+.navbar-modal-wrapper .awesomplete > ul > li[aria-selected="true"],
+.modal:has(.navbar-modal-wrapper) .awesomplete > ul > li:hover,
+.modal:has(.navbar-modal-wrapper) .awesomplete > ul > li[aria-selected="true"] {
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.12) !important;
+    color: var(--cu-primary, #006269) !important;
+    font-weight: 500 !important;
+}
+
+/* 4. Footer & Keyboard Badges */
+.modal:has(.navbar-modal-wrapper) .modal-footer,
+.modal:has(#navbar-search) .modal-footer,
+.cool-awesomebar-modal-footer {
+    background: #F8FAFC !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.awesomebar-modal-footer .help-navigation {
+    display: flex !important;
+    gap: 14px !important;
+    align-items: center !important;
+    font-size: 12px !important;
+    color: #64748B !important;
+}
+
+.awesomebar-modal-footer .help-navigation .help-item {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 5. Global Search Dialog (Ctrl+G) Harmonization */
+.search-dialog .search-input,
+.search-dialog .search-input:focus,
+.search-dialog .search-input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 6. Dark Theme Harmonization */
+[data-theme="dark"] .modal:has(.navbar-modal-wrapper) .modal-content,
+[data-theme="dark"] .modal:has(#navbar-search) .modal-content,
+body.theme-apple.dark .modal:has(.navbar-modal-wrapper) .modal-content {
+    background: #1C1C1E !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .navbar-modal-wrapper .awesomebar-input-row,
+body.theme-apple.dark .navbar-modal-wrapper .awesomebar-input-row {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] #navbar-search,
+body.theme-apple.dark #navbar-search {
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .navbar-modal-wrapper .awesomplete > ul > li,
+body.theme-apple.dark .navbar-modal-wrapper .awesomplete > ul > li {
+    color: #E2E8F0 !important;
+}
+
+[data-theme="dark"] .navbar-modal-wrapper .awesomplete > ul > li:hover,
+[data-theme="dark"] .navbar-modal-wrapper .awesomplete > ul > li[aria-selected="true"],
+body.theme-apple.dark .navbar-modal-wrapper .awesomplete > ul > li:hover,
+body.theme-apple.dark .navbar-modal-wrapper .awesomplete > ul > li[aria-selected="true"] {
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.22) !important;
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .cool-awesomebar-modal-footer,
+[data-theme="dark"] .modal:has(.navbar-modal-wrapper) .modal-footer,
+body.theme-apple.dark .cool-awesomebar-modal-footer {
+    background: #141416 !important;
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .awesomebar-modal-footer .help-navigation,
+body.theme-apple.dark .awesomebar-modal-footer .help-navigation {
+    color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .awesomebar-modal-footer .help-navigation .help-item,
+body.theme-apple.dark .awesomebar-modal-footer .help-navigation .help-item {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #CBD5E1 !important;
 }

@@ -903,6 +903,21 @@
                 background: linear-gradient(135deg, ${accent} 0%, ${primary} 45%, ${primaryDk} 100%) !important;
                 box-shadow: 0 10px 30px ${primaryLt}66, inset 0 2px 4px rgba(255, 255, 255, 0.4) !important;
             }
+
+            /* Live Theme Primary Color for Checked Radio Buttons & Checkboxes */
+            input[type="radio"]:checked,
+            .radio input[type="radio"]:checked,
+            .form-check-input[type="radio"]:checked {
+                border-color: ${primary} !important;
+                background-color: ${primary} !important;
+                background-image: radial-gradient(circle, #FFFFFF 0%, #FFFFFF 36%, transparent 40%) !important;
+            }
+            input[type="checkbox"]:checked,
+            .checkbox input[type="checkbox"]:checked,
+            .form-check-input[type="checkbox"]:checked {
+                border-color: ${primary} !important;
+                background-color: ${primary} !important;
+            }
         `;
 
         let styleTag = document.getElementById(STYLE_TAG_ID);
