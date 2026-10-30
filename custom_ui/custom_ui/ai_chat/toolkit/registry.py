@@ -80,7 +80,7 @@ def execute_tool(name, args):
 
             data = normalize_document_data(doctype, args.get("data") or {})
             doc = frappe.get_doc(dict(doctype=doctype, **data))
-            doc.insert(check_permissions=True)
+            doc.insert(ignore_permissions=False)
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -98,7 +98,7 @@ def execute_tool(name, args):
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("write")
             doc.update(data)
-            doc.save(check_permissions=True)
+            doc.save(ignore_permissions=False)
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -114,7 +114,7 @@ def execute_tool(name, args):
 
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("delete")
-            frappe.delete_doc(doctype, docname, check_permissions=True)
+            frappe.delete_doc(doctype, docname, ignore_permissions=False)
             frappe.db.commit()
             return {"output": {"status": "Success", "message": f"Deleted {doctype} {docname}"}}
 
