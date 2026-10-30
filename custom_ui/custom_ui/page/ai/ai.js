@@ -823,7 +823,16 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           var configStr = decodeURIComponent(container.getAttribute('data-chart-config'));
           var config = JSON.parse(configStr);
 
-          // Render using Frappe Charts
+          // Synchronize palette with active theme tokens (eliminates hot pink default)
+          if (!config.colors || !config.colors.length) {
+            var brandPrimary = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
+                ? frappe.ui.color_customizer.get_color("primary") 
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#006269";
+            var brandAccent = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
+                ? frappe.ui.color_customizer.get_color("accent") 
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#00A3AD";
+            config.colors = [brandPrimary, brandAccent, "#38BDF8", "#F59E0B", "#10B981"];
+          }
           new frappe.Chart(container, config);
         } catch (e) {
           console.error("Failed to render chart", e);
@@ -1507,6 +1516,8 @@ window.clearChat = function () {
   var _voiceMinimized = false;
   var _isMuted = false;
   var _voiceFinalText = '';
+  var _accumulatedFinalText = '';
+  var _currentSessionFinal = '';
   var _lastInterim = '';
   var _lastAIReply = '';
   var _aiSpeakingStartTime = 0;
@@ -1769,9 +1780,13 @@ window.clearChat = function () {
   // 'full'   -> Full-screen stage visible, PiP pill hidden
   // 'pip'    -> Full-screen stage hidden, PiP pill visible
   // 'closed' -> Both hidden
+  function getVoiceEl(sel) {
+    return (wrapper && wrapper.querySelector(sel)) || document.querySelector(sel);
+  }
+
   function setVoiceUIMode(mode) {
-    var overlay = wrapper.querySelector('#voice-overlay');
-    var pill = wrapper.querySelector('#voice-pip-pill');
+    var overlay = getVoiceEl('#voice-overlay');
+    var pill = getVoiceEl('#voice-pip-pill');
 
     if (mode === 'full') {
       _voiceMinimized = false;
@@ -1868,8 +1883,8 @@ window.clearChat = function () {
     var secs = elapsed % 60;
     var formatted = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-    var headerTimer = wrapper.querySelector('#voice-call-timer');
-    var miniTimer = wrapper.querySelector('#voice-mini-timer');
+    var headerTimer = getVoiceEl('#voice-call-timer');
+    var miniTimer = getVoiceEl('#voice-mini-timer');
     if (headerTimer) headerTimer.textContent = formatted;
     if (miniTimer) miniTimer.textContent = formatted;
   }
@@ -1917,13 +1932,13 @@ window.clearChat = function () {
     _ignoreUntil = Date.now() + 350;
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
 
     if (statusLabel) statusLabel.textContent = cfg.listening;
     if (subLabel) subLabel.textContent = cfg.sub;
@@ -1941,22 +1956,29 @@ window.clearChat = function () {
     if (cleanSpoken && !isJustStopWord) {
       _voiceFinalText = cleanSpoken + ' ';
       _lastInterim = '';
-      var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+      var transcriptEl = getVoiceEl('#voice-transcript-live');
       if (transcriptEl) {
         transcriptEl.innerHTML = '<span class="vfinal">' + _escapeHtml(_voiceFinalText) + '</span>';
       }
     } else {
       _voiceFinalText = '';
       _lastInterim = '';
-      var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+      var transcriptEl = getVoiceEl('#voice-transcript-live');
       if (transcriptEl) {
         transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
       }
     }
 
-    if (_voiceRunning && _voiceOverlayOpen && !_isMuted) {
-      _startListening();
-    }
+    // Clear any residual buffered speech and wait 600ms for speaker echo tail to clear
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
+    _voiceFinalText = '';
+    _lastInterim = '';
+    setTimeout(function() {
+      if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+        _startListening();
+      }
+    }, 600);
   }
 
   function handleOrbClick() {
@@ -1970,10 +1992,10 @@ window.clearChat = function () {
 
   function toggleVoiceMute() {
     _isMuted = !_isMuted;
-    var muteBtn = wrapper.querySelector('#voice-ctrl-mute');
-    var iconOn = wrapper.querySelector('#voice-mute-icon-on');
-    var iconOff = wrapper.querySelector('#voice-mute-icon-off');
-    var statusLabel = wrapper.querySelector('#voice-status-label');
+    var muteBtn = getVoiceEl('#voice-ctrl-mute');
+    var iconOn = getVoiceEl('#voice-mute-icon-on');
+    var iconOff = getVoiceEl('#voice-mute-icon-off');
+    var statusLabel = getVoiceEl('#voice-status-label');
 
     // Hardware microphone track sync (edge case matching OpenWebUI)
     if (_audioStream) {
@@ -2011,18 +2033,18 @@ window.clearChat = function () {
     localStorage.setItem('custom_ui_voice_lang', langCode);
 
     // Update the single language dropdown label
-    var dpLabel = wrapper.querySelector('#voice-lang-dropdown-label');
+    var dpLabel = getVoiceEl('#voice-lang-dropdown-label');
     if (dpLabel) {
       dpLabel.textContent = (_LANG_CONFIG[langCode] && _LANG_CONFIG[langCode].label) || langCode;
     }
     closeLangDropdown();
 
     var cfg = _LANG_CONFIG[langCode];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var transcriptEl = wrapper.querySelector('#voice-transcript-live');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var miniLang = wrapper.querySelector('#voice-mini-lang');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var transcriptEl = getVoiceEl('#voice-transcript-live');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var miniLang = getVoiceEl('#voice-mini-lang');
 
     if (miniLang) miniLang.textContent = cfg.label;
     if (miniStatus) miniStatus.textContent = cfg.miniStatus;
@@ -2053,7 +2075,7 @@ window.clearChat = function () {
   // ── Single Language Dropdown (replaces segmented chips + modal) ─────────
   function toggleLangDropdown(e) {
     if (e) { e.stopPropagation(); e.preventDefault(); }
-    var panel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var panel = getVoiceEl('#voice-lang-dropdown-panel');
     if (!panel) return;
     var isOpen = panel.style.display !== 'none' && panel.style.display !== '';
     if (isOpen) {
@@ -2061,7 +2083,7 @@ window.clearChat = function () {
     } else {
       closeVoicePickerDropdown();
       panel.style.display = 'flex';
-      var inp = wrapper.querySelector('#voice-lang-dp-input');
+      var inp = getVoiceEl('#voice-lang-dp-input');
       if (inp) { inp.value = ''; setTimeout(function() { inp.focus(); }, 60); }
       filterLangDropdown('');
     }
@@ -2070,13 +2092,13 @@ window.clearChat = function () {
 
   function closeLangDropdown(e) {
     if (e) e.stopPropagation();
-    var panel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var panel = getVoiceEl('#voice-lang-dropdown-panel');
     if (panel) panel.style.display = 'none';
   }
   window.closeLangDropdown = closeLangDropdown;
 
   function filterLangDropdown(query) {
-    var list = wrapper.querySelector('#voice-lang-dp-list');
+    var list = getVoiceEl('#voice-lang-dp-list');
     if (!list) return;
 
     // Merge _LANG_CONFIG keys with extra browser voice languages
@@ -2136,9 +2158,6 @@ window.clearChat = function () {
   function selectLangFromDropdown(langCode) {
     setVoiceLanguage(langCode);
     closeLangDropdown();
-    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
-      commandLLMVoiceLanguage(langCode);
-    }
   }
   window.selectLangFromDropdown = selectLangFromDropdown;
 
@@ -2173,6 +2192,8 @@ window.clearChat = function () {
 
     _voiceOverlayOpen = true;
     _voiceRunning = true;
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
     _isAssistantSpeaking = false;
@@ -2182,14 +2203,14 @@ window.clearChat = function () {
     _requestWakeLock();
 
     var triggerBtn = wrapper.querySelector('#mic-btn');
-    var aiReplyBox = wrapper.querySelector('#voice-ai-reply-box');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
-    var muteBtn = wrapper.querySelector('#voice-ctrl-mute');
-    var iconOn = wrapper.querySelector('#voice-mute-icon-on');
-    var iconOff = wrapper.querySelector('#voice-mute-icon-off');
+    var aiReplyBox = getVoiceEl('#voice-ai-reply-box');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
+    var muteBtn = getVoiceEl('#voice-ctrl-mute');
+    var iconOn = getVoiceEl('#voice-mute-icon-on');
+    var iconOff = getVoiceEl('#voice-mute-icon-off');
 
     // Switch cleanly to Full Stage Mode
     setVoiceUIMode('full');
@@ -2220,17 +2241,32 @@ window.clearChat = function () {
   }
   window.openVoiceCall = openVoiceCall;
 
+  function _isTTSActive() {
+    return !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending));
+  }
+
   function _stopListening() {
+    if (_silenceTimer) {
+      clearTimeout(_silenceTimer);
+      _silenceTimer = null;
+    }
     if (_voiceRecognition) {
       _voiceRecognition.onend = null;
-      try { _voiceRecognition.stop(); } catch(e) {}
+      _voiceRecognition.onerror = null;
+      _voiceRecognition.onresult = null;
+      try { _voiceRecognition.abort(); } catch(e) {}
       _voiceRecognition = null;
+    }
+    if (_currentSessionFinal) {
+      _accumulatedFinalText = (_accumulatedFinalText + _currentSessionFinal).trim() + ' ';
+      _currentSessionFinal = '';
     }
   }
 
   function _startListening() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR || _isMuted || !_voiceRunning || !_voiceOverlayOpen) return;
+    // Strictly do NOT listen while AI is speaking, while TTS is active, or muted
+    if (!SR || _isMuted || !_voiceRunning || !_voiceOverlayOpen || _isAssistantSpeaking || _isTTSActive()) return;
 
     _stopListening();
 
@@ -2238,63 +2274,71 @@ window.clearChat = function () {
       _voiceRecognition = new SR();
       _voiceRecognition.continuous = true;
       _voiceRecognition.interimResults = true;
+      _voiceRecognition.maxAlternatives = 1;
       _voiceRecognition.lang = _currentLang;
 
       _voiceRecognition.onresult = function(event) {
-        if (Date.now() < _ignoreUntil || _isMuted) return;
-
-        var interim = '';
-        var latestSpeech = '';
-        for (var i = event.resultIndex; i < event.results.length; i++) {
-          var t = event.results[i][0].transcript;
-          latestSpeech += t + ' ';
-          if (!event.results[i].isFinal) {
-            interim += t;
-          }
-        }
-
-        var spokenChunk = (latestSpeech + ' ' + interim).trim();
-
-        // 1. While AI is speaking: Barge-In check only
-        if (_isAssistantSpeaking) {
+        if (_isAssistantSpeaking || _isTTSActive() || Date.now() < _ignoreUntil || _isMuted) {
           if (_silenceTimer) clearTimeout(_silenceTimer);
-          if (!spokenChunk || spokenChunk.length < 2) return;
-
-          if (Date.now() - _aiSpeakingStartTime > 300) {
-            if (!_isAIEcho(spokenChunk)) {
-              console.log('[Barge-In] Human speech detected during narration:', spokenChunk);
-              _triggerBargeInInterruption(spokenChunk);
-            }
-          }
           return;
         }
 
-        // 2. Capture Real User Speech
-        for (var j = event.resultIndex; j < event.results.length; j++) {
-          if (event.results[j].isFinal) {
-            _voiceFinalText += event.results[j][0].transcript + ' ';
+        var sessionFinal = '';
+        var interim = '';
+        // Fast single-pass accumulation of results (zero-latency streaming)
+        for (var i = 0; i < event.results.length; i++) {
+          var res = event.results[i];
+          if (res.isFinal) {
+            sessionFinal += res[0].transcript + ' ';
+          } else {
+            interim += res[0].transcript;
           }
         }
+
+        _currentSessionFinal = sessionFinal;
         _lastInterim = interim;
 
-        var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+        var fullFinal = (_accumulatedFinalText + sessionFinal).trim();
+        _voiceFinalText = fullFinal;
+
+        // 1. Instant zero-latency live subtitles update
+        var transcriptEl = getVoiceEl('#voice-transcript-live');
         if (transcriptEl) {
-          if (_voiceFinalText || interim) {
-            transcriptEl.innerHTML =
-              '<span class="vfinal">' + _escapeHtml(_voiceFinalText) + '</span>' +
-              '<span class="vinterim">' + _escapeHtml(interim) + '</span>';
+          if (fullFinal || interim) {
+            var html = '';
+            if (fullFinal) {
+              html += '<span class="vfinal">' + _escapeHtml(fullFinal) + ' </span>';
+            }
+            if (interim) {
+              html += '<span class="vinterim">' + _escapeHtml(interim) + '</span>';
+            }
+            transcriptEl.innerHTML = html;
           }
         }
 
-        // Auto-commit on 2.4s silence
+        // 2. Real-time sync with main chat textarea
+        if (inputEl && (fullFinal || interim)) {
+          inputEl.value = (fullFinal + ' ' + interim).trim();
+          autoResize(inputEl);
+        }
+
+        // 3. Real-time sync with mini PiP status pill
+        var miniStatus = getVoiceEl('#voice-mini-status');
+        if (miniStatus && (fullFinal || interim)) {
+          var snippet = (interim || fullFinal).trim();
+          if (snippet.length > 22) snippet = '…' + snippet.slice(-20);
+          miniStatus.textContent = snippet;
+        }
+
+        // 4. Natural 1.2s silence turn-taking detection
         if (_silenceTimer) clearTimeout(_silenceTimer);
-        var total = (_voiceFinalText + interim).trim();
+        var total = (fullFinal + ' ' + interim).trim();
         if (total.length >= 2) {
           _silenceTimer = setTimeout(function() {
             if (_voiceRunning && !_isAssistantSpeaking && _voiceOverlayOpen && !_isMuted) {
               confirmVoiceSend();
             }
-          }, 2400);
+          }, 1200);
         }
       };
 
@@ -2314,18 +2358,22 @@ window.clearChat = function () {
             if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_voiceRecognition) {
               _startListening();
             }
-          }, 250);
+          }, 200);
         }
       };
 
       _voiceRecognition.onend = function() {
+        if (_currentSessionFinal) {
+          _accumulatedFinalText = (_accumulatedFinalText + _currentSessionFinal).trim() + ' ';
+          _currentSessionFinal = '';
+        }
         _voiceRecognition = null;
         if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking) {
           setTimeout(function() {
             if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_voiceRecognition) {
               _startListening();
             }
-          }, 120);
+          }, 60);
         }
       };
 
@@ -2404,9 +2452,9 @@ window.clearChat = function () {
 
   function confirmVoiceSend() {
     if (_silenceTimer) clearTimeout(_silenceTimer);
-    if (_isAssistantSpeaking) return;
+    if (_isAssistantSpeaking || _isTTSActive()) return;
 
-    var fullText = (_voiceFinalText + ' ' + _lastInterim).trim();
+    var fullText = (_accumulatedFinalText + _currentSessionFinal + ' ' + _lastInterim).trim();
     if (!fullText || fullText.length < 2) {
       return;
     }
@@ -2419,7 +2467,7 @@ window.clearChat = function () {
         console.warn('[Safety Block] Blocked echo from sending:', fullText);
         _voiceFinalText = '';
         _lastInterim = '';
-        var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+        var transcriptEl = getVoiceEl('#voice-transcript-live');
         if (transcriptEl) {
           var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
           transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
@@ -2429,12 +2477,12 @@ window.clearChat = function () {
     }
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var sendBtn = getVoiceEl('#voice-btn-send');
 
     if (statusLabel) statusLabel.textContent = cfg.thinking;
     if (subLabel) subLabel.textContent = cfg.thinkingSub;
@@ -2453,6 +2501,8 @@ window.clearChat = function () {
 
     inputEl.value = fullText;
     autoResize(inputEl);
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
 
@@ -2472,12 +2522,12 @@ window.clearChat = function () {
       _ignoreUntil = 0;
 
       var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-      var statusLabel = wrapper.querySelector('#voice-status-label');
-      var subLabel = wrapper.querySelector('#voice-sub-label');
-      var miniStatus = wrapper.querySelector('#voice-mini-status');
-      var orbEl = wrapper.querySelector('#voice-avatar-orb');
-      var statusPill = wrapper.querySelector('#voice-status-pill');
-      var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
+      var statusLabel = getVoiceEl('#voice-status-label');
+      var subLabel = getVoiceEl('#voice-sub-label');
+      var miniStatus = getVoiceEl('#voice-mini-status');
+      var orbEl = getVoiceEl('#voice-avatar-orb');
+      var statusPill = getVoiceEl('#voice-status-pill');
+      var interruptBtn = getVoiceEl('#voice-btn-interrupt');
 
       if (statusLabel) statusLabel.textContent = cfg.speaking;
       if (subLabel) subLabel.textContent = cfg.speakingSub;
@@ -2505,19 +2555,22 @@ window.clearChat = function () {
     _aiSpeakingStartTime = Date.now();
     _ignoreUntil = 0;
 
+    // Forcefully stop Speech Recognition while AI speaks out loud
+    _stopListening();
+
     _voiceFinalText = '';
     _lastInterim = '';
     if (_silenceTimer) clearTimeout(_silenceTimer);
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var aiReplyBox = wrapper.querySelector('#voice-ai-reply-box');
-    var aiReplyText = wrapper.querySelector('#voice-ai-reply-text');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var aiReplyBox = getVoiceEl('#voice-ai-reply-box');
+    var aiReplyText = getVoiceEl('#voice-ai-reply-text');
 
     if (statusLabel) statusLabel.textContent = cfg.speaking;
     if (subLabel) subLabel.textContent = cfg.speakingSub;
@@ -2546,23 +2599,25 @@ window.clearChat = function () {
     _clearTTSWatchdogs();
     _isAssistantSpeaking = false;
 
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
     if (_silenceTimer) clearTimeout(_silenceTimer);
 
-    _ignoreUntil = Date.now() + 400;
+    _ignoreUntil = Date.now() + 600;
 
     if (!_voiceOverlayOpen) return;
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
-    var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
+    var transcriptEl = getVoiceEl('#voice-transcript-live');
 
     if (statusLabel) statusLabel.textContent = _isMuted ? 'Muted (Microphone Off)' : cfg.listening;
     if (subLabel) subLabel.textContent = cfg.sub;
@@ -2573,9 +2628,16 @@ window.clearChat = function () {
     if (sendBtn) sendBtn.style.display = 'flex';
     if (transcriptEl) transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
 
-    if (_voiceRunning && _voiceOverlayOpen && !_isMuted) {
-      _startListening();
-    }
+    // Clear any residual buffered speech and wait 600ms for speaker echo tail to clear
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
+    _voiceFinalText = '';
+    _lastInterim = '';
+    setTimeout(function() {
+      if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+        _startListening();
+      }
+    }, 600);
   }
 
   function closeVoiceCall() {
@@ -2990,12 +3052,7 @@ window.clearChat = function () {
 
     closeVoicePickerDropdown();
 
-    // Command the LLM to use that language while talking
-    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
-      commandLLMVoiceLanguage(targetLang);
-    } else {
-      _playVoicePreview(chosenVoice);
-    }
+    _playVoicePreview(chosenVoice);
   }
   window.onUserVoiceSelected = onUserVoiceSelected;
 
@@ -3018,6 +3075,8 @@ window.clearChat = function () {
   function _playVoicePreview(chosenVoice) {
     if (!window.speechSynthesis) return;
     try {
+      _stopListening();
+      _isAssistantSpeaking = true;
       window.speechSynthesis.cancel();
       var activeVoice = chosenVoice || _findBestVoice(_currentLang);
       var gender = _detectVoiceGender(activeVoice);
@@ -3052,8 +3111,28 @@ window.clearChat = function () {
       var utt = new SpeechSynthesisUtterance(sample);
       utt.lang = (activeVoice && activeVoice.lang) || _currentLang;
       if (activeVoice) utt.voice = activeVoice;
+      utt.onend = function() {
+        _isAssistantSpeaking = false;
+        _ignoreUntil = Date.now() + 600;
+        setTimeout(function() {
+          if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+            _startListening();
+          }
+        }, 600);
+      };
+      utt.onerror = function() {
+        _isAssistantSpeaking = false;
+        _ignoreUntil = Date.now() + 300;
+        setTimeout(function() {
+          if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+            _startListening();
+          }
+        }, 300);
+      };
       window.speechSynthesis.speak(utt);
-    } catch(e) {}
+    } catch(e) {
+      _isAssistantSpeaking = false;
+    }
   }
 
   // ── TTS Watchdog helpers ──────────────────────────────────────────────────
@@ -3156,7 +3235,12 @@ window.clearChat = function () {
 
     _clearTTSWatchdogs();
 
-    try { window.speechSynthesis.cancel(); } catch(e) {}
+    try {
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch(e) {}
 
     // Chrome has a ~200-char TTS bug where long utterances pause silently.
     // Split into natural sentence chunks.
@@ -3244,6 +3328,9 @@ window.clearChat = function () {
         }
       };
 
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        try { window.speechSynthesis.resume(); } catch(e) {}
+      }
       try {
         window.speechSynthesis.speak(utt);
       } catch(err) {
@@ -3272,12 +3359,12 @@ window.clearChat = function () {
   // ── Outside-click handler: only fires for clicks outside the voice overlay ──
   // (Clicks inside the overlay are handled by stage.onclick above)
   document.addEventListener('click', function _voiceOutsideClickHandler(e) {
-    var overlay = wrapper.querySelector('#voice-overlay');
+    var overlay = getVoiceEl('#voice-overlay');
     // If click is inside the overlay, stage.onclick handles it
     if (overlay && overlay.contains(e.target)) return;
 
     // Click is outside overlay — close both dropdowns
-    var langPanel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var langPanel = getVoiceEl('#voice-lang-dropdown-panel');
     if (langPanel && langPanel.style.display !== 'none') {
       closeLangDropdown();
     }

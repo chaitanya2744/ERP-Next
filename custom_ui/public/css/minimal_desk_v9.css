@@ -92,6 +92,18 @@ body.theme-apple .form-sidebar {
     width: 100% !important;
 }
 
+/* Suppress unrendered/empty Editor.js workspace blocks to prevent grid voids */
+.ce-block:empty,
+.ce-block:not(:has(.widget)):not(:has(.ce-header)):not(:has(.ce-paragraph)):not(:has(.ce-rawtool)):not(:has(img)):not(:has(table)),
+.ce-block:has(> .ce-block__content > div:empty):not(:has(.widget)) {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 0 !important;
+    max-width: 0 !important;
+}
+
 /* ──────────────────────────────────────────────────
    2. APPLE ACCESSIBILITY (A11y) STANDARDS
    ────────────────────────────────────────────────── */
@@ -3854,10 +3866,9 @@ input[type="radio"]:checked,
 .form-check-input[type="radio"]:checked {
     border-color: var(--cu-primary, var(--primary, #006269)) !important;
     background-color: var(--cu-primary, var(--primary, #006269)) !important;
-    background-image: radial-gradient(circle, #FFFFFF 0%, #FFFFFF 36%, transparent 40%) !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    background-size: 100% 100% !important;
+    background-image: none !important;
+    box-shadow: inset 0 0 0 3.5px #FFFFFF !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* Hide legacy pseudo-elements that fail in Blink/WebKit on replaced inputs */
@@ -3935,7 +3946,13 @@ body.theme-apple.dark input[type="checkbox"] {
 }
 
 [data-theme="dark"] input[type="radio"]:checked,
-body.theme-apple.dark input[type="radio"]:checked,
+body.theme-apple.dark input[type="radio"]:checked {
+    background-color: var(--cu-primary, var(--primary, #006269)) !important;
+    border-color: var(--cu-primary, var(--primary, #006269)) !important;
+    background-image: none !important;
+    box-shadow: inset 0 0 0 3.5px #1E293B !important;
+}
+
 [data-theme="dark"] input[type="checkbox"]:checked,
 body.theme-apple.dark input[type="checkbox"]:checked {
     background-color: var(--cu-primary, var(--primary, #006269)) !important;
@@ -4161,4 +4178,432 @@ body.theme-apple.dark .awesomebar-modal-footer .help-navigation .help-item {
     background: rgba(255, 255, 255, 0.08) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
     color: #CBD5E1 !important;
+}
+
+/* ================================================================
+   PHASE 2 & PHASE 4: SPOTLIGHT DIALOG, WORKSPACE GRID & SIDEBAR FIXES
+   ================================================================ */
+
+/* Spotlight Awesomebar Modal (Ctrl+K): Hide redundant header, keep modal body input */
+.modal:has(.navbar-modal-wrapper) .modal-header,
+.modal:has(#navbar-search) .modal-header,
+#search-modal:not(.search-dialog) .modal-header,
+.search-modal:not(.search-dialog) .modal-header {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+
+/* Modal Content Flex Layout for Awesomebar */
+.modal:has(.navbar-modal-wrapper) .modal-content,
+.modal:has(#navbar-search) .modal-content,
+#search-modal:not(.search-dialog) .modal-content,
+.search-modal:not(.search-dialog) .modal-content {
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    background: var(--pro-surface, #FFFFFF) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 82vh !important;
+}
+
+/* Eliminate orange box outline around naked input inside Awesomebar */
+#search-modal:not(.search-dialog) input,
+.modal:has(.navbar-modal-wrapper) input,
+.modal:has(#navbar-search) input,
+.modal:has(.awesomplete):not(.search-dialog) input.form-control {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* In-flow Results List for Awesomebar: NEVER overlaps footer */
+.modal:has(.navbar-modal-wrapper) .awesomplete > ul,
+.modal:has(#navbar-search) .awesomplete > ul,
+#search-modal:not(.search-dialog) .awesomplete > ul,
+.search-modal:not(.search-dialog) .awesomplete > ul {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-height: 48vh !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    list-style: none !important;
+    flex: 1 1 auto !important;
+}
+
+/* Sticky Unclipped Footer for Awesomebar */
+.modal:has(.navbar-modal-wrapper) .modal-footer,
+.modal:has(#navbar-search) .modal-footer,
+#search-modal:not(.search-dialog) .modal-footer,
+.search-modal:not(.search-dialog) .modal-footer,
+.awesomebar-modal-footer,
+.cool-awesomebar-modal-footer {
+    display: flex !important;
+    flex-shrink: 0 !important;
+    background: #F8FAFC !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Fluid Auto-Fit Grid for Workspace Shortcuts (Eliminates gaping voids) */
+.widget-group:has(.shortcut-widget-box) .widget-group-body,
+.widget-group:has(.shortcut-widget-box) .widget-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 12px !important;
+}
+
+.widget-group:has(.shortcut-widget-box) .widget-group-body > div,
+.widget-group:has(.shortcut-widget-box) .widget-grid > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Sidebar Footer User Info Cleanup */
+.body-sidebar .user-details,
+.desk-sidebar .user-details,
+.standard-sidebar-section .user-details {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    line-height: 1.3 !important;
+}
+
+.body-sidebar .user-details .user-name,
+.desk-sidebar .user-details .user-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-color, #1D1D1F) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.body-sidebar .user-details .user-email,
+.desk-sidebar .user-details .user-email {
+    font-size: 11px !important;
+    color: var(--text-muted, #64748B) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* ================================================================
+   GRID LEVEL & FORM VIEW ARCHITECTURAL ERGONOMICS (APPLE HIG)
+   Resolves textarea collapsing, table column shift, and inline editing
+   ================================================================ */
+
+/* 1. Prevent Multiline Textarea Collapsing in Form View */
+body.theme-apple .frappe-control textarea.form-control,
+body.theme-apple .frappe-control textarea,
+body.theme-apple .frappe-control[data-fieldtype="Text"] .form-control,
+body.theme-apple .frappe-control[data-fieldtype="Small Text"] .form-control,
+body.theme-apple .frappe-control[data-fieldtype="Long Text"] .form-control,
+body.theme-apple .frappe-control[data-fieldtype="Text Editor"] .form-control {
+    height: auto !important;
+    min-height: 84px !important;
+    line-height: 1.5 !important;
+    padding: 10px 14px !important;
+    resize: vertical !important;
+}
+
+/* 2. Child Table Column Alignment Synchronization */
+body.theme-apple .form-grid .grid-heading-row {
+    padding: 6px 0 !important;
+    background: #F8FAFC !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+}
+
+body.theme-apple .form-grid .grid-row {
+    padding: 0 !important;
+    min-height: 38px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+body.theme-apple .form-grid .grid-static-col {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    color: #1E293B !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 3. Compact Inline Editing inside Child Table Cells */
+body.theme-apple .form-grid .grid-row .form-control,
+body.theme-apple .form-grid .grid-row input.form-control,
+body.theme-apple .form-grid .grid-row select.form-control {
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 4px 8px !important;
+    font-size: 12.5px !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+/* 4. Center-Aligned Checkboxes in Grid Rows */
+body.theme-apple .form-grid .grid-row-check,
+body.theme-apple .form-grid .grid-heading-row .grid-row-check {
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* 5. Child Table Footer Toolbar & Add Row Button */
+body.theme-apple .form-grid .grid-footer-toolbar {
+    padding: 10px 16px !important;
+    background: #F8FAFC !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+body.theme-apple .form-grid .grid-footer-toolbar .btn,
+body.theme-apple .form-grid .grid-append-row,
+body.theme-apple .form-grid .grid-add-row {
+    border-radius: 7px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 5px 12px !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: var(--cu-primary, #006269) !important;
+    transition: all 0.15s ease !important;
+}
+
+body.theme-apple .form-grid .grid-footer-toolbar .btn:hover,
+body.theme-apple .form-grid .grid-append-row:hover,
+body.theme-apple .form-grid .grid-add-row:hover {
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.08) !important;
+    border-color: var(--cu-primary, #006269) !important;
+}
+
+/* 6. Empty Grid Row State */
+body.theme-apple .form-grid .grid-empty-row {
+    padding: 28px 16px !important;
+    text-align: center !important;
+    color: #94A3B8 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+
+/* 7. Collapsible Section Headers with Smooth Chevron Rotation */
+body.theme-apple .section-head.collapsible {
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    user-select: none !important;
+    transition: color 0.15s ease !important;
+}
+
+body.theme-apple .section-head.collapsible:hover {
+    color: var(--cu-primary, #006269) !important;
+}
+
+body.theme-apple .section-head.collapsible .collapse-indicator {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.theme-apple .section-head.collapsed .collapse-indicator {
+    transform: rotate(-90deg) !important;
+}
+
+/* ================================================================
+   FRAPPE GLOBAL SEARCH (Ctrl+G) DEDICATED APPLE ARCHITECTURE
+   ================================================================ */
+
+/* Global Search Modal Window */
+.modal.search-dialog .modal-dialog,
+.search-dialog .modal-dialog {
+    max-width: min(900px, 94vw) !important;
+    margin: 30px auto !important;
+}
+
+.modal.search-dialog .modal-content,
+.search-dialog .modal-content {
+    border-radius: 20px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28), 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+    background: #FFFFFF !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 86vh !important;
+}
+
+/* Global Search Header MUST BE VISIBLE */
+.modal.search-dialog .modal-header,
+.search-dialog .modal-header,
+.search-dialog .search-header {
+    display: flex !important;
+    height: auto !important;
+    padding: 16px 20px !important;
+    margin: 0 !important;
+    background: #FFFFFF !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.search-dialog .search-header .title-section {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    margin-right: 14px !important;
+}
+
+.search-dialog .search-header .title-section .input-group {
+    width: 100% !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Search Icon inside Input Bar */
+.search-dialog .search-header .search-icon {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 10 !important;
+    color: #64748B !important;
+    display: flex !important;
+    align-items: center !important;
+    pointer-events: none !important;
+}
+
+.search-dialog .search-header .search-icon svg {
+    width: 17px !important;
+    height: 17px !important;
+}
+
+/* Global Search Input Pill */
+.search-dialog .search-header input.search-input,
+.search-dialog .search-header input.form-control.search-input {
+    width: 100% !important;
+    height: 44px !important;
+    padding: 10px 18px 10px 42px !important;
+    margin: 0 !important;
+    background: #F1F5F9 !important;
+    border: 1.5px solid transparent !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #0F172A !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.search-dialog .search-header input.search-input:focus,
+.search-dialog .search-header input.form-control.search-input:focus {
+    background: #FFFFFF !important;
+    border-color: var(--cu-primary, #0071E3) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cu-accent-rgb, 0, 163, 173), 0.25) !important;
+}
+
+/* Modal Actions (Settings & Close Buttons) */
+.search-dialog .search-header .modal-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+}
+
+.search-dialog .search-header .modal-actions button {
+    border-radius: 8px !important;
+    padding: 6px 8px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #64748B !important;
+    transition: all 0.15s ease !important;
+}
+
+.search-dialog .search-header .modal-actions button:hover {
+    background: #F1F5F9 !important;
+    color: #0F172A !important;
+}
+
+/* Global Search Body (Two-Column Layout) */
+.modal.search-dialog .modal-body,
+.search-dialog .modal-body {
+    padding: 18px 24px !important;
+    background: #FFFFFF !important;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    max-height: calc(86vh - 80px) !important;
+}
+
+.search-dialog .search-shortcuts-sidebar {
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding-right: 16px !important;
+    margin-right: 18px !important;
+}
+
+.search-dialog .list-link {
+    border-radius: 8px !important;
+    padding: 7px 12px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+    transition: all 0.15s ease !important;
+}
+
+.search-dialog .list-link:hover,
+.search-dialog .list-link.active,
+.search-dialog .list-link.selected {
+    background: rgba(var(--cu-accent-rgb, 0, 163, 173), 0.12) !important;
+    color: var(--cu-primary, #006269) !important;
+    font-weight: 600 !important;
+}
+
+/* Global Search Result Rows */
+.search-dialog .list-row-container:not(.global-search-list-header) {
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    transition: background 0.15s ease !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.search-dialog .list-row-container:not(.global-search-list-header):hover {
+    background: #F8FAFC !important;
+}
+
+/* Global Search DOES NOT HAVE A FOOTER */
+.modal.search-dialog .modal-footer,
+.search-dialog .modal-footer {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }

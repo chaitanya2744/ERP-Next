@@ -752,14 +752,20 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
 /* ── 2. Full Immersive Call Overlay Stage ── */
 #voice-overlay.voice-call-overlay {
   display: none;
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 1000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 100000 !important;
   font-family: inherit !important;
   box-sizing: border-box !important;
   pointer-events: auto !important;
+  background: rgba(10, 15, 29, 0.94) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
 }
 
 #voice-overlay.voice-call-overlay.active {
@@ -1188,6 +1194,23 @@ body.ai-assistant-page-active .ai-assistant-page-wrapper .layout-main-section {
   color: #38BDF8;
   margin-left: 3px;
   font-weight: 500;
+  display: inline;
+}
+
+.voice-caption-stream .vinterim::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  margin-left: 4px;
+  background: #38BDF8;
+  vertical-align: middle;
+  animation: live-cursor-blink 0.8s infinite ease-in-out;
+}
+
+@keyframes live-cursor-blink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
 }
 
 .voice-ai-response-sheet {

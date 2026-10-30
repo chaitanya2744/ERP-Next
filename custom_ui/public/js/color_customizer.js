@@ -1019,6 +1019,14 @@
             size: "large"
         });
 
+        if (d.$body) {
+            d.$body.css({
+                "max-height": "calc(80vh - 100px)",
+                "overflow-y": "auto",
+                "padding": "20px 24px"
+            });
+        }
+
         const sphereStyle = (hex) => {
             const dark = adjustLightness(hex, -25);
             return `background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, ${hex} 45%, ${dark} 100%);`;
