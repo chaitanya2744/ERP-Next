@@ -217,7 +217,7 @@
                     </svg>
                     <p>No active themes found.<br>
                     <a href="/app/navbar-theme/new-navbar-theme-1" target="_blank"
-                       style="color:var(--pro-primary,#006269);">Create your first theme →</a></p>
+                       style="color:var(--pro-primary,var(--cu-primary, #006269));">Create your first theme →</a></p>
                 </div>`;
             return;
         }
@@ -229,7 +229,7 @@
             const isSelected = currentTheme && currentTheme.theme_name === theme.theme_name;
             const bgStyle = theme.background_image_url
                 ? `background-image:url("${theme.background_image_url}"); background-size:cover; background-position:center;`
-                : `background: linear-gradient(135deg, #203535 0%, #006269 100%);`;
+                : `background: linear-gradient(135deg, #203535 0%, var(--cu-primary, #006269) 100%);`;
 
             return `
                 <div class="navbar-theme-card ${isSelected ? "selected" : ""}"

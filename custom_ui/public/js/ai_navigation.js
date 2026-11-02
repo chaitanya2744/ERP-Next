@@ -11,7 +11,7 @@ $(document).ready(function() {
             <div class="sidebar-item-container" id="ai-sidebar-nav" style="margin-bottom: 8px;">
                 <div class="standard-sidebar-item">
                     <a href="/app/ai" class="item-anchor" style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; text-decoration: none;">
-                        <span class="sidebar-item-icon" style="color: #0099A3; font-size: 16px; display: flex; align-items: center; justify-content: center; width: 20px;">⚼</span>
+                        <span class="sidebar-item-icon" style="color: var(--cu-primary, #0099A3); font-size: 16px; display: flex; align-items: center; justify-content: center; width: 20px;">⚼</span>
                         <span class="sidebar-item-label" style="font-weight: 600;">AI Assistant</span>
                     </a>
                 </div>

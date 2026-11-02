@@ -29,7 +29,14 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   frappe.pages["ai"].on_page_show = function (wrapper) {
     $('body').addClass('ai-assistant-page-active');
     $(wrapper).show();
-    if (typeof scrollToBottom === 'function') scrollToBottom();
+    var msgs = wrapper.querySelector('#chat-messages');
+    if (msgs) {
+      if (typeof history !== 'undefined' && history && history.length > 0) {
+        if (typeof scrollToBottom === 'function') scrollToBottom();
+      } else {
+        msgs.scrollTop = 0;
+      }
+    }
     setTimeout(function() { if (typeof window.loadSessions === 'function') window.loadSessions(); }, 300);
   };
 
@@ -56,6 +63,24 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   var activeExecModule = "Manufacturing";
   var activeExecSearch = "";
+
+  function getCopilotSvg(size, className) {
+    size = size || 16;
+    className = className || 'copilot-glyph';
+    return `<svg class="${className}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle;">
+      <!-- Top Antenna & Transmitter Dot -->
+      <path d="M12 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="2" r="1.2" fill="currentColor"/>
+      <!-- Groq Bot Head Chassis -->
+      <rect x="4" y="5" width="16" height="14" rx="4" stroke="currentColor" stroke-width="1.85"/>
+      <!-- Cybernetic Visor / Sensor Eyes -->
+      <path d="M8 11.5H10.5M13.5 11.5H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Data Speaker / Mouth Slit -->
+      <path d="M9.5 15.2H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Side Communicator Nodes -->
+      <path d="M2 10.5V13.5M22 10.5V13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+  }
 
   function formatPromptTextForDisplay(text) {
     return text.replace(/\[([^\]]+)\]/g, function (match, placeholder) {
@@ -109,32 +134,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       cardsHtml = filtered.map(item => {
         const isCross = item.is_cross ? ' cross-modular' : '';
         const previewPrompt = formatPromptTextForDisplay(item.prompt);
-
-        let trailHtml = '';
-        if (item.cross_trail && item.cross_trail.length) {
-          trailHtml = `<div class="exec-cross-trail">
-            ${item.cross_trail.map((t, idx) => `<span class="exec-trail-step">${t}</span>${idx < item.cross_trail.length - 1 ? '<span class="exec-trail-arrow">➔</span>' : ''}`).join('')}
-          </div>`;
-        }
-
         return `
-          <div class="exec-card${isCross}" data-id="${item.id}" data-prompt="${item.prompt.replace(/"/g, '&quot;')}">
+          <div class="exec-card${isCross}" data-id="${item.id}" data-prompt="${item.prompt.replace(/"/g, '&quot;')}" title="Click to use: ${item.title}">
             <div class="exec-card-header">
-              <span class="exec-card-module-tag">${item.icon} ${item.module}</span>
-              <span class="exec-card-type-tag">${item.type}</span>
-            </div>
-            ${trailHtml}
-            <div>
-              <h4 class="exec-card-title">${item.title}</h4>
-              <p class="exec-card-desc">${item.desc}</p>
-            </div>
-            <div class="exec-card-prompt-preview">${previewPrompt}</div>
-            <div class="exec-card-footer">
-              <span class="exec-card-chart-badge">${item.chart}</span>
-              <div class="exec-card-actions">
-                <button type="button" class="exec-action-btn edit" title="Customize in chat input">Edit</button>
-                <button type="button" class="exec-action-btn run" title="Run query immediately">⚡ Run</button>
+              <div class="exec-card-meta-left">
+                <span class="exec-card-module-tag">${item.icon} ${item.module}</span>
+                <span class="exec-card-chart-badge">${item.chart}</span>
               </div>
+              <button type="button" class="exec-action-btn run" title="Run query immediately">⚡ Run</button>
+            </div>
+            <div class="exec-card-body">
+              <h4 class="exec-card-title">${item.title}</h4>
+              <div class="exec-card-prompt-preview">${previewPrompt}</div>
             </div>
           </div>
         `;
@@ -237,48 +248,204 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     renderExecutiveSuite();
   }
 
+  const AI_CAPABILITIES = [
+    "read and write directly to all live ERPNext DocTypes in real-time.",
+    "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
+    "draft and submit Quotations, Invoices, Work Orders and POs for you.",
+    "pinpoint shop-floor bottlenecks and predict production delay risks.",
+    "forecast raw material stockouts before assembly line shortages occur.",
+    "track overdue receivables and generate personalized payment reminders.",
+    "reconcile complex financial ledgers and calculate true product profit margins."
+  ];
+
+  let typewriterTimeout = null;
+  function startCapabilityTypewriter() {
+    if (typewriterTimeout) clearTimeout(typewriterTimeout);
+
+    const textEl = wrapper.querySelector('#ai-capability-text');
+    if (!textEl) return;
+
+    let phraseIdx = 0;
+    let charIdx = AI_CAPABILITIES[0].length;
+    let isDeleting = true;
+
+    function typeStep() {
+      if (!wrapper.querySelector('#ai-capability-text')) return;
+
+      const currentPhrase = AI_CAPABILITIES[phraseIdx];
+
+      if (!isDeleting) {
+        charIdx++;
+        textEl.textContent = currentPhrase.substring(0, charIdx);
+
+        if (charIdx === currentPhrase.length) {
+          isDeleting = true;
+          typewriterTimeout = setTimeout(typeStep, 3400); // reading pause
+          return;
+        }
+        typewriterTimeout = setTimeout(typeStep, 36);
+      } else {
+        charIdx--;
+        textEl.textContent = currentPhrase.substring(0, charIdx);
+
+        if (charIdx === 0) {
+          isDeleting = false;
+          phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+          typewriterTimeout = setTimeout(typeStep, 350);
+          return;
+        }
+        typewriterTimeout = setTimeout(typeStep, 18);
+      }
+    }
+
+    typewriterTimeout = setTimeout(typeStep, 3400);
+
+    const showcaseEl = wrapper.querySelector('#welcome-capability-showcase');
+    if (showcaseEl && !showcaseEl._hasClickListener) {
+      showcaseEl._hasClickListener = true;
+      showcaseEl.addEventListener('click', () => {
+        if (typewriterTimeout) clearTimeout(typewriterTimeout);
+        phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+        charIdx = AI_CAPABILITIES[phraseIdx].length;
+        textEl.textContent = AI_CAPABILITIES[phraseIdx];
+        isDeleting = true;
+        typewriterTimeout = setTimeout(typeStep, 3400);
+      });
+    }
+  }
+
+  function getCleanUserName() {
+    let raw = "";
+    try {
+      if (frappe.boot && frappe.boot.user && frappe.boot.user.first_name) {
+        raw = frappe.boot.user.first_name;
+      } else if (frappe.session && frappe.session.user_fullname && !frappe.session.user_fullname.includes('@')) {
+        raw = frappe.session.user_fullname.split(" ")[0];
+      } else if (frappe.boot && frappe.boot.user && frappe.boot.user.name) {
+        raw = frappe.boot.user.name;
+      } else if (frappe.session && frappe.session.user) {
+        raw = frappe.session.user;
+      }
+    } catch (_) {}
+    if (!raw) return "";
+    raw = raw.trim();
+    if (raw.includes("@")) {
+      raw = raw.split("@")[0];
+    }
+    raw = raw.replace(/[._-]/g, " ");
+    const firstWord = raw.split(" ")[0];
+    return firstWord ? firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase() : "";
+  }
+
+  function getWelcomeHtml() {
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    const cleanName = getCleanUserName();
+    const greetingText = cleanName ? `${timeGreeting}, ${cleanName}` : `${timeGreeting}`;
+
+    return `
+      <div class="welcome-hero">
+        <!-- Ambient Radial Glow Backdrop -->
+        <div class="hero-ambient-glow"></div>
+
+        <!-- 1. Central Apple AI Glowing Orb with Multilayer Aurora Halo & Pulse Ring -->
+        <div class="hero-avatar-stage">
+          <div class="hero-avatar-halo"></div>
+          <div class="hero-avatar-ring"></div>
+          <div class="hero-avatar-core" id="hero-avatar-core">
+            ${getCopilotSvg(36)}
+            <span class="hero-status-ping" title="Online Copilot">
+              <span class="hero-ping-wave"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 2. Clean Greeting Headline -->
+        <h2 class="welcome-headline">${greetingText}</h2>
+
+        <!-- 3. Clean Subtitle with Rotating Typewriter Effect (Zero Borders / Zero Pills) -->
+        <div class="welcome-typewriter-wrap" id="welcome-capability-showcase" title="Click to view next capability">
+          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${AI_CAPABILITIES[0]}</span><span class="typewriter-cursor">|</span>
+        </div>
+      </div>
+      <div id="executive-suite-root"></div>
+    `;
+  }
+
+
 
 
     // Inline HTML markup directly to bypass template cache issues
   let html = `
     <div class="chat-layout">
-      <div id="chat-sidebar" class="chat-sidebar open">
+      <div id="chat-sidebar-backdrop" class="chat-sidebar-backdrop" onclick="toggleSidebar()"></div>
+      <div id="chat-sidebar" class="chat-sidebar closed">
         <div class="sidebar-header">
           <span class="sidebar-title">
-             <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-             AI Chat
+            <button id="sidebar-toggle" class="sidebar-close-btn" onclick="toggleSidebar()" title="Close Sidebar" type="button">✕</button>
+            AI Assistant
           </span>
-          <button id="new-chat-btn" onclick="startNewChat()">＋ New</button>
+          <button id="new-chat-btn" onclick="startNewChat()" type="button" title="Start New Conversation">＋ New</button>
         </div>
+
+        <!-- Direct ERPNext Workspaces Navigation -->
+        <div class="sidebar-nav-section">
+          <button type="button" class="sidebar-desk-btn" onclick="goToDesk()" title="Navigate to ERPNext Workspaces & Modules">
+            <span class="desk-btn-icon-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </span>
+            <span class="desk-btn-content">
+              <span class="desk-btn-primary">ERPNext Workspaces</span>
+              <span class="desk-btn-secondary">Accounting, Stock, CRM…</span>
+            </span>
+            <span class="desk-nav-arrow">→</span>
+          </button>
+        </div>
+
+        <div class="sidebar-section-divider">
+          <span>Recent Conversations</span>
+        </div>
+
         <div id="session-list"></div>
       </div>
       <div id="ai-chat-root">
 
       <!-- Header -->
       <div id="chat-header">
-        <button id="floating-sidebar-toggle" onclick="toggleSidebar()" style="display: none;" title="Open Sidebar">☰</button>
-        <div class="avatar">✦</div>
-        <div class="info">
-          <div class="name">AI Assistant</div>
+        <div class="chat-header-left">
+          <button type="button" class="chat-header-desk-btn" onclick="goToDesk()" title="Back to ERPNext Workspaces / Desk">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="desk-btn-label">Desk</span>
+          </button>
+          <button id="floating-sidebar-toggle" onclick="toggleSidebar()" type="button" title="Chat History & Sessions">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span class="sidebar-toggle-label">History</span>
+          </button>
         </div>
-        <button class="clear-btn" onclick="clearChat()">Clear chat</button>
+        <div class="chat-header-center">
+          <div class="avatar">✦</div>
+          <div class="info">
+            <div class="name">AI Assistant</div>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <button class="clear-btn" onclick="clearChat()" title="Clear chat messages" type="button">Clear chat</button>
+        </div>
       </div>
 
       <!-- Messages -->
       <div id="chat-messages">
         <div id="chat-welcome">
-          <div class="welcome-hero">
-            <div class="welcome-icon-ring">
-              <div class="welcome-icon-glow"></div>
-              <div class="welcome-icon">✦</div>
-            </div>
-            <h2 class="welcome-headline">
-              Your Business,<br>
-              <span class="welcome-headline-accent">Instantly Understood</span>
-            </h2>
-            <p class="welcome-sub">Ask about <span class="welcome-kw">revenue</span>, <span class="welcome-kw">inventory</span>, <span class="welcome-kw">orders</span>, <span class="welcome-kw">cash flow</span> — get instant answers from your live ERP data.</p>
-          </div>
-          <div id="executive-suite-root"></div>
+          ${getWelcomeHtml()}
         </div>
       </div>
 
@@ -501,6 +668,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         </div>
       </div>
     </div>
+  </div>
   `;
 
   // Render HTML template into the page body
@@ -508,12 +676,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   // Initialize dynamic prompt suggestion component
   initExecutiveSuite();
+  startCapabilityTypewriter();
 
 
   // State
   var currentSessionId = null;
   var sessions = [];
-  var sidebarOpen = true;
+  var sidebarOpen = false;
   var history = [];
   var isLoading = false;
   var viewToken = 0;
@@ -588,10 +757,35 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   }
 
   function scrollToBottom() {
-    if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+    if (messagesEl && typeof history !== 'undefined' && history && history.length > 0) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
   }
 
+  function hideWelcome() {
+    var wel = wrapper.querySelector('#chat-welcome');
+    if (wel) {
+      wel.classList.add('chat-welcome-hidden');
+      wel.style.setProperty('display', 'none', 'important');
+      wel.remove();
+      welcomeEl = null;
+    }
+    if (messagesEl) {
+      messagesEl.classList.add('has-conversation');
+    }
+  }
+
+  window.runSuggestionDirectly = function(promptText) {
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (el) {
+      el.value = promptText;
+      if (typeof autoResize === 'function') autoResize(el);
+    }
+    sendMessage();
+  };
+
   function appendMessage(role, content, tokenData) {
+    hideWelcome();
     if (role === 'ai') {
       try {
         if (typeof _voiceOverlayOpen !== 'undefined' && _voiceOverlayOpen) {
@@ -612,7 +806,13 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     bubble.className = 'msg-bubble';
 
     if (role === 'user') {
-      bubble.textContent = content;
+      if (content.indexOf('[Command:') === 0 || content.indexOf('[Language Switch:') === 0) {
+        var cleanNotice = content.replace(/^\[.*?\]\s*/, '');
+        if (!cleanNotice) cleanNotice = content.replace(/^\[(.*?)\]$/, '$1');
+        bubble.innerHTML = '<span style="font-style: italic; opacity: 0.85;">🌐 ' + _escapeHtml(cleanNotice) + '</span>';
+      } else {
+        bubble.textContent = content;
+      }
     } else {
       bubble.innerHTML = renderMarkdown(content);
 
@@ -623,7 +823,16 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           var configStr = decodeURIComponent(container.getAttribute('data-chart-config'));
           var config = JSON.parse(configStr);
 
-          // Render using Frappe Charts
+          // Synchronize palette with active theme tokens (eliminates hot pink default)
+          if (!config.colors || !config.colors.length) {
+            var brandPrimary = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
+                ? frappe.ui.color_customizer.get_color("primary") 
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#006269";
+            var brandAccent = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
+                ? frappe.ui.color_customizer.get_color("accent") 
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#00A3AD";
+            config.colors = [brandPrimary, brandAccent, "#38BDF8", "#F59E0B", "#10B981"];
+          }
           new frappe.Chart(container, config);
         } catch (e) {
           console.error("Failed to render chart", e);
@@ -638,7 +847,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
       copyBtn.onclick = function () {
         navigator.clipboard.writeText(content);
-        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#0099A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--cu-accent, #0099A3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
         setTimeout(() => {
           copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         }, 2000);
@@ -735,35 +944,54 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   };
 
   window.selectSuggestion = function (text) {
-    inputEl.value = text;
-    autoResize(inputEl);
-    inputEl.focus();
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (!el) return;
+    el.value = text;
+    if (typeof autoResize === 'function') autoResize(el);
+    try { el.focus(); } catch (_) {}
 
     // Auto-highlight the first placeholder bracket [Placeholder] if present
     var start = text.indexOf('[');
     if (start !== -1) {
       var end = text.indexOf(']', start);
       if (end !== -1) {
-        // Use setTimeout to ensure selection is executed after browser focuses inputEl
         setTimeout(function () {
-          inputEl.setSelectionRange(start, end + 1);
+          var targetInput = el || inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+          if (targetInput && typeof targetInput.setSelectionRange === 'function') {
+            try { targetInput.setSelectionRange(start, end + 1); } catch (_) {}
+          }
         }, 50);
       }
     }
   };
 
   
+  window.goToDesk = function() {
+    $('body').removeClass('ai-assistant-page-active');
+    if (window.frappe && typeof frappe.set_route === 'function') {
+      frappe.set_route('');
+    } else {
+      window.location.href = '/app';
+    }
+  };
+
   window.toggleSidebar = function() {
     sidebarOpen = !sidebarOpen;
     var sb = wrapper.querySelector('#chat-sidebar');
     var floatBtn = wrapper.querySelector('#floating-sidebar-toggle');
+    var backdrop = wrapper.querySelector('#chat-sidebar-backdrop');
     if (sb) {
       if (sidebarOpen) {
         sb.classList.remove('closed');
-        if (floatBtn) floatBtn.style.display = 'none';
+        sb.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+        if (typeof window.loadSessions === 'function') window.loadSessions();
+        if (floatBtn) floatBtn.classList.add('active');
       } else {
+        sb.classList.remove('open');
         sb.classList.add('closed');
-        if (floatBtn) floatBtn.style.display = 'flex';
+        if (backdrop) backdrop.classList.remove('active');
+        if (floatBtn) floatBtn.classList.remove('active');
       }
     }
   };
@@ -807,6 +1035,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   window.switchSession = function(id) {
     if (currentSessionId === id) return;
+    if (window.innerWidth <= 992 && sidebarOpen) { toggleSidebar(); }
     
     viewToken++;
     currentSessionId = id;
@@ -855,6 +1084,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     hideTyping();
     clearChat();
     renderSessions();
+    if (window.innerWidth <= 992 && sidebarOpen) {
+      toggleSidebar();
+    }
   };
 
   window.renameSession = function(id) {
@@ -898,20 +1130,17 @@ window.clearChat = function () {
     hideTyping();
     history = [];
     messagesEl.innerHTML = '';
+    messagesEl.classList.remove('has-conversation');
 
-    // recreate welcome area with animation reset
+    // Recreate full modern welcome area with fluid hero & executive prompt suite
     var welcome = document.createElement('div');
     welcome.id = 'chat-welcome';
-    welcome.innerHTML = `
-      <div class="icon">✦</div>
-      <h3>What can I help you with?</h3>
-      <p>Ask me anything about your ERPNext data — invoices, stock, sales orders, reports, and more.</p>
-      <div id="executive-suite-root"></div>
-    `;
+    welcome.innerHTML = getWelcomeHtml();
     messagesEl.appendChild(welcome);
     welcomeEl = welcome;
 
     initExecutiveSuite();
+    startCapabilityTypewriter();
   };
 
   let typingStatusInterval;
@@ -927,6 +1156,7 @@ window.clearChat = function () {
   function sendMessage() {
     var text = inputEl.value.trim();
     if (!text || isLoading) return;
+    hideWelcome();
 
     var requestViewToken = viewToken;
     var requestSessionId = currentSessionId;
@@ -1286,6 +1516,8 @@ window.clearChat = function () {
   var _voiceMinimized = false;
   var _isMuted = false;
   var _voiceFinalText = '';
+  var _accumulatedFinalText = '';
+  var _currentSessionFinal = '';
   var _lastInterim = '';
   var _lastAIReply = '';
   var _aiSpeakingStartTime = 0;
@@ -1548,9 +1780,13 @@ window.clearChat = function () {
   // 'full'   -> Full-screen stage visible, PiP pill hidden
   // 'pip'    -> Full-screen stage hidden, PiP pill visible
   // 'closed' -> Both hidden
+  function getVoiceEl(sel) {
+    return (wrapper && wrapper.querySelector(sel)) || document.querySelector(sel);
+  }
+
   function setVoiceUIMode(mode) {
-    var overlay = wrapper.querySelector('#voice-overlay');
-    var pill = wrapper.querySelector('#voice-pip-pill');
+    var overlay = getVoiceEl('#voice-overlay');
+    var pill = getVoiceEl('#voice-pip-pill');
 
     if (mode === 'full') {
       _voiceMinimized = false;
@@ -1647,8 +1883,8 @@ window.clearChat = function () {
     var secs = elapsed % 60;
     var formatted = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-    var headerTimer = wrapper.querySelector('#voice-call-timer');
-    var miniTimer = wrapper.querySelector('#voice-mini-timer');
+    var headerTimer = getVoiceEl('#voice-call-timer');
+    var miniTimer = getVoiceEl('#voice-mini-timer');
     if (headerTimer) headerTimer.textContent = formatted;
     if (miniTimer) miniTimer.textContent = formatted;
   }
@@ -1696,13 +1932,13 @@ window.clearChat = function () {
     _ignoreUntil = Date.now() + 350;
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
 
     if (statusLabel) statusLabel.textContent = cfg.listening;
     if (subLabel) subLabel.textContent = cfg.sub;
@@ -1720,22 +1956,29 @@ window.clearChat = function () {
     if (cleanSpoken && !isJustStopWord) {
       _voiceFinalText = cleanSpoken + ' ';
       _lastInterim = '';
-      var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+      var transcriptEl = getVoiceEl('#voice-transcript-live');
       if (transcriptEl) {
         transcriptEl.innerHTML = '<span class="vfinal">' + _escapeHtml(_voiceFinalText) + '</span>';
       }
     } else {
       _voiceFinalText = '';
       _lastInterim = '';
-      var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+      var transcriptEl = getVoiceEl('#voice-transcript-live');
       if (transcriptEl) {
         transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
       }
     }
 
-    if (_voiceRunning && _voiceOverlayOpen && !_isMuted) {
-      _startListening();
-    }
+    // Clear any residual buffered speech and wait 600ms for speaker echo tail to clear
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
+    _voiceFinalText = '';
+    _lastInterim = '';
+    setTimeout(function() {
+      if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+        _startListening();
+      }
+    }, 600);
   }
 
   function handleOrbClick() {
@@ -1749,10 +1992,10 @@ window.clearChat = function () {
 
   function toggleVoiceMute() {
     _isMuted = !_isMuted;
-    var muteBtn = wrapper.querySelector('#voice-ctrl-mute');
-    var iconOn = wrapper.querySelector('#voice-mute-icon-on');
-    var iconOff = wrapper.querySelector('#voice-mute-icon-off');
-    var statusLabel = wrapper.querySelector('#voice-status-label');
+    var muteBtn = getVoiceEl('#voice-ctrl-mute');
+    var iconOn = getVoiceEl('#voice-mute-icon-on');
+    var iconOff = getVoiceEl('#voice-mute-icon-off');
+    var statusLabel = getVoiceEl('#voice-status-label');
 
     // Hardware microphone track sync (edge case matching OpenWebUI)
     if (_audioStream) {
@@ -1790,18 +2033,18 @@ window.clearChat = function () {
     localStorage.setItem('custom_ui_voice_lang', langCode);
 
     // Update the single language dropdown label
-    var dpLabel = wrapper.querySelector('#voice-lang-dropdown-label');
+    var dpLabel = getVoiceEl('#voice-lang-dropdown-label');
     if (dpLabel) {
       dpLabel.textContent = (_LANG_CONFIG[langCode] && _LANG_CONFIG[langCode].label) || langCode;
     }
     closeLangDropdown();
 
     var cfg = _LANG_CONFIG[langCode];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var transcriptEl = wrapper.querySelector('#voice-transcript-live');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var miniLang = wrapper.querySelector('#voice-mini-lang');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var transcriptEl = getVoiceEl('#voice-transcript-live');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var miniLang = getVoiceEl('#voice-mini-lang');
 
     if (miniLang) miniLang.textContent = cfg.label;
     if (miniStatus) miniStatus.textContent = cfg.miniStatus;
@@ -1832,7 +2075,7 @@ window.clearChat = function () {
   // ── Single Language Dropdown (replaces segmented chips + modal) ─────────
   function toggleLangDropdown(e) {
     if (e) { e.stopPropagation(); e.preventDefault(); }
-    var panel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var panel = getVoiceEl('#voice-lang-dropdown-panel');
     if (!panel) return;
     var isOpen = panel.style.display !== 'none' && panel.style.display !== '';
     if (isOpen) {
@@ -1840,7 +2083,7 @@ window.clearChat = function () {
     } else {
       closeVoicePickerDropdown();
       panel.style.display = 'flex';
-      var inp = wrapper.querySelector('#voice-lang-dp-input');
+      var inp = getVoiceEl('#voice-lang-dp-input');
       if (inp) { inp.value = ''; setTimeout(function() { inp.focus(); }, 60); }
       filterLangDropdown('');
     }
@@ -1849,13 +2092,13 @@ window.clearChat = function () {
 
   function closeLangDropdown(e) {
     if (e) e.stopPropagation();
-    var panel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var panel = getVoiceEl('#voice-lang-dropdown-panel');
     if (panel) panel.style.display = 'none';
   }
   window.closeLangDropdown = closeLangDropdown;
 
   function filterLangDropdown(query) {
-    var list = wrapper.querySelector('#voice-lang-dp-list');
+    var list = getVoiceEl('#voice-lang-dp-list');
     if (!list) return;
 
     // Merge _LANG_CONFIG keys with extra browser voice languages
@@ -1949,6 +2192,8 @@ window.clearChat = function () {
 
     _voiceOverlayOpen = true;
     _voiceRunning = true;
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
     _isAssistantSpeaking = false;
@@ -1958,14 +2203,14 @@ window.clearChat = function () {
     _requestWakeLock();
 
     var triggerBtn = wrapper.querySelector('#mic-btn');
-    var aiReplyBox = wrapper.querySelector('#voice-ai-reply-box');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
-    var muteBtn = wrapper.querySelector('#voice-ctrl-mute');
-    var iconOn = wrapper.querySelector('#voice-mute-icon-on');
-    var iconOff = wrapper.querySelector('#voice-mute-icon-off');
+    var aiReplyBox = getVoiceEl('#voice-ai-reply-box');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
+    var muteBtn = getVoiceEl('#voice-ctrl-mute');
+    var iconOn = getVoiceEl('#voice-mute-icon-on');
+    var iconOff = getVoiceEl('#voice-mute-icon-off');
 
     // Switch cleanly to Full Stage Mode
     setVoiceUIMode('full');
@@ -1996,17 +2241,32 @@ window.clearChat = function () {
   }
   window.openVoiceCall = openVoiceCall;
 
+  function _isTTSActive() {
+    return !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending));
+  }
+
   function _stopListening() {
+    if (_silenceTimer) {
+      clearTimeout(_silenceTimer);
+      _silenceTimer = null;
+    }
     if (_voiceRecognition) {
       _voiceRecognition.onend = null;
-      try { _voiceRecognition.stop(); } catch(e) {}
+      _voiceRecognition.onerror = null;
+      _voiceRecognition.onresult = null;
+      try { _voiceRecognition.abort(); } catch(e) {}
       _voiceRecognition = null;
+    }
+    if (_currentSessionFinal) {
+      _accumulatedFinalText = (_accumulatedFinalText + _currentSessionFinal).trim() + ' ';
+      _currentSessionFinal = '';
     }
   }
 
   function _startListening() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR || _isMuted || !_voiceRunning || !_voiceOverlayOpen) return;
+    // Strictly do NOT listen while AI is speaking, while TTS is active, or muted
+    if (!SR || _isMuted || !_voiceRunning || !_voiceOverlayOpen || _isAssistantSpeaking || _isTTSActive()) return;
 
     _stopListening();
 
@@ -2014,63 +2274,71 @@ window.clearChat = function () {
       _voiceRecognition = new SR();
       _voiceRecognition.continuous = true;
       _voiceRecognition.interimResults = true;
+      _voiceRecognition.maxAlternatives = 1;
       _voiceRecognition.lang = _currentLang;
 
       _voiceRecognition.onresult = function(event) {
-        if (Date.now() < _ignoreUntil || _isMuted) return;
-
-        var interim = '';
-        var latestSpeech = '';
-        for (var i = event.resultIndex; i < event.results.length; i++) {
-          var t = event.results[i][0].transcript;
-          latestSpeech += t + ' ';
-          if (!event.results[i].isFinal) {
-            interim += t;
-          }
-        }
-
-        var spokenChunk = (latestSpeech + ' ' + interim).trim();
-
-        // 1. While AI is speaking: Barge-In check only
-        if (_isAssistantSpeaking) {
+        if (_isAssistantSpeaking || _isTTSActive() || Date.now() < _ignoreUntil || _isMuted) {
           if (_silenceTimer) clearTimeout(_silenceTimer);
-          if (!spokenChunk || spokenChunk.length < 2) return;
-
-          if (Date.now() - _aiSpeakingStartTime > 300) {
-            if (!_isAIEcho(spokenChunk)) {
-              console.log('[Barge-In] Human speech detected during narration:', spokenChunk);
-              _triggerBargeInInterruption(spokenChunk);
-            }
-          }
           return;
         }
 
-        // 2. Capture Real User Speech
-        for (var j = event.resultIndex; j < event.results.length; j++) {
-          if (event.results[j].isFinal) {
-            _voiceFinalText += event.results[j][0].transcript + ' ';
+        var sessionFinal = '';
+        var interim = '';
+        // Fast single-pass accumulation of results (zero-latency streaming)
+        for (var i = 0; i < event.results.length; i++) {
+          var res = event.results[i];
+          if (res.isFinal) {
+            sessionFinal += res[0].transcript + ' ';
+          } else {
+            interim += res[0].transcript;
           }
         }
+
+        _currentSessionFinal = sessionFinal;
         _lastInterim = interim;
 
-        var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+        var fullFinal = (_accumulatedFinalText + sessionFinal).trim();
+        _voiceFinalText = fullFinal;
+
+        // 1. Instant zero-latency live subtitles update
+        var transcriptEl = getVoiceEl('#voice-transcript-live');
         if (transcriptEl) {
-          if (_voiceFinalText || interim) {
-            transcriptEl.innerHTML =
-              '<span class="vfinal">' + _escapeHtml(_voiceFinalText) + '</span>' +
-              '<span class="vinterim">' + _escapeHtml(interim) + '</span>';
+          if (fullFinal || interim) {
+            var html = '';
+            if (fullFinal) {
+              html += '<span class="vfinal">' + _escapeHtml(fullFinal) + ' </span>';
+            }
+            if (interim) {
+              html += '<span class="vinterim">' + _escapeHtml(interim) + '</span>';
+            }
+            transcriptEl.innerHTML = html;
           }
         }
 
-        // Auto-commit on 2.4s silence
+        // 2. Real-time sync with main chat textarea
+        if (inputEl && (fullFinal || interim)) {
+          inputEl.value = (fullFinal + ' ' + interim).trim();
+          autoResize(inputEl);
+        }
+
+        // 3. Real-time sync with mini PiP status pill
+        var miniStatus = getVoiceEl('#voice-mini-status');
+        if (miniStatus && (fullFinal || interim)) {
+          var snippet = (interim || fullFinal).trim();
+          if (snippet.length > 22) snippet = '…' + snippet.slice(-20);
+          miniStatus.textContent = snippet;
+        }
+
+        // 4. Natural 1.2s silence turn-taking detection
         if (_silenceTimer) clearTimeout(_silenceTimer);
-        var total = (_voiceFinalText + interim).trim();
+        var total = (fullFinal + ' ' + interim).trim();
         if (total.length >= 2) {
           _silenceTimer = setTimeout(function() {
             if (_voiceRunning && !_isAssistantSpeaking && _voiceOverlayOpen && !_isMuted) {
               confirmVoiceSend();
             }
-          }, 2400);
+          }, 1200);
         }
       };
 
@@ -2090,18 +2358,22 @@ window.clearChat = function () {
             if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_voiceRecognition) {
               _startListening();
             }
-          }, 250);
+          }, 200);
         }
       };
 
       _voiceRecognition.onend = function() {
+        if (_currentSessionFinal) {
+          _accumulatedFinalText = (_accumulatedFinalText + _currentSessionFinal).trim() + ' ';
+          _currentSessionFinal = '';
+        }
         _voiceRecognition = null;
         if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking) {
           setTimeout(function() {
             if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_voiceRecognition) {
               _startListening();
             }
-          }, 120);
+          }, 60);
         }
       };
 
@@ -2180,9 +2452,9 @@ window.clearChat = function () {
 
   function confirmVoiceSend() {
     if (_silenceTimer) clearTimeout(_silenceTimer);
-    if (_isAssistantSpeaking) return;
+    if (_isAssistantSpeaking || _isTTSActive()) return;
 
-    var fullText = (_voiceFinalText + ' ' + _lastInterim).trim();
+    var fullText = (_accumulatedFinalText + _currentSessionFinal + ' ' + _lastInterim).trim();
     if (!fullText || fullText.length < 2) {
       return;
     }
@@ -2195,7 +2467,7 @@ window.clearChat = function () {
         console.warn('[Safety Block] Blocked echo from sending:', fullText);
         _voiceFinalText = '';
         _lastInterim = '';
-        var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+        var transcriptEl = getVoiceEl('#voice-transcript-live');
         if (transcriptEl) {
           var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
           transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
@@ -2205,12 +2477,12 @@ window.clearChat = function () {
     }
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var sendBtn = getVoiceEl('#voice-btn-send');
 
     if (statusLabel) statusLabel.textContent = cfg.thinking;
     if (subLabel) subLabel.textContent = cfg.thinkingSub;
@@ -2229,6 +2501,8 @@ window.clearChat = function () {
 
     inputEl.value = fullText;
     autoResize(inputEl);
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
 
@@ -2248,12 +2522,12 @@ window.clearChat = function () {
       _ignoreUntil = 0;
 
       var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-      var statusLabel = wrapper.querySelector('#voice-status-label');
-      var subLabel = wrapper.querySelector('#voice-sub-label');
-      var miniStatus = wrapper.querySelector('#voice-mini-status');
-      var orbEl = wrapper.querySelector('#voice-avatar-orb');
-      var statusPill = wrapper.querySelector('#voice-status-pill');
-      var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
+      var statusLabel = getVoiceEl('#voice-status-label');
+      var subLabel = getVoiceEl('#voice-sub-label');
+      var miniStatus = getVoiceEl('#voice-mini-status');
+      var orbEl = getVoiceEl('#voice-avatar-orb');
+      var statusPill = getVoiceEl('#voice-status-pill');
+      var interruptBtn = getVoiceEl('#voice-btn-interrupt');
 
       if (statusLabel) statusLabel.textContent = cfg.speaking;
       if (subLabel) subLabel.textContent = cfg.speakingSub;
@@ -2281,19 +2555,22 @@ window.clearChat = function () {
     _aiSpeakingStartTime = Date.now();
     _ignoreUntil = 0;
 
+    // Forcefully stop Speech Recognition while AI speaks out loud
+    _stopListening();
+
     _voiceFinalText = '';
     _lastInterim = '';
     if (_silenceTimer) clearTimeout(_silenceTimer);
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var aiReplyBox = wrapper.querySelector('#voice-ai-reply-box');
-    var aiReplyText = wrapper.querySelector('#voice-ai-reply-text');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var aiReplyBox = getVoiceEl('#voice-ai-reply-box');
+    var aiReplyText = getVoiceEl('#voice-ai-reply-text');
 
     if (statusLabel) statusLabel.textContent = cfg.speaking;
     if (subLabel) subLabel.textContent = cfg.speakingSub;
@@ -2322,23 +2599,25 @@ window.clearChat = function () {
     _clearTTSWatchdogs();
     _isAssistantSpeaking = false;
 
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
     _voiceFinalText = '';
     _lastInterim = '';
     if (_silenceTimer) clearTimeout(_silenceTimer);
 
-    _ignoreUntil = Date.now() + 400;
+    _ignoreUntil = Date.now() + 600;
 
     if (!_voiceOverlayOpen) return;
 
     var cfg = _LANG_CONFIG[_currentLang] || _LANG_CONFIG['en-IN'];
-    var statusLabel = wrapper.querySelector('#voice-status-label');
-    var subLabel = wrapper.querySelector('#voice-sub-label');
-    var miniStatus = wrapper.querySelector('#voice-mini-status');
-    var orbEl = wrapper.querySelector('#voice-avatar-orb');
-    var statusPill = wrapper.querySelector('#voice-status-pill');
-    var interruptBtn = wrapper.querySelector('#voice-btn-interrupt');
-    var sendBtn = wrapper.querySelector('#voice-btn-send');
-    var transcriptEl = wrapper.querySelector('#voice-transcript-live');
+    var statusLabel = getVoiceEl('#voice-status-label');
+    var subLabel = getVoiceEl('#voice-sub-label');
+    var miniStatus = getVoiceEl('#voice-mini-status');
+    var orbEl = getVoiceEl('#voice-avatar-orb');
+    var statusPill = getVoiceEl('#voice-status-pill');
+    var interruptBtn = getVoiceEl('#voice-btn-interrupt');
+    var sendBtn = getVoiceEl('#voice-btn-send');
+    var transcriptEl = getVoiceEl('#voice-transcript-live');
 
     if (statusLabel) statusLabel.textContent = _isMuted ? 'Muted (Microphone Off)' : cfg.listening;
     if (subLabel) subLabel.textContent = cfg.sub;
@@ -2349,9 +2628,16 @@ window.clearChat = function () {
     if (sendBtn) sendBtn.style.display = 'flex';
     if (transcriptEl) transcriptEl.innerHTML = '<span class="vplaceholder">' + cfg.placeholder + '</span>';
 
-    if (_voiceRunning && _voiceOverlayOpen && !_isMuted) {
-      _startListening();
-    }
+    // Clear any residual buffered speech and wait 600ms for speaker echo tail to clear
+    _accumulatedFinalText = '';
+    _currentSessionFinal = '';
+    _voiceFinalText = '';
+    _lastInterim = '';
+    setTimeout(function() {
+      if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+        _startListening();
+      }
+    }, 600);
   }
 
   function closeVoiceCall() {
@@ -2697,34 +2983,34 @@ window.clearChat = function () {
     if (rawLang && _LANG_CONFIG[rawLang]) return rawLang;
 
     // Marathi
-    if (l.startsWith('mr') || n.includes('marathi') || n.includes('aarohi')) return 'mr-IN';
+    if (l.startsWith('mr') || n.includes('marathi') || n.includes('मराठी') || n.includes('aarohi') || n.includes('manohar') || n.includes('hemant')) return 'mr-IN';
 
     // Hindi
-    if (l.startsWith('hi') || n.includes('hindi') || n.includes('madhur') || n.includes('swara') || n.includes('kalpana')) return 'hi-IN';
+    if (l.startsWith('hi') || n.includes('hindi') || n.includes('हिन्दी') || n.includes('हिंदी') || n.includes('madhur') || n.includes('swara') || n.includes('kalpana')) return 'hi-IN';
 
     // English
     if (l.startsWith('en') || n.includes('english')) return 'en-IN';
 
     // Gujarati
-    if (l.startsWith('gu') || n.includes('gujarati')) return 'gu-IN';
+    if (l.startsWith('gu') || n.includes('gujarati') || n.includes('ગુજરાતી') || n.includes('dhwani') || n.includes('niranjan')) return 'gu-IN';
 
     // Tamil
-    if (l.startsWith('ta') || n.includes('tamil')) return 'ta-IN';
+    if (l.startsWith('ta') || n.includes('tamil') || n.includes('தமிழ்') || n.includes('pallavi') || n.includes('valluvar')) return 'ta-IN';
 
     // Telugu
-    if (l.startsWith('te') || n.includes('telugu')) return 'te-IN';
+    if (l.startsWith('te') || n.includes('telugu') || n.includes('తెలుగు') || n.includes('shruti') || n.includes('mohan')) return 'te-IN';
 
     // Kannada
-    if (l.startsWith('kn') || n.includes('kannada')) return 'kn-IN';
+    if (l.startsWith('kn') || n.includes('kannada') || n.includes('ಕನ್ನಡ') || n.includes('sapna') || n.includes('gagan')) return 'kn-IN';
 
     // Bengali
-    if (l.startsWith('bn') || n.includes('bengali') || n.includes('bangla')) return 'bn-IN';
+    if (l.startsWith('bn') || n.includes('bengali') || n.includes('বাংলা') || n.includes('bangla') || n.includes('bashkar') || n.includes('tanishaa')) return 'bn-IN';
 
     // Malayalam
-    if (l.startsWith('ml') || n.includes('malayalam')) return 'ml-IN';
+    if (l.startsWith('ml') || n.includes('malayalam') || n.includes('മലയാളം') || n.includes('midhun') || n.includes('sobhana')) return 'ml-IN';
 
     // Punjabi
-    if (l.startsWith('pa') || n.includes('punjabi')) return 'pa-IN';
+    if (l.startsWith('pa') || n.includes('punjabi') || n.includes('ਪੰਜਾਬੀ') || n.includes('harmohan') || n.includes('raaj')) return 'pa-IN';
 
     // Generic prefix match against _LANG_CONFIG
     var prefix = l.split('-')[0];
@@ -2765,13 +3051,32 @@ window.clearChat = function () {
     }
 
     closeVoicePickerDropdown();
+
     _playVoicePreview(chosenVoice);
   }
   window.onUserVoiceSelected = onUserVoiceSelected;
 
+  function commandLLMVoiceLanguage(langCode) {
+    if (!langCode) return;
+    var langCfg = _LANG_CONFIG[langCode] || _LANG_CONFIG['en-IN'];
+    var langLabel = langCfg.name || langCfg.label || 'English';
+    var nativeLabel = langCfg.native || langLabel;
+    
+    if (typeof interruptVoiceSpeech === 'function') interruptVoiceSpeech();
+    
+    if (_voiceOverlayOpen && _voiceRunning && !isLoading) {
+      var cmd = "[Command: The user selected " + langLabel + " (" + nativeLabel + ") voice. Please acknowledge briefly in " + langLabel + " that you will now talk in " + langLabel + ".]";
+      inputEl.value = cmd;
+      sendMessage();
+    }
+  }
+  window.commandLLMVoiceLanguage = commandLLMVoiceLanguage;
+
   function _playVoicePreview(chosenVoice) {
     if (!window.speechSynthesis) return;
     try {
+      _stopListening();
+      _isAssistantSpeaking = true;
       window.speechSynthesis.cancel();
       var activeVoice = chosenVoice || _findBestVoice(_currentLang);
       var gender = _detectVoiceGender(activeVoice);
@@ -2784,14 +3089,50 @@ window.clearChat = function () {
         sample = (gender === 'female')
           ? 'नमस्ते! मैं आपकी क्या सहायता कर सकती हूँ?'
           : 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?';
+      } else if (_currentLang === 'gu-IN') {
+        sample = 'નમસ્તે! હું તમારી શું મદદ કરી શકું?';
+      } else if (_currentLang === 'ta-IN') {
+        sample = 'வணக்கம்! நான் உங்களுக்கு எப்படி உதவ முடியும்?';
+      } else if (_currentLang === 'te-IN') {
+        sample = 'నమస్కారం! నేను మీకు ఎలా సహాయపడగలను?';
+      } else if (_currentLang === 'kn-IN') {
+        sample = 'ನಮಸ್ಕಾರ! ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?';
+      } else if (_currentLang === 'bn-IN') {
+        sample = 'নমস্কার! আমি আপনাকে কীভাবে সাহায্য করতে পারি?';
+      } else if (_currentLang === 'pa-IN') {
+        sample = 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡੀ ਕੀ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?';
+      } else if (_currentLang === 'ml-IN') {
+        sample = 'നമസ്കാരം! ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കണം?';
+      } else if (_currentLang === 'es-ES') {
+        sample = '¡Hola! ¿En qué puedo ayudarte hoy?';
       } else {
         sample = 'Hello! How can I assist you today?';
       }
       var utt = new SpeechSynthesisUtterance(sample);
       utt.lang = (activeVoice && activeVoice.lang) || _currentLang;
       if (activeVoice) utt.voice = activeVoice;
+      utt.onend = function() {
+        _isAssistantSpeaking = false;
+        _ignoreUntil = Date.now() + 600;
+        setTimeout(function() {
+          if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+            _startListening();
+          }
+        }, 600);
+      };
+      utt.onerror = function() {
+        _isAssistantSpeaking = false;
+        _ignoreUntil = Date.now() + 300;
+        setTimeout(function() {
+          if (_voiceRunning && _voiceOverlayOpen && !_isMuted && !_isAssistantSpeaking && !_isTTSActive()) {
+            _startListening();
+          }
+        }, 300);
+      };
       window.speechSynthesis.speak(utt);
-    } catch(e) {}
+    } catch(e) {
+      _isAssistantSpeaking = false;
+    }
   }
 
   // ── TTS Watchdog helpers ──────────────────────────────────────────────────
@@ -2894,7 +3235,12 @@ window.clearChat = function () {
 
     _clearTTSWatchdogs();
 
-    try { window.speechSynthesis.cancel(); } catch(e) {}
+    try {
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch(e) {}
 
     // Chrome has a ~200-char TTS bug where long utterances pause silently.
     // Split into natural sentence chunks.
@@ -2982,6 +3328,9 @@ window.clearChat = function () {
         }
       };
 
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        try { window.speechSynthesis.resume(); } catch(e) {}
+      }
       try {
         window.speechSynthesis.speak(utt);
       } catch(err) {
@@ -3010,12 +3359,12 @@ window.clearChat = function () {
   // ── Outside-click handler: only fires for clicks outside the voice overlay ──
   // (Clicks inside the overlay are handled by stage.onclick above)
   document.addEventListener('click', function _voiceOutsideClickHandler(e) {
-    var overlay = wrapper.querySelector('#voice-overlay');
+    var overlay = getVoiceEl('#voice-overlay');
     // If click is inside the overlay, stage.onclick handles it
     if (overlay && overlay.contains(e.target)) return;
 
     // Click is outside overlay — close both dropdowns
-    var langPanel = wrapper.querySelector('#voice-lang-dropdown-panel');
+    var langPanel = getVoiceEl('#voice-lang-dropdown-panel');
     if (langPanel && langPanel.style.display !== 'none') {
       closeLangDropdown();
     }
@@ -3025,8 +3374,13 @@ window.clearChat = function () {
     }
   }, false);
 
-  // Focus input
-  setTimeout(function () { inputEl.focus(); }, 300);
+  // Focus input safely
+  setTimeout(function () {
+    var el = inputEl || (wrapper && wrapper.querySelector('#chat-input')) || document.querySelector('#chat-input');
+    if (el && typeof el.focus === 'function') {
+      try { el.focus(); } catch (_) {}
+    }
+  }, 300);
 };
 
   // ══════════════════════════════════════════════════════════════════════════════
