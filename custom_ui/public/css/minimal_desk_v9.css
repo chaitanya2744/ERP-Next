@@ -155,12 +155,12 @@ button, .btn, .standard-sidebar-item .item-anchor {
    ================================================================ */
 :root,
 body.theme-v9 {
-    --cu-primary:          var(--cu-primary, #006269);
-    --cu-primary-dk:       var(--cu-primary-dk, #004a4f);
-    --cu-primary-lt:       var(--cu-primary-lt, #007f87);
-    --cu-accent:           var(--cu-accent, #00A3AD);
-    --cu-accent-lt:        var(--cu-accent-lt, #B8E8EB);
-    --cu-accent-xlt:       var(--cu-accent-xlt, #E8F7F8);
+    --cu-primary:          #006269;
+    --cu-primary-dk:       #004a4f;
+    --cu-primary-lt:       #007f87;
+    --cu-accent:           #00A3AD;
+    --cu-accent-lt:        #B8E8EB;
+    --cu-accent-xlt:       #E8F7F8;
     --cu-bg:               #EFF3F6;
     --cu-surface:          #FFFFFF;
     --cu-surface-2:        #F5F9FA;
@@ -297,11 +297,11 @@ body:not(.theme-apple) .widget-title {
    ================================================================ */
 html.theme-apple,
 body.theme-apple {
-    --cu-primary:          var(--cu-primary, #006269);
-    --cu-primary-dk:       var(--cu-primary-dk, #004a4f);
-    --cu-primary-lt:       var(--cu-accent, #00A3AD);
-    --cu-accent:           var(--cu-accent, #00A3AD);
-    --cu-accent-lt:        var(--cu-accent-xlt, #E8F7F8);
+    --cu-primary:          #006269;
+    --cu-primary-dk:       #004a4f;
+    --cu-primary-lt:       #00A3AD;
+    --cu-accent:           #00A3AD;
+    --cu-accent-lt:        #E8F7F8;
     --cu-accent-xlt:       #F0F9FA;
 
     --cu-bg:               #F5F5F7;

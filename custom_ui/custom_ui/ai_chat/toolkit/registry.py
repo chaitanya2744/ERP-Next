@@ -8,7 +8,7 @@ def _is_user_permitted_for_module(module_name: str) -> bool:
     """Check if the current session user has access to the module."""
     if not module_name:
         return True
-    user = frappe.session.user
+    user = frappe.session.user      
     if user in ["Administrator", "root"]:
         return True
     try:
@@ -80,7 +80,7 @@ def execute_tool(name, args):
 
             data = normalize_document_data(doctype, args.get("data") or {})
             doc = frappe.get_doc(dict(doctype=doctype, **data))
-            doc.insert(ignore_permissions=False)
+            doc.insert(check_permissions=True)
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -98,7 +98,7 @@ def execute_tool(name, args):
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("write")
             doc.update(data)
-            doc.save(ignore_permissions=False)
+            doc.save(check_permissions=True)
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -114,7 +114,7 @@ def execute_tool(name, args):
 
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("delete")
-            frappe.delete_doc(doctype, docname, ignore_permissions=False)
+            frappe.delete_doc(doctype, docname, check_permissions=True)
             frappe.db.commit()
             return {"output": {"status": "Success", "message": f"Deleted {doctype} {docname}"}}
 

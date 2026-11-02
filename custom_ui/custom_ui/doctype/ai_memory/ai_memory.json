@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:AIM-{YYYY}-{#####}",
+ "creation": "2026-11-02 17:12:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "category",
+  "scope",
+  "user",
+  "trigger_keywords",
+  "learned_context",
+  "column_break_1",
+  "source",
+  "confidence_score",
+  "hit_count",
+  "last_used",
+  "expires_on",
+  "enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "Business Rule\nSchema Fix\nUser Preference\nSQL Fix\nWorkflow Quirk",
+   "reqd": 1
+  },
+  {
+   "fieldname": "scope",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Scope",
+   "options": "Global\nUser",
+   "default": "Global",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "depends_on": "eval:doc.scope=='User'"
+  },
+  {
+   "fieldname": "trigger_keywords",
+   "fieldtype": "Small Text",
+   "label": "Trigger Keywords",
+   "description": "Comma-separated. Memory injects when any keyword matches the prompt."
+  },
+  {
+   "fieldname": "learned_context",
+   "fieldtype": "Long Text",
+   "label": "Learned Context / Rule",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Manual\nAuto: User Correction\nAuto: Tool Failure\nAuto: Explicit Remember",
+   "default": "Manual",
+   "read_only": 1
+  },
+  {
+   "default": "1.0",
+   "fieldname": "confidence_score",
+   "fieldtype": "Float",
+   "label": "Confidence Score",
+   "description": "0.0\u20131.0. >= 0.8 always injected. Auto-decays if contradicted."
+  },
+  {
+   "default": "0",
+   "fieldname": "hit_count",
+   "fieldtype": "Int",
+   "label": "Times Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_used",
+   "fieldtype": "Datetime",
+   "label": "Last Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Date",
+   "label": "Expires On",
+   "description": "Auto-set to 90 days from last_used. Blank = never expires."
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 0,
+ "links": [],
+ "modified": "2026-11-02 17:12:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom UI",
+ "name": "AI Memory",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "confidence_score",
+ "sort_order": "DESC",
+ "states": []
+}

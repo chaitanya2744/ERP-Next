@@ -3,6 +3,18 @@ from custom_ui.custom_ui.ai_chat.handler import chat
 from custom_ui.custom_ui.wallet import estimate_tokens_and_cost_data, get_wallet_summary_data
 
 @frappe.whitelist()
+def save_ai_memory(category, learned_context, trigger_keywords="", scope="User"):
+    """Save a memory rule. Called from chat UI or manually."""
+    from custom_ui.custom_ui.ai_chat.memory import capture_memory
+    name = capture_memory(
+        category=category,
+        learned_context=learned_context,
+        trigger_keywords=trigger_keywords,
+        source="Manual"
+    )
+    return {"status": "ok", "name": name}
+
+@frappe.whitelist()
 def get_wallet_summary():
     return get_wallet_summary_data()
 

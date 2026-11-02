@@ -12,6 +12,9 @@ from custom_ui.custom_ui.ai_chat.config import (
 )
 from custom_ui.custom_ui.ai_chat.tools import execute_tool
 from custom_ui.custom_ui.ai_chat.budget import has_enough_balance, log_token_usage
+from custom_ui.custom_ui.ai_chat.memory import (
+    load_memories, capture_memory, maybe_auto_capture_correction
+)
 
 @frappe.whitelist()
 def chat(messages, approved_action=None, voice_gender="female", session_id=None, voice_language=None, is_voice_call=0):
@@ -43,12 +46,47 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
     if not budget_ok:
         return {"error": budget_msg}
 
+    # ── Remember: intent intercept ────────────────────────────────────────────
+    # Works for text AND voice (Marathi/Hindi included — detected post-TTS)
+    _raw_msg = history[-1].get("content", "") if history else ""
+    _msg_stripped = _raw_msg.strip()
+    _remember_prefixes = ("remember:", "लक्षात ठेव:", "याद रखो:", "remember ")
+    if any(_msg_stripped.lower().startswith(p) for p in _remember_prefixes):
+        _rule_text = _msg_stripped.split(":", 1)[-1].strip() if ":" in _msg_stripped else _msg_stripped[8:].strip()
+        if _rule_text:
+            capture_memory(
+                category="User Preference",
+                learned_context=_rule_text,
+                source="Auto: Explicit Remember"
+            )
+            _ack = {
+                "mr": f"✅ लक्षात ठेवलं! मी हे लक्षात ठेवेन: *{_rule_text}*",
+                "hi": f"✅ याद कर लिया! मैं यह याद रखूँगी: *{_rule_text}*",
+            }
+            _lang = (voice_language or "en").split("-")[0].lower() if voice_language else "en"
+            return {
+                "reply": _ack.get(_lang, f"✅ Got it! I'll remember: *{_rule_text}*"),
+                "new_history": [],
+                "session_id": session_id,
+                "tokens": {}
+            }
+    # ─────────────────────────────────────────────────────────────────────────
+
     system_text = SYSTEM_PROMPT.format(
         company=frappe.defaults.get_global_default("company") or "Your Company",
         user=frappe.session.user,
         today=frappe.utils.nowdate(),
     )
     system_text += "\n\nCRITICAL RULE: When executing tools to retrieve data, the volume of data MUST be MODERATE—no less, no more. Do not fetch massive datasets that overload tokens, but ensure you retrieve enough rows to provide complete context."
+
+    # ── Memory injection ──────────────────────────────────────────────────────
+    try:
+        _mem_block = load_memories(_msg_stripped, frappe.session.user)
+        if _mem_block:
+            system_text += _mem_block
+    except Exception:
+        pass  # never break chat if memory lookup fails
+    # ─────────────────────────────────────────────────────────────────────────
 
     if not voice_gender or not isinstance(voice_gender, str):
         voice_gender = "female"
@@ -272,6 +310,15 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
     accumulated_response_tokens = 0
     
     user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
+
+    # ── Auto-correction capture ───────────────────────────────────────────────
+    # Silently captures if it looks like a correction (never blocks execution)
+    if user_prompt and not approved_action:
+        try:
+            maybe_auto_capture_correction(user_prompt)
+        except Exception:
+            pass
+    # ─────────────────────────────────────────────────────────────────────────
 
 
 
