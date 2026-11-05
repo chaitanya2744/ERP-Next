@@ -1,0 +1,178 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "format:AEP-{#####}",
+  "creation": "2026-11-04 12:00:00.000000",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "title",
+    "module",
+    "category",
+    "icon",
+    "prompt_type",
+    "chart",
+    "column_break_1",
+    "enabled",
+    "sequence",
+    "section_break_content",
+    "desc",
+    "prompt",
+    "section_break_roles",
+    "roles"
+  ],
+  "fields": [
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Prompt Title",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "module",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Module / Tab",
+      "reqd": 1
+    },
+    {
+      "default": "erp",
+      "fieldname": "category",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Target Audience",
+      "options": "employee\nhr\nerp",
+      "reqd": 1,
+      "description": "employee: Standard employees | hr: HR Managers | erp: Operations / Admins"
+    },
+    {
+      "default": "??",
+      "fieldname": "icon",
+      "fieldtype": "Data",
+      "label": "Icon / Emoji"
+    },
+    {
+      "default": "Quick Action",
+      "fieldname": "prompt_type",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Prompt Type"
+    },
+    {
+      "fieldname": "chart",
+      "fieldtype": "Data",
+      "label": "Chart / Badge Label",
+      "description": "Optional badge label shown on the card (e.g. ?? Attendance Grid)"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "1",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Enabled"
+    },
+    {
+      "default": "0",
+      "fieldname": "sequence",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Display Sequence",
+      "description": "Lower numbers appear first."
+    },
+    {
+      "fieldname": "section_break_content",
+      "fieldtype": "Section Break",
+      "label": "Prompt Content"
+    },
+    {
+      "fieldname": "desc",
+      "fieldtype": "Small Text",
+      "label": "Card Description",
+      "reqd": 1,
+      "description": "Subtitle text shown underneath the title on the prompt card."
+    },
+    {
+      "fieldname": "prompt",
+      "fieldtype": "Long Text",
+      "label": "Prompt Template",
+      "reqd": 1,
+      "description": "The exact message or instruction executed when this prompt card is clicked."
+    },
+    {
+      "fieldname": "section_break_roles",
+      "fieldtype": "Section Break",
+      "label": "Role Restrictions"
+    },
+    {
+      "fieldname": "roles",
+      "fieldtype": "Table",
+      "label": "Visible to Roles",
+      "options": "Has Role",
+      "description": "If empty, visible to all users permitted for this Category/Module."
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 0,
+  "issingle": 0,
+  "links": [],
+  "modified": "2026-11-04 12:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Custom UI",
+  "name": "AI Executive Prompt",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "HR Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 0,
+      "delete": 0,
+      "email": 0,
+      "export": 0,
+      "print": 0,
+      "read": 1,
+      "report": 0,
+      "role": "All",
+      "share": 0,
+      "write": 0
+    }
+  ],
+  "row_format": "Dynamic",
+  "search_fields": "title,module,prompt_type",
+  "show_title_field_in_link": 1,
+  "sort_field": "sequence",
+  "sort_order": "ASC",
+  "title_field": "title",
+  "states": []
+}

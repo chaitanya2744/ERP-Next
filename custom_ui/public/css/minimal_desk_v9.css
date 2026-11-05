@@ -4439,8 +4439,27 @@ body.theme-apple .section-head.collapsed .collapse-indicator {
 /* Global Search Modal Window */
 .modal.search-dialog .modal-dialog,
 .search-dialog .modal-dialog {
-    max-width: min(900px, 94vw) !important;
+    max-width: min(960px, 94vw) !important;
+    width: min(960px, 94vw) !important;
     margin: 30px auto !important;
+}
+
+.modal.search-dialog.modal-minimize,
+.search-dialog.modal-minimize {
+    position: initial !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+.modal.search-dialog.modal-minimize .modal-dialog,
+.search-dialog.modal-minimize .modal-dialog {
+    position: fixed !important;
+    right: 15px !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    min-width: 400px !important;
+    max-width: 480px !important;
+    width: auto !important;
 }
 
 .modal.search-dialog .modal-content,
@@ -4452,7 +4471,16 @@ body.theme-apple .section-head.collapsed .collapse-indicator {
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
+    min-height: 480px !important;
     max-height: 86vh !important;
+    height: 80vh !important;
+}
+
+.modal.search-dialog.modal-minimize .modal-content,
+.search-dialog.modal-minimize .modal-content {
+    min-height: 0 !important;
+    height: auto !important;
+    border-radius: 12px 12px 0 0 !important;
 }
 
 /* Global Search Header MUST BE VISIBLE */
@@ -4471,6 +4499,7 @@ body.theme-apple .section-head.collapsed .collapse-indicator {
     box-sizing: border-box !important;
     opacity: 1 !important;
     visibility: visible !important;
+    flex-shrink: 0 !important;
 }
 
 .search-dialog .search-header .title-section {
@@ -4561,12 +4590,84 @@ body.theme-apple .section-head.collapsed .collapse-indicator {
     flex: 1 1 auto !important;
     overflow-y: auto !important;
     max-height: calc(86vh - 80px) !important;
+    min-height: 380px !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.search-dialog.modal-minimize .modal-body {
+    display: none !important;
+}
+
+.search-dialog .search-results {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: stretch !important;
 }
 
 .search-dialog .search-shortcuts-sidebar {
     border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
     padding-right: 16px !important;
     margin-right: 18px !important;
+    flex: 0 0 160px !important;
+    max-width: 180px !important;
+}
+
+.search-dialog .search-main-column {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding-inline: 12px !important;
+}
+
+/* Global Search DocType Filter Pills Bar */
+.search-dialog .global-search-doctype-filters {
+    padding-bottom: 14px !important;
+    margin-bottom: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+.search-dialog .global-search-visible-pills {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+.search-dialog button.global-search-filter-pill,
+.search-dialog button.global-search-more-trigger {
+    background: #F1F5F9 !important;
+    color: #334155 !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 8px !important;
+    padding: 5px 12px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    transition: all 0.15s ease !important;
+    box-shadow: none !important;
+}
+
+.search-dialog button.global-search-filter-pill:hover,
+.search-dialog button.global-search-more-trigger:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.search-dialog button.global-search-filter-pill.active {
+    background: var(--cu-primary, #006269) !important;
+    color: #FFFFFF !important;
+    border-color: var(--cu-primary, #006269) !important;
+    font-weight: 600 !important;
+}
+
+.search-dialog .results-area {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 180px !important;
 }
 
 .search-dialog .list-link {

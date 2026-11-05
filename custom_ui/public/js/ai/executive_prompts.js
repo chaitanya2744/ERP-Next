@@ -284,22 +284,334 @@ frappe.provide("custom_ui.ai");
       prompt: "Audit all subcontracted items over the last [6 months]. Compare total job work charges plus logistics and scrap allowance against standard in-house BOM manufacturing cost (raw materials + workstation operating cost + electricity). Highlight items that should immediately be brought in-house to maximize gross margin.",
       chart: "⚖️ Landed Cost Differential",
       type: "Enterprise 360°"
+    },
+
+    // ── 12. Employee Self-Service: Check-in & Attendance ──
+    {
+      id: "emp-checkin-in",
+      module: "Attendance",
+      icon: "⏱️",
+      title: "Daily Check-In",
+      desc: "Record your arrival timestamp and mark check-in for today.",
+      prompt: "Check me in for today.",
+      chart: "⏱️ Timestamp Log",
+      type: "Quick Action"
+    },
+    {
+      id: "emp-checkin-out",
+      module: "Attendance",
+      icon: "⏱️",
+      title: "Daily Check-Out",
+      desc: "Record your departure timestamp and mark check-out for today.",
+      prompt: "Check me out for the day.",
+      chart: "⏱️ Timestamp Log",
+      type: "Quick Action"
+    },
+    {
+      id: "emp-checkin-today",
+      module: "Attendance",
+      icon: "⏱️",
+      title: "Today's Check-in Log & Hours",
+      desc: "View your IN/OUT timestamps today and calculated working hours.",
+      prompt: "Show my check-in and check-out logs for today and calculate my total hours.",
+      chart: "📋 Daily Log",
+      type: "Personal Status"
+    },
+    {
+      id: "emp-attendance-month",
+      module: "Attendance",
+      icon: "⏱️",
+      title: "Monthly Attendance Summary",
+      desc: "Count of Present, Absent, Half Day, and Late entries this month.",
+      prompt: "Show my attendance summary for this month including total present, absent, half days, and late entries.",
+      chart: "📊 Attendance Grid",
+      type: "Personal Status"
+    },
+
+    // ── 13. Employee Self-Service: Weekly Timesheets ──
+    {
+      id: "emp-timesheet-log",
+      module: "Timesheet",
+      icon: "🕒",
+      title: "Log Today's Work Timesheet",
+      desc: "Submit work hours with activity type and project for today.",
+      prompt: "Create a timesheet entry for today with 8 hours of [Execution] work on [Project].",
+      chart: "⏱️ Time Log",
+      type: "Quick Action"
+    },
+    {
+      id: "emp-timesheet-week",
+      module: "Timesheet",
+      icon: "🕒",
+      title: "Weekly Timesheet Summary",
+      desc: "Review all timesheet entries logged for the current week.",
+      prompt: "Show all my timesheets submitted for this week with total logged hours and status.",
+      chart: "📊 Weekly Hours",
+      type: "Personal Status"
+    },
+
+    // ── 14. Employee Self-Service: Leaves & Holidays ──
+    {
+      id: "emp-leave-balance",
+      module: "Leaves",
+      icon: "📅",
+      title: "Check Remaining Leave Balance",
+      desc: "Casual, Sick, and Privileged leave balance available.",
+      prompt: "What is my remaining leave balance for Casual Leave, Sick Leave, and Privileged Leave?",
+      chart: "📊 Leave Balances",
+      type: "Personal Status"
+    },
+    {
+      id: "emp-leave-apply",
+      module: "Leaves",
+      icon: "📅",
+      title: "Apply for Leave",
+      desc: "Draft a leave application with dates, leave type, and reason.",
+      prompt: "Draft a leave application for [2 days] from [Tomorrow] for [Casual Leave] due to [Personal work].",
+      chart: "📝 Leave Draft",
+      type: "Actionable"
+    },
+    {
+      id: "emp-holidays",
+      module: "Leaves",
+      icon: "📅",
+      title: "Upcoming Company Holidays",
+      desc: "Next 60 days official holidays list.",
+      prompt: "List all upcoming company holidays for the next 60 days.",
+      chart: "🏖️ Holiday Calendar",
+      type: "Company Info"
+    },
+
+    // ── 15. Employee Self-Service: Salary & Payslips ──
+    {
+      id: "emp-payslip-latest",
+      module: "Salary",
+      icon: "💰",
+      title: "Latest Payslip Breakdown",
+      desc: "Gross, Basic, HRA, Deductions (PF, PT, TDS) and Net Pay.",
+      prompt: "Show my latest payslip details with a breakdown of Gross Pay, Basic, HRA, Deductions (PF, PT, TDS), and Net Pay.",
+      chart: "📊 Pay Slip",
+      type: "Personal Finance"
+    },
+    {
+      id: "emp-payslip-history",
+      module: "Salary",
+      icon: "💰",
+      title: "Salary History (Last 6 Months)",
+      desc: "Summary of net salaries credited over the last 6 months.",
+      prompt: "List my salary slips for the last 6 months with net pay and payment dates.",
+      chart: "📈 Salary Trend",
+      type: "Personal Finance"
+    },
+
+    // ── 16. Employee Self-Service: Expense Claims ──
+    {
+      id: "emp-expense-claim",
+      module: "Expenses",
+      icon: "💳",
+      title: "Submit Expense Reimbursement",
+      desc: "Draft a travel, meal, or client expense claim with amount.",
+      prompt: "Help me submit an expense claim for [Travel] of [Rs 1,500] incurred on [Yesterday].",
+      chart: "📝 Claim Form",
+      type: "Actionable"
+    },
+    {
+      id: "emp-expense-status",
+      module: "Expenses",
+      icon: "💳",
+      title: "Pending Reimbursements Status",
+      desc: "Track status of recent expense claims submitted.",
+      prompt: "Check the approval and reimbursement status of my recent expense claims.",
+      chart: "📋 Claim Status",
+      type: "Personal Status"
+    },
+
+    // ── 17. HR Manager: Team Attendance & Absenteeism ──
+    {
+      id: "hr-absent-today",
+      module: "Team Attendance",
+      icon: "👥",
+      title: "Today's Absent & On-Leave Staff",
+      desc: "Department-wise list of absent and on-leave employees today.",
+      prompt: "List all employees who are absent or on leave today, grouped by department.",
+      chart: "⚠️ Absenteeism Grid",
+      type: "HR Oversight"
+    },
+    {
+      id: "hr-missing-checkins",
+      module: "Team Attendance",
+      icon: "👥",
+      title: "Missing Check-ins Today",
+      desc: "Employees who haven't marked arrival check-in today.",
+      prompt: "Identify employees who have not marked their check-in today.",
+      chart: "⚠️ Attendance Alert",
+      type: "HR Oversight"
+    },
+
+    // ── 18. HR Manager: Leave Approvals ──
+    {
+      id: "hr-pending-leaves",
+      module: "Leave Approvals",
+      icon: "📝",
+      title: "Pending Leave Applications",
+      desc: "Applications waiting for manager review and approval.",
+      prompt: "Show all pending leave applications waiting for approval with employee name, dates, leave type, and reason.",
+      chart: "📋 Approval Queue",
+      type: "HR Action"
+    },
+
+    // ── 19. HR Manager: Payroll & Compliance ──
+    {
+      id: "hr-payroll-summary",
+      module: "Payroll",
+      icon: "💰",
+      title: "Monthly Payroll Cost Summary",
+      desc: "Department-wise gross pay, statutory deductions (PF, ESIC, PT), and net payable.",
+      prompt: "Summarize this month's payroll by department showing total gross pay, deductions (PF, ESIC, PT), and net payable.",
+      chart: "🍩 Department Payroll",
+      type: "HR Finance"
+    },
+    {
+      id: "hr-unmarked-attendance",
+      module: "Payroll",
+      icon: "💰",
+      title: "Unmarked Attendance Audit before Payroll",
+      desc: "Audit unverified attendance records before running salary slips.",
+      prompt: "List all employees who have unmarked attendance for the current payroll cycle.",
+      chart: "⚠️ Payroll Risk",
+      type: "HR Compliance"
+    },
+
+    // ── 20. HR Manager: Workforce Analytics ──
+    {
+      id: "hr-headcount-dept",
+      module: "Analytics",
+      icon: "📊",
+      title: "Department Headcount Distribution",
+      desc: "Active employee count breakdown across all departments.",
+      prompt: "Show employee headcount breakdown across all active departments with an interactive chart.",
+      chart: "📊 Headcount Bar",
+      type: "HR Analytics"
+    },
+    {
+      id: "hr-attrition-tenure",
+      module: "Analytics",
+      icon: "📊",
+      title: "Tenure & Attrition Analysis",
+      desc: "Average employee tenure and departments with turnover.",
+      prompt: "Analyze employee tenure and highlight departments with highest turnover in the last 12 months.",
+      chart: "📈 Tenure Chart",
+      type: "HR Analytics"
+    },
+
+    // ── 21. HR Manager: Recruitment ──
+    {
+      id: "hr-openings-applicants",
+      module: "Recruitment",
+      icon: "💼",
+      title: "Open Positions & Applicants",
+      desc: "Active Job Openings and candidate application funnel.",
+      prompt: "List all active Job Openings with current status and number of Job Applicants.",
+      chart: "📋 Hiring Funnel",
+      type: "HR Recruitment"
     }
   ];
 
   // Ribbon Module Categories with pre-computed counts
-  custom_ui.ai.executiveModuleTabs = [
-    { key: "Manufacturing", label: "Manufacturing", icon: "🏭" },
-    { key: "Accounting", label: "Accounting", icon: "💰" },
-    { key: "Buying", label: "Buying", icon: "🛒" },
-    { key: "Selling", label: "Selling", icon: "📈" },
-    { key: "Stock", label: "Stock", icon: "📦" },
-    { key: "Projects", label: "Projects", icon: "📐" },
-    { key: "Quality", label: "Quality", icon: "🔬" },
-    { key: "CRM", label: "CRM", icon: "🤝" },
-    { key: "Assets", label: "Assets", icon: "🏢" },
-    { key: "Subcontracting", label: "Subcontracting", icon: "🔨" },
-    { key: "360° Cross", label: "360° Cross-Modular", icon: "🌐", is_cross: true },
+  const ALL_MODULE_TABS = [
+    // Employee tabs
+    { key: "Attendance", label: "Check-in & Attendance", icon: "⏱️", category: "employee" },
+    { key: "Timesheet", label: "Weekly Timesheets", icon: "🕒", category: "employee" },
+    { key: "Leaves", label: "Leaves & Holidays", icon: "📅", category: "employee" },
+    { key: "Salary", label: "Salary & Payslips", icon: "💰", category: "employee" },
+    { key: "Expenses", label: "Expense Claims", icon: "💳", category: "employee" },
+
+    // HR Manager tabs
+    { key: "Team Attendance", label: "Team Attendance", icon: "👥", category: "hr" },
+    { key: "Leave Approvals", label: "Leave Approvals", icon: "📝", category: "hr" },
+    { key: "Payroll", label: "Payroll Processing", icon: "💰", category: "hr" },
+    { key: "Analytics", label: "Workforce Analytics", icon: "📊", category: "hr" },
+    { key: "Recruitment", label: "Recruitment", icon: "💼", category: "hr" },
+
+    // Operations / ERP tabs
+    { key: "Manufacturing", label: "Manufacturing", icon: "🏭", category: "erp" },
+    { key: "Accounting", label: "Accounting", icon: "💰", category: "erp" },
+    { key: "Buying", label: "Buying", icon: "🛒", category: "erp" },
+    { key: "Selling", label: "Selling", icon: "📈", category: "erp" },
+    { key: "Stock", label: "Stock", icon: "📦", category: "erp" },
+    { key: "Projects", label: "Projects", icon: "📐", category: "erp" },
+    { key: "Quality", label: "Quality", icon: "🔬", category: "erp" },
+    { key: "CRM", label: "CRM", icon: "🤝", category: "erp" },
+    { key: "Assets", label: "Assets", icon: "🏢", category: "erp" },
+    { key: "Subcontracting", label: "Subcontracting", icon: "🔨", category: "erp" },
+    { key: "360° Cross", label: "360° Cross-Modular", icon: "🌐", is_cross: true, category: "erp" },
   ];
+
+  custom_ui.ai.getExecutiveTabsForUser = function () {
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+
+    // Standard employee: only show employee tabs
+    if (isEmployee && !isAdmin && !isHr && !hasMfg) {
+      return ALL_MODULE_TABS.filter(t => t.category === "employee");
+    }
+
+    // HR Manager: show HR tabs + Employee tabs (+ Projects, Assets)
+    if (isHr && !isAdmin && !hasMfg) {
+      let tabs = ALL_MODULE_TABS.filter(t => t.category === "hr" || t.category === "employee");
+      if (roles.includes("Projects Manager") || roles.includes("Projects User")) {
+        tabs = tabs.concat(ALL_MODULE_TABS.filter(t => t.key === "Projects"));
+      }
+      tabs = tabs.concat(ALL_MODULE_TABS.filter(t => t.key === "Assets"));
+      return tabs;
+    }
+
+    // Admin / Manufacturing / Multi-role: return all tabs
+    return ALL_MODULE_TABS;
+  };
+
+  custom_ui.ai.getDefaultModuleForUser = function () {
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+
+    if (isEmployee && !isAdmin && !isHr && !hasMfg) {
+      return "Attendance";
+    }
+    if (isHr && !isAdmin && !hasMfg) {
+      return "Team Attendance";
+    }
+    return "Manufacturing";
+  };
+
+  custom_ui.ai.getPlaceholderForUser = function () {
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+
+    if (isEmployee && !isAdmin && !isHr && !hasMfg) {
+      return "Ask about your check-in, leaves, payslips, timesheets, or expense claims…";
+    }
+    if (isHr && !isAdmin && !hasMfg) {
+      return "Ask about team attendance, leave approvals, payroll, or workforce analytics…";
+    }
+    return "Ask about invoices, orders, stock, or any ERPNext data…";
+  };
+
+  custom_ui.ai.getExecutivePromptsForUser = function () {
+    const tabs = custom_ui.ai.getExecutiveTabsForUser();
+    const allowedKeys = tabs.map(t => t.key);
+    return custom_ui.ai.executivePrompts.filter(p => allowedKeys.includes(p.module));
+  };
+
+  // Compatibility export
+  custom_ui.ai.executiveModuleTabs = ALL_MODULE_TABS;
 
 })();

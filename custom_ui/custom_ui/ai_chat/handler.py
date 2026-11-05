@@ -8,6 +8,7 @@ from custom_ui.custom_ui.ai_chat.config import (
     MAX_TOKENS,
     MAX_HISTORY,
     SYSTEM_PROMPT,
+    get_system_prompt_for_user,
     GEMINI_TOOLS
 )
 from custom_ui.custom_ui.ai_chat.tools import execute_tool
@@ -72,9 +73,9 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
             }
     # ─────────────────────────────────────────────────────────────────────────
 
-    system_text = SYSTEM_PROMPT.format(
-        company=frappe.defaults.get_global_default("company") or "Your Company",
+    system_text = get_system_prompt_for_user(
         user=frappe.session.user,
+        company=frappe.defaults.get_global_default("company") or "Your Company",
         today=frappe.utils.nowdate(),
     )
     system_text += "\n\nCRITICAL RULE: When executing tools to retrieve data, the volume of data MUST be MODERATE—no less, no more. Do not fetch massive datasets that overload tokens, but ensure you retrieve enough rows to provide complete context."

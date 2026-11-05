@@ -80,7 +80,7 @@ def execute_tool(name, args):
 
             data = normalize_document_data(doctype, args.get("data") or {})
             doc = frappe.get_doc(dict(doctype=doctype, **data))
-            doc.insert(check_permissions=True)
+            doc.insert()
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -98,7 +98,7 @@ def execute_tool(name, args):
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("write")
             doc.update(data)
-            doc.save(check_permissions=True)
+            doc.save()
             frappe.db.commit()
             return {"output": {"status": "Success", "name": doc.name, "doc": doc.as_dict()}}
 
@@ -114,7 +114,7 @@ def execute_tool(name, args):
 
             doc = frappe.get_doc(doctype, docname)
             doc.check_permission("delete")
-            frappe.delete_doc(doctype, docname, check_permissions=True)
+            frappe.delete_doc(doctype, docname)
             frappe.db.commit()
             return {"output": {"status": "Success", "message": f"Deleted {doctype} {docname}"}}
 
@@ -272,7 +272,12 @@ def execute_tool(name, args):
                 "Purchase Order": "Prerequisites: 'supplier' (Supplier DocType) and in child table 'items', valid 'item_code' and 'schedule_date'.",
                 "Purchase Invoice": "Prerequisites: 'supplier', in child table 'items', valid 'item_code', and expense account.",
                 "Material Request": "Prerequisites: In child table 'items', valid 'item_code' and 'schedule_date'.",
-                "Stock Entry": "Prerequisites: 'purpose'. If 'Manufacture', requires 'work_order' and 'bom_no'."
+                "Stock Entry": "Prerequisites: 'purpose'. If 'Manufacture', requires 'work_order' and 'bom_no'.",
+                "Leave Application": "Prerequisites: 'employee' (Employee DocType), 'leave_type' (e.g. 'Casual Leave', 'Sick Leave'), 'from_date', 'to_date'. Always check Leave Allocation balance first.",
+                "Expense Claim": "Prerequisites: 'employee', 'payable_account', and child table 'expenses' with valid 'expense_type', 'claim_amount', and 'sanctioned_amount'.",
+                "Employee Checkin": "Prerequisites: 'employee', 'time' (timestamp YYYY-MM-DD HH:MM:SS), and 'log_type' ('IN' or 'OUT').",
+                "Attendance": "Prerequisites: 'employee', 'attendance_date', and 'status' ('Present', 'Absent', 'On Leave', 'Half Day').",
+                "Timesheet": "Prerequisites: 'employee' (Employee DocType), 'company', and child table 'time_logs' with valid 'activity_type' (e.g. 'Execution', 'Planning', 'Research'), 'from_time', 'hours', and optional 'project'."
             }
 
             return {

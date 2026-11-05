@@ -58,10 +58,35 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   // EXECUTIVE PROMPT CATALOG (MODULE-SPECIFIC + 360° CROSS-MODULAR)
   // ══════════════════════════════════════════════════════════════════════════════
   // Prompt data is loaded from /assets/custom_ui/js/ai/executive_prompts.js.
-  const EXECUTIVE_PROMPTS = (window.custom_ui && custom_ui.ai && custom_ui.ai.executivePrompts) || [];
-  const EXECUTIVE_MODULE_TABS = (window.custom_ui && custom_ui.ai && custom_ui.ai.executiveModuleTabs) || [];
+  const getExecutivePrompts = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getExecutivePromptsForUser) {
+      return custom_ui.ai.getExecutivePromptsForUser();
+    }
+    return (window.custom_ui && custom_ui.ai && custom_ui.ai.executivePrompts) || [];
+  };
 
-  var activeExecModule = "Manufacturing";
+  const getExecutiveTabs = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getExecutiveTabsForUser) {
+      return custom_ui.ai.getExecutiveTabsForUser();
+    }
+    return (window.custom_ui && custom_ui.ai && custom_ui.ai.executiveModuleTabs) || [];
+  };
+
+  const getDefaultModule = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getDefaultModuleForUser) {
+      return custom_ui.ai.getDefaultModuleForUser();
+    }
+    return "Manufacturing";
+  };
+
+  const getChatPlaceholder = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getPlaceholderForUser) {
+      return custom_ui.ai.getPlaceholderForUser();
+    }
+    return "Ask about invoices, orders, stock, or any ERPNext data…";
+  };
+
+  var activeExecModule = getDefaultModule();
   var activeExecSearch = "";
 
   function getCopilotSvg(size, className) {
@@ -92,9 +117,26 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     const root = wrapper.querySelector('#executive-suite-root');
     if (!root) return;
 
+    const prompts = getExecutivePrompts();
+    const tabs = getExecutiveTabs();
+
+    if (!tabs.some(t => t.key === activeExecModule)) {
+      activeExecModule = tabs.length > 0 ? tabs[0].key : getDefaultModule();
+    }
+
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+    const isStandardEmployee = isEmployee && !isAdmin && !isHr && !hasMfg;
+
+    const badgeLabel = isStandardEmployee ? "✦ Self-Service Intelligence" : (isHr && !isAdmin && !hasMfg ? "✦ HR Intelligence Suite" : "✦ Executive Intelligence");
+    const searchPlaceholder = isStandardEmployee ? "Search prompts (e.g. check-in, leaves, timesheet)..." : "Search prompts (e.g. bottleneck, dead stock, EVM)...";
+
     // Filter prompts based on active module and search keyword
     const q = activeExecSearch.toLowerCase().trim();
-    const filtered = EXECUTIVE_PROMPTS.filter(p => {
+    const filtered = prompts.filter(p => {
       // When searching, match across all modules; otherwise filter by active selected module
       const matchModule = q ? true : (p.module === activeExecModule);
       if (!matchModule) return false;
@@ -109,8 +151,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     });
 
     // Generate Ribbon Tabs HTML
-    const ribbonHtml = EXECUTIVE_MODULE_TABS.map(tab => {
-      const count = EXECUTIVE_PROMPTS.filter(p => p.module === tab.key).length;
+    const ribbonHtml = tabs.map(tab => {
+      const count = prompts.filter(p => p.module === tab.key).length;
       const isActive = (!q && activeExecModule === tab.key) ? ' active' : '';
       const isCross = tab.is_cross ? ' cross-tab' : '';
       return `<button type="button" class="exec-tab-btn${isActive}${isCross}" data-module="${tab.key}">
@@ -156,12 +198,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       <div class="executive-suite-container">
         <div class="exec-suite-bar">
           <div class="exec-suite-title-wrap">
-            <span class="exec-suite-badge">✦ Executive Intelligence</span>
-            <span class="exec-suite-count">${filtered.length} of ${EXECUTIVE_PROMPTS.length} prompts</span>
+            <span class="exec-suite-badge">${badgeLabel}</span>
+            <span class="exec-suite-count">${filtered.length} of ${prompts.length} prompts</span>
           </div>
           <div class="exec-search-wrap">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" class="exec-search-input" id="exec-prompt-search" placeholder="Search prompts (e.g. bottleneck, dead stock, EVM)..." value="${activeExecSearch.replace(/"/g, '&quot;')}">
+            <input type="text" class="exec-search-input" id="exec-prompt-search" placeholder="${searchPlaceholder}" value="${activeExecSearch.replace(/"/g, '&quot;')}">
             <button type="button" class="exec-search-clear" id="exec-search-clear" title="Clear search" style="${activeExecSearch ? 'display:inline-block;' : 'display:none;'}">✕</button>
           </div>
         </div>
@@ -246,17 +288,58 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   function initExecutiveSuite() {
     renderExecutiveSuite();
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai._promptsLoaded) return;
+    // Dynamically load prompts from AI Executive Prompt DocType
+    frappe.call({
+      method: "custom_ui.custom_ui.api.get_executive_prompts",
+      callback: function(r) {
+        if (r && r.message && Array.isArray(r.message.prompts) && r.message.prompts.length > 0) {
+          if (window.custom_ui && custom_ui.ai) {
+            custom_ui.ai.executivePrompts = r.message.prompts;
+            custom_ui.ai._promptsLoaded = true;
+          }
+          renderExecutiveSuite();
+        }
+      }
+    });
   }
 
-  const AI_CAPABILITIES = [
-    "read and write directly to all live ERPNext DocTypes in real-time.",
-    "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
-    "draft and submit Quotations, Invoices, Work Orders and POs for you.",
-    "pinpoint shop-floor bottlenecks and predict production delay risks.",
-    "forecast raw material stockouts before assembly line shortages occur.",
-    "track overdue receivables and generate personalized payment reminders.",
-    "reconcile complex financial ledgers and calculate true product profit margins."
-  ];
+  function getUserCapabilities() {
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+
+    if (isEmployee && !isAdmin && !isHr && !hasMfg) {
+      return [
+        "mark your daily check-in and check-out in one tap.",
+        "submit weekly timesheets and record your project hours.",
+        "apply for leaves and check your real-time leave balances.",
+        "download and explain your monthly salary payslips.",
+        "submit and track your reimbursement expense claims.",
+        "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi."
+      ];
+    }
+    if (isHr && !isAdmin && !hasMfg) {
+      return [
+        "review daily team attendance, late entries and absences.",
+        "approve or reject pending leave applications instantly.",
+        "run payroll processing and generate salary slips for the team.",
+        "analyze employee tenure, attrition rates and hiring pipelines.",
+        "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi."
+      ];
+    }
+    return [
+      "read and write directly to all live ERPNext DocTypes in real-time.",
+      "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
+      "draft and submit Quotations, Invoices, Work Orders and POs for you.",
+      "pinpoint shop-floor bottlenecks and predict production delay risks.",
+      "forecast raw material stockouts before assembly line shortages occur.",
+      "track overdue receivables and generate personalized payment reminders.",
+      "reconcile complex financial ledgers and calculate true product profit margins."
+    ];
+  }
 
   let typewriterTimeout = null;
   function startCapabilityTypewriter() {
@@ -265,14 +348,15 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     const textEl = wrapper.querySelector('#ai-capability-text');
     if (!textEl) return;
 
+    const capabilities = getUserCapabilities();
     let phraseIdx = 0;
-    let charIdx = AI_CAPABILITIES[0].length;
+    let charIdx = capabilities[0].length;
     let isDeleting = true;
 
     function typeStep() {
       if (!wrapper.querySelector('#ai-capability-text')) return;
 
-      const currentPhrase = AI_CAPABILITIES[phraseIdx];
+      const currentPhrase = capabilities[phraseIdx];
 
       if (!isDeleting) {
         charIdx++;
@@ -290,7 +374,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
         if (charIdx === 0) {
           isDeleting = false;
-          phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+          phraseIdx = (phraseIdx + 1) % capabilities.length;
           typewriterTimeout = setTimeout(typeStep, 350);
           return;
         }
@@ -305,9 +389,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       showcaseEl._hasClickListener = true;
       showcaseEl.addEventListener('click', () => {
         if (typewriterTimeout) clearTimeout(typewriterTimeout);
-        phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
-        charIdx = AI_CAPABILITIES[phraseIdx].length;
-        textEl.textContent = AI_CAPABILITIES[phraseIdx];
+        phraseIdx = (phraseIdx + 1) % capabilities.length;
+        charIdx = capabilities[phraseIdx].length;
+        textEl.textContent = capabilities[phraseIdx];
         isDeleting = true;
         typewriterTimeout = setTimeout(typeStep, 3400);
       });
@@ -365,7 +449,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
         <!-- 3. Clean Subtitle with Rotating Typewriter Effect (Zero Borders / Zero Pills) -->
         <div class="welcome-typewriter-wrap" id="welcome-capability-showcase" title="Click to view next capability">
-          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${AI_CAPABILITIES[0]}</span><span class="typewriter-cursor">|</span>
+          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${getUserCapabilities()[0]}</span><span class="typewriter-cursor">|</span>
         </div>
       </div>
       <div id="executive-suite-root"></div>
@@ -454,7 +538,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         <div id="chat-input-wrap">
           <textarea
             id="chat-input"
-            placeholder="Ask about invoices, orders, stock, or any ERPNext data…"
+            placeholder="${getChatPlaceholder()}"
             rows="1"
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"

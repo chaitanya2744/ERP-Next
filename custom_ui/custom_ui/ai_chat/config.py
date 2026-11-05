@@ -6,7 +6,12 @@ from custom_ui.custom_ui.ai_chat.configuration.model import (
     MAX_HISTORY,
     MAX_TOKENS,
 )
-from custom_ui.custom_ui.ai_chat.configuration.system_prompt import SYSTEM_PROMPT
+from custom_ui.custom_ui.ai_chat.configuration.system_prompt import (
+    SYSTEM_PROMPT,
+    EMPLOYEE_SYSTEM_PROMPT,
+    HR_MANAGER_SYSTEM_PROMPT,
+    get_system_prompt_for_user,
+)
 from custom_ui.custom_ui.ai_chat.configuration.tool_schemas import GEMINI_TOOLS
 
 __all__ = [
@@ -15,5 +20,8 @@ __all__ = [
     "MAX_HISTORY",
     "MAX_TOKENS",
     "SYSTEM_PROMPT",
+    "EMPLOYEE_SYSTEM_PROMPT",
+    "HR_MANAGER_SYSTEM_PROMPT",
+    "get_system_prompt_for_user",
     "GEMINI_TOOLS",
 ]
