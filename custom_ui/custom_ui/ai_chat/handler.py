@@ -54,19 +54,35 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
     _remember_prefixes = ("remember:", "लक्षात ठेव:", "याद रखो:", "remember ")
     if any(_msg_stripped.lower().startswith(p) for p in _remember_prefixes):
         _rule_text = _msg_stripped.split(":", 1)[-1].strip() if ":" in _msg_stripped else _msg_stripped[8:].strip()
-        if _rule_text:
+        _display_text = _rule_text
+
+        # If user said "remember this / remember that / remember it", resolve to the previous assistant message
+        if _rule_text.lower() in ("this", "that", "it", "the above", "above", "this rule", "this protocol", "everything"):
+            if len(history) >= 2:
+                prev_msg = history[-2].get("content", "").strip()
+                if prev_msg:
+                    _rule_text = prev_msg
+                    first_line = prev_msg.split("\n")[0].replace("#", "").replace("*", "").strip()
+                    _display_text = first_line if len(first_line) > 3 else "the protocol discussed above"
+
+        if _rule_text and _rule_text.lower() not in ("this", "that", "it"):
+            words = set(re.findall(r'\b[A-Za-z]{4,}\b', _rule_text.lower()))
+            common = {"this", "that", "with", "have", "from", "will", "your", "what", "when", "where", "should", "would", "could", "please", "system", "document"}
+            keywords = ", ".join(list(words - common)[:6])
+
             capture_memory(
                 category="User Preference",
                 learned_context=_rule_text,
+                trigger_keywords=keywords,
                 source="Auto: Explicit Remember"
             )
             _ack = {
-                "mr": f"✅ लक्षात ठेवलं! मी हे लक्षात ठेवेन: *{_rule_text}*",
-                "hi": f"✅ याद कर लिया! मैं यह याद रखूँगी: *{_rule_text}*",
+                "mr": f"✅ लक्षात ठेवलं! मी हे लक्षात ठेवेन: *{_display_text}*",
+                "hi": f"✅ याद कर लिया! मैं यह याद रखूँगी: *{_display_text}*",
             }
             _lang = (voice_language or "en").split("-")[0].lower() if voice_language else "en"
             return {
-                "reply": _ack.get(_lang, f"✅ Got it! I'll remember: *{_rule_text}*"),
+                "reply": _ack.get(_lang, f"✅ Got it! I'll remember: *{_display_text}*"),
                 "new_history": [],
                 "session_id": session_id,
                 "tokens": {}
