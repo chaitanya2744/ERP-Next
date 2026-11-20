@@ -11,8 +11,8 @@
     const STYLE_TAG_ID = "cu-custom-colors-style";
 
     const DEFAULT_COLORS = {
-        primary: "#006269",
-        accent: "#00A3AD",
+        primary: "#4083CA",
+        accent: "#F68714",
         bg: "#F5F5F7",
         surface: "#FFFFFF",
         text: "#1D1D1F"
@@ -23,13 +23,13 @@
             key: "primary",
             label: "Primary Brand Color",
             hint: "Desktop icons, Create/Save buttons, active form tabs, AI hero avatar & send button",
-            defaultHex: "#006269"
+            defaultHex: "#4083CA"
         },
         {
             key: "accent",
             label: "Accent Color",
             hint: "Focus rings, badges, AI hero halo ring, subtle highlights, and voice orb glow",
-            defaultHex: "#00A3AD"
+            defaultHex: "#F68714"
         },
         {
             key: "bg",

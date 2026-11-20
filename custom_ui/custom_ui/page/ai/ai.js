@@ -911,10 +911,10 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           if (!config.colors || !config.colors.length) {
             var brandPrimary = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
                 ? frappe.ui.color_customizer.get_color("primary") 
-                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#006269";
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#4083CA";
             var brandAccent = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
                 ? frappe.ui.color_customizer.get_color("accent") 
-                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#00A3AD";
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#F68714";
             config.colors = [brandPrimary, brandAccent, "#38BDF8", "#F59E0B", "#10B981"];
           }
           new frappe.Chart(container, config);
