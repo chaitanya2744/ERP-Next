@@ -789,6 +789,17 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   var fileInput = wrapper.querySelector('#chat-file-input');
   var chipsContainer = wrapper.querySelector('#attachment-chips');
 
+  var MAX_ATTACHMENTS = 5;
+  var MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB per file
+  var MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25 MB total per message
+  var ALLOWED_EXTS = ['pdf', 'xlsx', 'xls', 'csv', 'txt', 'md', 'png', 'jpg', 'jpeg', 'webp'];
+
+  function isAllowedFile(file) {
+    if (!file || !file.name) return false;
+    var ext = file.name.split('.').pop().toLowerCase();
+    return ALLOWED_EXTS.indexOf(ext) !== -1;
+  }
+
   function getMimeType(file) {
     if (file.type) return file.type;
     var ext = (file.name || '').split('.').pop().toLowerCase();
@@ -809,14 +820,58 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   function handleFileSelect(files) {
     if (!files || !files.length) return;
-    Array.from(files).forEach(function(file) {
-      if (file.size > 20 * 1024 * 1024) {
-        frappe.show_alert({ message: __('File "{0}" exceeds 20 MB limit', [file.name]), indicator: 'red' });
+    var fileList = Array.from(files);
+
+    if (pendingAttachments.length >= MAX_ATTACHMENTS) {
+      frappe.show_alert({
+        message: __('Maximum {0} files allowed per message', [MAX_ATTACHMENTS]),
+        indicator: 'orange'
+      });
+      return;
+    }
+
+    var availableSlots = MAX_ATTACHMENTS - pendingAttachments.length;
+    if (fileList.length > availableSlots) {
+      frappe.show_alert({
+        message: __('You can attach up to {0} file(s) total ({1} remaining)', [MAX_ATTACHMENTS, availableSlots]),
+        indicator: 'orange'
+      });
+      fileList = fileList.slice(0, availableSlots);
+    }
+
+    var currentTotalSize = pendingAttachments.reduce(function(sum, a) { return sum + (a.size || 0); }, 0);
+    var skippedUnsupported = 0;
+
+    fileList.forEach(function(file) {
+      if (!file.size || file.size <= 0) return;
+
+      if (!isAllowedFile(file)) {
+        skippedUnsupported++;
         return;
       }
+
+      if (file.size > MAX_FILE_SIZE) {
+        frappe.show_alert({
+          message: __('"{0}" exceeds {1} MB limit', [file.name, (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0)]),
+          indicator: 'red'
+        });
+        return;
+      }
+
+      if (currentTotalSize + file.size > MAX_TOTAL_SIZE) {
+        frappe.show_alert({
+          message: __('Adding "{0}" exceeds {1} MB total batch limit', [file.name, (MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(0)]),
+          indicator: 'red'
+        });
+        return;
+      }
+
       if (pendingAttachments.some(function(a) { return a.name === file.name && a.size === file.size; })) {
         return;
       }
+
+      currentTotalSize += file.size;
+
       var reader = new FileReader();
       reader.onload = function(e) {
         var dataUrl = e.target.result;
@@ -830,8 +885,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         });
         renderAttachmentChips();
       };
+      reader.onerror = function() {
+        frappe.show_alert({ message: __('Failed to read "{0}"', [file.name]), indicator: 'red' });
+      };
       reader.readAsDataURL(file);
     });
+
+    if (skippedUnsupported > 0) {
+      frappe.show_alert({
+        message: __('Skipped {0} unsupported file(s). Allowed: PDF, Excel, CSV, TXT, Images', [skippedUnsupported]),
+        indicator: 'orange'
+      });
+    }
   }
 
   function renderAttachmentChips() {
