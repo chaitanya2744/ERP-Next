@@ -999,8 +999,20 @@
     }
 
     try {
+        // Suppress CSS transitions during initial color apply to prevent green FOUC
+        const _noTrans = document.createElement('style');
+        _noTrans.id = 'cu-no-transition';
+        _noTrans.textContent = '*, *::before, *::after { transition: none !important; animation: none !important; }';
+        document.head.appendChild(_noTrans);
         const initial = getSavedColors();
         applyColors(initial);
+        // Re-enable after two frames (browser has painted with correct colors)
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                var el = document.getElementById('cu-no-transition');
+                if (el) el.remove();
+            });
+        });
     } catch (e) {}
 
     /* ─── Dialog Implementation ─── */
