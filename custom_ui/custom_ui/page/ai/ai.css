@@ -330,10 +330,20 @@ body.theme-apple.dark .attach-btn {
 .attachment-chips {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  max-width: 1200px;
-  margin: 0 auto 8px auto;
-  padding: 0 4px;
+  width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 auto 8px auto !important;
+  padding: 0 4px !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.25s ease !important;
+}
+
+.attachment-chips:empty {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .attachment-chip {
@@ -5935,11 +5945,16 @@ body.theme-apple #chat-input-wrap:focus-visible {
   box-sizing: border-box !important;
 }
 
-#chat-input-wrap {
+#chat-input-wrap,
+.attachment-chips {
   width: 100% !important;
   max-width: 900px !important;
   margin: 0 auto !important;
   transition: max-width 0.25s ease !important;
+}
+
+.attachment-chips {
+  margin-bottom: 8px !important;
 }
 
 .msg-row {
@@ -5969,7 +5984,8 @@ body.theme-apple #chat-input-wrap:focus-visible {
     font-size: 28px !important;
   }
 
-  #chat-input-wrap {
+  #chat-input-wrap,
+  .attachment-chips {
     max-width: 1060px !important;
   }
 
@@ -5990,7 +6006,8 @@ body.theme-apple #chat-input-wrap:focus-visible {
     gap: 14px !important;
   }
 
-  #chat-input-wrap {
+  #chat-input-wrap,
+  .attachment-chips {
     max-width: 920px !important;
   }
 
@@ -6011,7 +6028,8 @@ body.theme-apple #chat-input-wrap:focus-visible {
     gap: 12px !important;
   }
 
-  #chat-input-wrap {
+  #chat-input-wrap,
+  .attachment-chips {
     max-width: 840px !important;
   }
 }
@@ -6028,7 +6046,8 @@ body.theme-apple #chat-input-wrap:focus-visible {
     gap: 10px !important;
   }
 
-  #chat-input-wrap {
+  #chat-input-wrap,
+  .attachment-chips {
     max-width: 100% !important;
   }
 }
@@ -6212,9 +6231,13 @@ body.theme-apple #chat-input-wrap:focus-visible {
     box-sizing: border-box !important;
   }
 
-  #chat-input-wrap {
+  #chat-input-wrap,
+  .attachment-chips {
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  #chat-input-wrap {
     padding: 6px 8px 6px 14px !important;
     gap: 6px !important;
     border-radius: 20px !important;
