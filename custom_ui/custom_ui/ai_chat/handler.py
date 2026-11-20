@@ -278,10 +278,20 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
             if not text.startswith("[Voice Call Directive") and not text.startswith("[Command:"):
                 text = command_prefix + text
 
-        contents.append({
-            "role": role,
-            "parts": [{"text": text}]
-        })
+        parts = [{"text": text}] if text else []
+        for att in msg.get("attachments", []):
+            if isinstance(att, dict) and att.get("data") and att.get("mime_type"):
+                parts.append({
+                    "inline_data": {
+                        "mime_type": att["mime_type"],
+                        "data": att["data"]
+                    }
+                })
+        if parts:
+            contents.append({
+                "role": role,
+                "parts": parts
+            })
 
     # If the user just approved an action, artificially inject it so Gemini knows it executed
     new_history = []
@@ -506,7 +516,8 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
 
             try:
                 from custom_ui.custom_ui.api import save_session
-                final_history = history + new_history
+                clean_history = [{k: v for k, v in m.items() if k != "attachments"} for m in history]
+                final_history = clean_history + new_history
                 final_history.append({"role": "assistant", "content": reply_text})
                 new_session_id = save_session(session_id, json.dumps(final_history))
                 

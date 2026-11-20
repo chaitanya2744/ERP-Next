@@ -535,7 +535,14 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
       <!-- Input -->
       <div id="chat-input-area">
+        <div id="attachment-chips" class="attachment-chips"></div>
         <div id="chat-input-wrap">
+          <input type="file" id="chat-file-input" style="display:none;" accept=".pdf,.xlsx,.xls,.csv,.txt,.md,.png,.jpg,.jpeg,.webp" multiple>
+          <button id="attach-btn" class="attach-btn" title="Attach file (PDF, Excel, Images, CSV, TXT)" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
           <textarea
             id="chat-input"
             placeholder="${getChatPlaceholder()}"
@@ -770,12 +777,114 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   var history = [];
   var isLoading = false;
   var viewToken = 0;
+  var pendingAttachments = [];
 
   // DOM elements (scoped to this page wrapper)
   var messagesEl = wrapper.querySelector('#chat-messages');
   var inputEl = wrapper.querySelector('#chat-input');
   var sendBtn = wrapper.querySelector('#send-btn');
   var welcomeEl = wrapper.querySelector('#chat-welcome');
+  var attachBtn = wrapper.querySelector('#attach-btn');
+  var fileInput = wrapper.querySelector('#chat-file-input');
+  var chipsContainer = wrapper.querySelector('#attachment-chips');
+
+  function getMimeType(file) {
+    if (file.type) return file.type;
+    var ext = (file.name || '').split('.').pop().toLowerCase();
+    var map = {
+      pdf: 'application/pdf',
+      csv: 'text/csv',
+      txt: 'text/plain',
+      md: 'text/plain',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      xls: 'application/vnd.ms-excel'
+    };
+    return map[ext] || 'application/octet-stream';
+  }
+
+  function handleFileSelect(files) {
+    if (!files || !files.length) return;
+    Array.from(files).forEach(function(file) {
+      if (file.size > 20 * 1024 * 1024) {
+        frappe.show_alert({ message: __('File "{0}" exceeds 20 MB limit', [file.name]), indicator: 'red' });
+        return;
+      }
+      if (pendingAttachments.some(function(a) { return a.name === file.name && a.size === file.size; })) {
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var dataUrl = e.target.result;
+        var base64 = dataUrl.split(',')[1];
+        var mime = (dataUrl.split(';')[0].split(':')[1]) || getMimeType(file);
+        pendingAttachments.push({
+          name: file.name,
+          mime_type: mime,
+          data: base64,
+          size: file.size
+        });
+        renderAttachmentChips();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderAttachmentChips() {
+    if (!chipsContainer) chipsContainer = wrapper.querySelector('#attachment-chips');
+    if (!chipsContainer) return;
+    chipsContainer.innerHTML = '';
+    pendingAttachments.forEach(function(att, idx) {
+      var chip = document.createElement('div');
+      chip.className = 'attachment-chip';
+      var sizeFormatted = att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB';
+      chip.innerHTML = '<span class="chip-icon">📄</span><span class="chip-name" title="' + _escapeHtml(att.name) + '">' + _escapeHtml(att.name) + '</span><span class="chip-size">' + sizeFormatted + '</span><button type="button" class="chip-remove" title="Remove">×</button>';
+      chip.querySelector('.chip-remove').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pendingAttachments.splice(idx, 1);
+        renderAttachmentChips();
+      });
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener('click', function() {
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files.length) {
+        handleFileSelect(this.files);
+      }
+      this.value = '';
+    });
+  }
+
+  var inputWrap = wrapper.querySelector('#chat-input-wrap');
+  if (inputWrap) {
+    inputWrap.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.add('drag-over');
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    inputWrap.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.remove('drag-over');
+    });
+    inputWrap.addEventListener('drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files);
+      }
+    });
+  }
 
   function renderMarkdown(text) {
     if (!text) return "";
@@ -868,7 +977,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     sendMessage();
   };
 
-  function appendMessage(role, content, tokenData) {
+  function appendMessage(role, content, tokenData, attachments) {
     hideWelcome();
     if (role === 'ai') {
       try {
@@ -896,6 +1005,15 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
         bubble.innerHTML = '<span style="font-style: italic; opacity: 0.85;">🌐 ' + _escapeHtml(cleanNotice) + '</span>';
       } else {
         bubble.textContent = content;
+      }
+      if (attachments && attachments.length) {
+        attachments.forEach(function(att) {
+          var sizeStr = att.size ? ' <span class="chat-attachment-size">' + (att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB') + '</span>' : '';
+          var badge = document.createElement('div');
+          badge.className = 'chat-attachment-badge';
+          badge.innerHTML = '<span class="badge-icon">📎</span> ' + _escapeHtml(att.name || 'Attachment') + sizeStr;
+          bubble.appendChild(badge);
+        });
       }
     } else {
       bubble.innerHTML = renderMarkdown(content);
@@ -1212,6 +1330,8 @@ window.clearChat = function () {
     isLoading = false;
     sendBtn.disabled = false;
     hideTyping();
+    pendingAttachments = [];
+    renderAttachmentChips();
     history = [];
     messagesEl.innerHTML = '';
     messagesEl.classList.remove('has-conversation');
@@ -1239,7 +1359,10 @@ window.clearChat = function () {
 
   function sendMessage() {
     var text = inputEl.value.trim();
-    if (!text || isLoading) return;
+    if ((!text && pendingAttachments.length === 0) || isLoading) return;
+    if (!text && pendingAttachments.length > 0) {
+      text = "Please examine the attached document(s).";
+    }
     hideWelcome();
 
     var requestViewToken = viewToken;
@@ -1265,14 +1388,35 @@ window.clearChat = function () {
     isLoading = true;
     sendBtn.disabled = true;
 
-    appendMessage('user', text);
-    history.push({ role: 'user', content: text });
+    var attachmentsToSend = pendingAttachments.slice();
+    var attachmentNames = attachmentsToSend.map(function(a) {
+      return { name: a.name, size: a.size, mime_type: a.mime_type };
+    });
+
+    pendingAttachments = [];
+    renderAttachmentChips();
+
+    appendMessage('user', text, null, attachmentNames);
+
+    var userPayload = { role: 'user', content: text };
+    if (attachmentsToSend.length > 0) {
+      userPayload.attachments = attachmentsToSend;
+    }
+    history.push(userPayload);
     showTyping();
+
+    var historyJson = JSON.stringify(history);
+
+    // Ephemeral attachments: strip base64 blobs from client-side history immediately after payload serialized
+    if (userPayload.attachments) {
+      delete userPayload.attachments;
+      userPayload.attachmentNames = attachmentNames;
+    }
 
     frappe.call({
       method: 'custom_ui.custom_ui.api.chat',
       args: {
-        messages: JSON.stringify(history),
+        messages: historyJson,
         voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female',
         session_id: currentSessionId
       },
