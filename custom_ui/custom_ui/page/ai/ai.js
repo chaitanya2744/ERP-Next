@@ -58,10 +58,35 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   // EXECUTIVE PROMPT CATALOG (MODULE-SPECIFIC + 360° CROSS-MODULAR)
   // ══════════════════════════════════════════════════════════════════════════════
   // Prompt data is loaded from /assets/custom_ui/js/ai/executive_prompts.js.
-  const EXECUTIVE_PROMPTS = (window.custom_ui && custom_ui.ai && custom_ui.ai.executivePrompts) || [];
-  const EXECUTIVE_MODULE_TABS = (window.custom_ui && custom_ui.ai && custom_ui.ai.executiveModuleTabs) || [];
+  const getExecutivePrompts = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getExecutivePromptsForUser) {
+      return custom_ui.ai.getExecutivePromptsForUser();
+    }
+    return (window.custom_ui && custom_ui.ai && custom_ui.ai.executivePrompts) || [];
+  };
 
-  var activeExecModule = "Manufacturing";
+  const getExecutiveTabs = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getExecutiveTabsForUser) {
+      return custom_ui.ai.getExecutiveTabsForUser();
+    }
+    return (window.custom_ui && custom_ui.ai && custom_ui.ai.executiveModuleTabs) || [];
+  };
+
+  const getDefaultModule = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getDefaultModuleForUser) {
+      return custom_ui.ai.getDefaultModuleForUser();
+    }
+    return "Manufacturing";
+  };
+
+  const getChatPlaceholder = () => {
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai.getPlaceholderForUser) {
+      return custom_ui.ai.getPlaceholderForUser();
+    }
+    return "Ask about invoices, orders, stock, or any ERPNext data…";
+  };
+
+  var activeExecModule = getDefaultModule();
   var activeExecSearch = "";
 
   function getCopilotSvg(size, className) {
@@ -92,9 +117,26 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     const root = wrapper.querySelector('#executive-suite-root');
     if (!root) return;
 
+    const prompts = getExecutivePrompts();
+    const tabs = getExecutiveTabs();
+
+    if (!tabs.some(t => t.key === activeExecModule)) {
+      activeExecModule = tabs.length > 0 ? tabs[0].key : getDefaultModule();
+    }
+
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+    const isStandardEmployee = isEmployee && !isAdmin && !isHr && !hasMfg;
+
+    const badgeLabel = isStandardEmployee ? "✦ Self-Service Intelligence" : (isHr && !isAdmin && !hasMfg ? "✦ HR Intelligence Suite" : "✦ Executive Intelligence");
+    const searchPlaceholder = isStandardEmployee ? "Search prompts (e.g. check-in, leaves, timesheet)..." : "Search prompts (e.g. bottleneck, dead stock, EVM)...";
+
     // Filter prompts based on active module and search keyword
     const q = activeExecSearch.toLowerCase().trim();
-    const filtered = EXECUTIVE_PROMPTS.filter(p => {
+    const filtered = prompts.filter(p => {
       // When searching, match across all modules; otherwise filter by active selected module
       const matchModule = q ? true : (p.module === activeExecModule);
       if (!matchModule) return false;
@@ -109,8 +151,8 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     });
 
     // Generate Ribbon Tabs HTML
-    const ribbonHtml = EXECUTIVE_MODULE_TABS.map(tab => {
-      const count = EXECUTIVE_PROMPTS.filter(p => p.module === tab.key).length;
+    const ribbonHtml = tabs.map(tab => {
+      const count = prompts.filter(p => p.module === tab.key).length;
       const isActive = (!q && activeExecModule === tab.key) ? ' active' : '';
       const isCross = tab.is_cross ? ' cross-tab' : '';
       return `<button type="button" class="exec-tab-btn${isActive}${isCross}" data-module="${tab.key}">
@@ -156,12 +198,12 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       <div class="executive-suite-container">
         <div class="exec-suite-bar">
           <div class="exec-suite-title-wrap">
-            <span class="exec-suite-badge">✦ Executive Intelligence</span>
-            <span class="exec-suite-count">${filtered.length} of ${EXECUTIVE_PROMPTS.length} prompts</span>
+            <span class="exec-suite-badge">${badgeLabel}</span>
+            <span class="exec-suite-count">${filtered.length} of ${prompts.length} prompts</span>
           </div>
           <div class="exec-search-wrap">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" class="exec-search-input" id="exec-prompt-search" placeholder="Search prompts (e.g. bottleneck, dead stock, EVM)..." value="${activeExecSearch.replace(/"/g, '&quot;')}">
+            <input type="text" class="exec-search-input" id="exec-prompt-search" placeholder="${searchPlaceholder}" value="${activeExecSearch.replace(/"/g, '&quot;')}">
             <button type="button" class="exec-search-clear" id="exec-search-clear" title="Clear search" style="${activeExecSearch ? 'display:inline-block;' : 'display:none;'}">✕</button>
           </div>
         </div>
@@ -246,17 +288,58 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
   function initExecutiveSuite() {
     renderExecutiveSuite();
+    if (window.custom_ui && custom_ui.ai && custom_ui.ai._promptsLoaded) return;
+    // Dynamically load prompts from AI Executive Prompt DocType
+    frappe.call({
+      method: "custom_ui.custom_ui.api.get_executive_prompts",
+      callback: function(r) {
+        if (r && r.message && Array.isArray(r.message.prompts) && r.message.prompts.length > 0) {
+          if (window.custom_ui && custom_ui.ai) {
+            custom_ui.ai.executivePrompts = r.message.prompts;
+            custom_ui.ai._promptsLoaded = true;
+          }
+          renderExecutiveSuite();
+        }
+      }
+    });
   }
 
-  const AI_CAPABILITIES = [
-    "read and write directly to all live ERPNext DocTypes in real-time.",
-    "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
-    "draft and submit Quotations, Invoices, Work Orders and POs for you.",
-    "pinpoint shop-floor bottlenecks and predict production delay risks.",
-    "forecast raw material stockouts before assembly line shortages occur.",
-    "track overdue receivables and generate personalized payment reminders.",
-    "reconcile complex financial ledgers and calculate true product profit margins."
-  ];
+  function getUserCapabilities() {
+    const roles = (frappe.user_roles || []);
+    const isEmployee = roles.includes("Employee") || roles.includes("Employee Self Service");
+    const isHr = roles.includes("HR Manager") || roles.includes("HR User");
+    const isAdmin = roles.includes("System Manager") || roles.includes("Administrator");
+    const hasMfg = roles.includes("Manufacturing Manager") || roles.includes("Manufacturing User");
+
+    if (isEmployee && !isAdmin && !isHr && !hasMfg) {
+      return [
+        "mark your daily check-in and check-out in one tap.",
+        "submit weekly timesheets and record your project hours.",
+        "apply for leaves and check your real-time leave balances.",
+        "download and explain your monthly salary payslips.",
+        "submit and track your reimbursement expense claims.",
+        "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi."
+      ];
+    }
+    if (isHr && !isAdmin && !hasMfg) {
+      return [
+        "review daily team attendance, late entries and absences.",
+        "approve or reject pending leave applications instantly.",
+        "run payroll processing and generate salary slips for the team.",
+        "analyze employee tenure, attrition rates and hiring pipelines.",
+        "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi."
+      ];
+    }
+    return [
+      "read and write directly to all live ERPNext DocTypes in real-time.",
+      "conduct two-way ultra-low latency voice calls in English, Hindi and Marathi.",
+      "draft and submit Quotations, Invoices, Work Orders and POs for you.",
+      "pinpoint shop-floor bottlenecks and predict production delay risks.",
+      "forecast raw material stockouts before assembly line shortages occur.",
+      "track overdue receivables and generate personalized payment reminders.",
+      "reconcile complex financial ledgers and calculate true product profit margins."
+    ];
+  }
 
   let typewriterTimeout = null;
   function startCapabilityTypewriter() {
@@ -265,14 +348,15 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     const textEl = wrapper.querySelector('#ai-capability-text');
     if (!textEl) return;
 
+    const capabilities = getUserCapabilities();
     let phraseIdx = 0;
-    let charIdx = AI_CAPABILITIES[0].length;
+    let charIdx = capabilities[0].length;
     let isDeleting = true;
 
     function typeStep() {
       if (!wrapper.querySelector('#ai-capability-text')) return;
 
-      const currentPhrase = AI_CAPABILITIES[phraseIdx];
+      const currentPhrase = capabilities[phraseIdx];
 
       if (!isDeleting) {
         charIdx++;
@@ -290,7 +374,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
         if (charIdx === 0) {
           isDeleting = false;
-          phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
+          phraseIdx = (phraseIdx + 1) % capabilities.length;
           typewriterTimeout = setTimeout(typeStep, 350);
           return;
         }
@@ -305,9 +389,9 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       showcaseEl._hasClickListener = true;
       showcaseEl.addEventListener('click', () => {
         if (typewriterTimeout) clearTimeout(typewriterTimeout);
-        phraseIdx = (phraseIdx + 1) % AI_CAPABILITIES.length;
-        charIdx = AI_CAPABILITIES[phraseIdx].length;
-        textEl.textContent = AI_CAPABILITIES[phraseIdx];
+        phraseIdx = (phraseIdx + 1) % capabilities.length;
+        charIdx = capabilities[phraseIdx].length;
+        textEl.textContent = capabilities[phraseIdx];
         isDeleting = true;
         typewriterTimeout = setTimeout(typeStep, 3400);
       });
@@ -365,7 +449,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
         <!-- 3. Clean Subtitle with Rotating Typewriter Effect (Zero Borders / Zero Pills) -->
         <div class="welcome-typewriter-wrap" id="welcome-capability-showcase" title="Click to view next capability">
-          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${AI_CAPABILITIES[0]}</span><span class="typewriter-cursor">|</span>
+          <span class="typewriter-prefix">I can </span><span class="typewriter-text" id="ai-capability-text">${getUserCapabilities()[0]}</span><span class="typewriter-cursor">|</span>
         </div>
       </div>
       <div id="executive-suite-root"></div>
@@ -451,10 +535,18 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
 
       <!-- Input -->
       <div id="chat-input-area">
+        <div id="attachment-chips" class="attachment-chips"></div>
         <div id="chat-input-wrap">
+          <input type="file" id="chat-file-input" style="display:none;" accept=".pdf,.xlsx,.xls,.csv,.txt,.md,.png,.jpg,.jpeg,.webp" multiple>
+          <button id="attach-btn" class="attach-btn" title="Attach file (PDF, Excel, Images, CSV, TXT)" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
           <textarea
             id="chat-input"
-            placeholder="Ask about invoices, orders, stock, or any ERPNext data…"
+            placeholder="${getChatPlaceholder()}"
             rows="1"
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"
@@ -686,12 +778,179 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
   var history = [];
   var isLoading = false;
   var viewToken = 0;
+  var pendingAttachments = [];
 
   // DOM elements (scoped to this page wrapper)
   var messagesEl = wrapper.querySelector('#chat-messages');
   var inputEl = wrapper.querySelector('#chat-input');
   var sendBtn = wrapper.querySelector('#send-btn');
   var welcomeEl = wrapper.querySelector('#chat-welcome');
+  var attachBtn = wrapper.querySelector('#attach-btn');
+  var fileInput = wrapper.querySelector('#chat-file-input');
+  var chipsContainer = wrapper.querySelector('#attachment-chips');
+
+  var MAX_ATTACHMENTS = 5;
+  var MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB per file
+  var MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25 MB total per message
+  var ALLOWED_EXTS = ['pdf', 'xlsx', 'xls', 'csv', 'txt', 'md', 'png', 'jpg', 'jpeg', 'webp'];
+
+  function isAllowedFile(file) {
+    if (!file || !file.name) return false;
+    var ext = file.name.split('.').pop().toLowerCase();
+    return ALLOWED_EXTS.indexOf(ext) !== -1;
+  }
+
+  function getMimeType(file) {
+    if (file.type) return file.type;
+    var ext = (file.name || '').split('.').pop().toLowerCase();
+    var map = {
+      pdf: 'application/pdf',
+      csv: 'text/csv',
+      txt: 'text/plain',
+      md: 'text/plain',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      xls: 'application/vnd.ms-excel'
+    };
+    return map[ext] || 'application/octet-stream';
+  }
+
+  function handleFileSelect(files) {
+    if (!files || !files.length) return;
+    var fileList = Array.from(files);
+
+    if (pendingAttachments.length >= MAX_ATTACHMENTS) {
+      frappe.show_alert({
+        message: __('Maximum {0} files allowed per message', [MAX_ATTACHMENTS]),
+        indicator: 'orange'
+      });
+      return;
+    }
+
+    var availableSlots = MAX_ATTACHMENTS - pendingAttachments.length;
+    if (fileList.length > availableSlots) {
+      frappe.show_alert({
+        message: __('You can attach up to {0} file(s) total ({1} remaining)', [MAX_ATTACHMENTS, availableSlots]),
+        indicator: 'orange'
+      });
+      fileList = fileList.slice(0, availableSlots);
+    }
+
+    var currentTotalSize = pendingAttachments.reduce(function(sum, a) { return sum + (a.size || 0); }, 0);
+    var skippedUnsupported = 0;
+
+    fileList.forEach(function(file) {
+      if (!file.size || file.size <= 0) return;
+
+      if (!isAllowedFile(file)) {
+        skippedUnsupported++;
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        frappe.show_alert({
+          message: __('"{0}" exceeds {1} MB limit', [file.name, (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0)]),
+          indicator: 'red'
+        });
+        return;
+      }
+
+      if (currentTotalSize + file.size > MAX_TOTAL_SIZE) {
+        frappe.show_alert({
+          message: __('Adding "{0}" exceeds {1} MB total batch limit', [file.name, (MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(0)]),
+          indicator: 'red'
+        });
+        return;
+      }
+
+      if (pendingAttachments.some(function(a) { return a.name === file.name && a.size === file.size; })) {
+        return;
+      }
+
+      currentTotalSize += file.size;
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var dataUrl = e.target.result;
+        var base64 = dataUrl.split(',')[1];
+        var mime = (dataUrl.split(';')[0].split(':')[1]) || getMimeType(file);
+        pendingAttachments.push({
+          name: file.name,
+          mime_type: mime,
+          data: base64,
+          size: file.size
+        });
+        renderAttachmentChips();
+      };
+      reader.onerror = function() {
+        frappe.show_alert({ message: __('Failed to read "{0}"', [file.name]), indicator: 'red' });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (skippedUnsupported > 0) {
+      frappe.show_alert({
+        message: __('Skipped {0} unsupported file(s). Allowed: PDF, Excel, CSV, TXT, Images', [skippedUnsupported]),
+        indicator: 'orange'
+      });
+    }
+  }
+
+  function renderAttachmentChips() {
+    if (!chipsContainer) chipsContainer = wrapper.querySelector('#attachment-chips');
+    if (!chipsContainer) return;
+    chipsContainer.innerHTML = '';
+    pendingAttachments.forEach(function(att, idx) {
+      var chip = document.createElement('div');
+      chip.className = 'attachment-chip';
+      var sizeFormatted = att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB';
+      chip.innerHTML = '<span class="chip-icon">📄</span><span class="chip-name" title="' + _escapeHtml(att.name) + '">' + _escapeHtml(att.name) + '</span><span class="chip-size">' + sizeFormatted + '</span><button type="button" class="chip-remove" title="Remove">×</button>';
+      chip.querySelector('.chip-remove').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pendingAttachments.splice(idx, 1);
+        renderAttachmentChips();
+      });
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener('click', function() {
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files.length) {
+        handleFileSelect(this.files);
+      }
+      this.value = '';
+    });
+  }
+
+  var inputWrap = wrapper.querySelector('#chat-input-wrap');
+  if (inputWrap) {
+    inputWrap.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.add('drag-over');
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    inputWrap.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.remove('drag-over');
+    });
+    inputWrap.addEventListener('drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      inputWrap.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files);
+      }
+    });
+  }
 
   function renderMarkdown(text) {
     if (!text) return "";
@@ -784,7 +1043,7 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     sendMessage();
   };
 
-  function appendMessage(role, content, tokenData) {
+  function appendMessage(role, content, tokenData, attachments) {
     hideWelcome();
     if (role === 'ai') {
       try {
@@ -813,6 +1072,15 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
       } else {
         bubble.textContent = content;
       }
+      if (attachments && attachments.length) {
+        attachments.forEach(function(att) {
+          var sizeStr = att.size ? ' <span class="chat-attachment-size">' + (att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB') + '</span>' : '';
+          var badge = document.createElement('div');
+          badge.className = 'chat-attachment-badge';
+          badge.innerHTML = '<span class="badge-icon">📎</span> ' + _escapeHtml(att.name || 'Attachment') + sizeStr;
+          bubble.appendChild(badge);
+        });
+      }
     } else {
       bubble.innerHTML = renderMarkdown(content);
 
@@ -827,10 +1095,10 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
           if (!config.colors || !config.colors.length) {
             var brandPrimary = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
                 ? frappe.ui.color_customizer.get_color("primary") 
-                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#006269";
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-primary') || "").trim() || "#4083CA";
             var brandAccent = (window.frappe && frappe.ui && frappe.ui.color_customizer) 
                 ? frappe.ui.color_customizer.get_color("accent") 
-                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#00A3AD";
+                : (getComputedStyle(document.documentElement).getPropertyValue('--cu-accent') || "").trim() || "#F68714";
             config.colors = [brandPrimary, brandAccent, "#38BDF8", "#F59E0B", "#10B981"];
           }
           new frappe.Chart(container, config);
@@ -1128,6 +1396,8 @@ window.clearChat = function () {
     isLoading = false;
     sendBtn.disabled = false;
     hideTyping();
+    pendingAttachments = [];
+    renderAttachmentChips();
     history = [];
     messagesEl.innerHTML = '';
     messagesEl.classList.remove('has-conversation');
@@ -1155,7 +1425,10 @@ window.clearChat = function () {
 
   function sendMessage() {
     var text = inputEl.value.trim();
-    if (!text || isLoading) return;
+    if ((!text && pendingAttachments.length === 0) || isLoading) return;
+    if (!text && pendingAttachments.length > 0) {
+      text = "Please examine the attached document(s).";
+    }
     hideWelcome();
 
     var requestViewToken = viewToken;
@@ -1181,14 +1454,35 @@ window.clearChat = function () {
     isLoading = true;
     sendBtn.disabled = true;
 
-    appendMessage('user', text);
-    history.push({ role: 'user', content: text });
+    var attachmentsToSend = pendingAttachments.slice();
+    var attachmentNames = attachmentsToSend.map(function(a) {
+      return { name: a.name, size: a.size, mime_type: a.mime_type };
+    });
+
+    pendingAttachments = [];
+    renderAttachmentChips();
+
+    appendMessage('user', text, null, attachmentNames);
+
+    var userPayload = { role: 'user', content: text };
+    if (attachmentsToSend.length > 0) {
+      userPayload.attachments = attachmentsToSend;
+    }
+    history.push(userPayload);
     showTyping();
+
+    var historyJson = JSON.stringify(history);
+
+    // Ephemeral attachments: strip base64 blobs from client-side history immediately after payload serialized
+    if (userPayload.attachments) {
+      delete userPayload.attachments;
+      userPayload.attachmentNames = attachmentNames;
+    }
 
     frappe.call({
       method: 'custom_ui.custom_ui.api.chat',
       args: {
-        messages: JSON.stringify(history),
+        messages: historyJson,
         voice_gender: localStorage.getItem('custom_ui_voice_gender') || 'female',
         session_id: currentSessionId
       },

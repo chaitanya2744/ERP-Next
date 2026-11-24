@@ -8,10 +8,14 @@ from custom_ui.custom_ui.ai_chat.config import (
     MAX_TOKENS,
     MAX_HISTORY,
     SYSTEM_PROMPT,
+    get_system_prompt_for_user,
     GEMINI_TOOLS
 )
 from custom_ui.custom_ui.ai_chat.tools import execute_tool
 from custom_ui.custom_ui.ai_chat.budget import has_enough_balance, log_token_usage
+from custom_ui.custom_ui.ai_chat.memory import (
+    load_memories, capture_memory, maybe_auto_capture_correction
+)
 
 @frappe.whitelist()
 def chat(messages, approved_action=None, voice_gender="female", session_id=None, voice_language=None, is_voice_call=0):
@@ -43,12 +47,63 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
     if not budget_ok:
         return {"error": budget_msg}
 
-    system_text = SYSTEM_PROMPT.format(
-        company=frappe.defaults.get_global_default("company") or "Your Company",
+    # ── Remember: intent intercept ────────────────────────────────────────────
+    # Works for text AND voice (Marathi/Hindi included — detected post-TTS)
+    _raw_msg = history[-1].get("content", "") if history else ""
+    _msg_stripped = _raw_msg.strip()
+    _remember_prefixes = ("remember:", "लक्षात ठेव:", "याद रखो:", "remember ")
+    if any(_msg_stripped.lower().startswith(p) for p in _remember_prefixes):
+        _rule_text = _msg_stripped.split(":", 1)[-1].strip() if ":" in _msg_stripped else _msg_stripped[8:].strip()
+        _display_text = _rule_text
+
+        # If user said "remember this / remember that / remember it", resolve to the previous assistant message
+        if _rule_text.lower() in ("this", "that", "it", "the above", "above", "this rule", "this protocol", "everything"):
+            if len(history) >= 2:
+                prev_msg = history[-2].get("content", "").strip()
+                if prev_msg:
+                    _rule_text = prev_msg
+                    first_line = prev_msg.split("\n")[0].replace("#", "").replace("*", "").strip()
+                    _display_text = first_line if len(first_line) > 3 else "the protocol discussed above"
+
+        if _rule_text and _rule_text.lower() not in ("this", "that", "it"):
+            words = set(re.findall(r'\b[A-Za-z]{4,}\b', _rule_text.lower()))
+            common = {"this", "that", "with", "have", "from", "will", "your", "what", "when", "where", "should", "would", "could", "please", "system", "document"}
+            keywords = ", ".join(list(words - common)[:6])
+
+            capture_memory(
+                category="User Preference",
+                learned_context=_rule_text,
+                trigger_keywords=keywords,
+                source="Auto: Explicit Remember"
+            )
+            _ack = {
+                "mr": f"✅ लक्षात ठेवलं! मी हे लक्षात ठेवेन: *{_display_text}*",
+                "hi": f"✅ याद कर लिया! मैं यह याद रखूँगी: *{_display_text}*",
+            }
+            _lang = (voice_language or "en").split("-")[0].lower() if voice_language else "en"
+            return {
+                "reply": _ack.get(_lang, f"✅ Got it! I'll remember: *{_display_text}*"),
+                "new_history": [],
+                "session_id": session_id,
+                "tokens": {}
+            }
+    # ─────────────────────────────────────────────────────────────────────────
+
+    system_text = get_system_prompt_for_user(
         user=frappe.session.user,
+        company=frappe.defaults.get_global_default("company") or "Your Company",
         today=frappe.utils.nowdate(),
     )
     system_text += "\n\nCRITICAL RULE: When executing tools to retrieve data, the volume of data MUST be MODERATE—no less, no more. Do not fetch massive datasets that overload tokens, but ensure you retrieve enough rows to provide complete context."
+
+    # ── Memory injection ──────────────────────────────────────────────────────
+    try:
+        _mem_block = load_memories(_msg_stripped, frappe.session.user)
+        if _mem_block:
+            system_text += _mem_block
+    except Exception:
+        pass  # never break chat if memory lookup fails
+    # ─────────────────────────────────────────────────────────────────────────
 
     if not voice_gender or not isinstance(voice_gender, str):
         voice_gender = "female"
@@ -223,10 +278,20 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
             if not text.startswith("[Voice Call Directive") and not text.startswith("[Command:"):
                 text = command_prefix + text
 
-        contents.append({
-            "role": role,
-            "parts": [{"text": text}]
-        })
+        parts = [{"text": text}] if text else []
+        for att in msg.get("attachments", []):
+            if isinstance(att, dict) and att.get("data") and att.get("mime_type"):
+                parts.append({
+                    "inline_data": {
+                        "mime_type": att["mime_type"],
+                        "data": att["data"]
+                    }
+                })
+        if parts:
+            contents.append({
+                "role": role,
+                "parts": parts
+            })
 
     # If the user just approved an action, artificially inject it so Gemini knows it executed
     new_history = []
@@ -272,6 +337,15 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
     accumulated_response_tokens = 0
     
     user_prompt = history[-1]["content"] if history and history[-1]["role"] == "user" else ""
+
+    # ── Auto-correction capture ───────────────────────────────────────────────
+    # Silently captures if it looks like a correction (never blocks execution)
+    if user_prompt and not approved_action:
+        try:
+            maybe_auto_capture_correction(user_prompt)
+        except Exception:
+            pass
+    # ─────────────────────────────────────────────────────────────────────────
 
 
 
@@ -442,7 +516,8 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
 
             try:
                 from custom_ui.custom_ui.api import save_session
-                final_history = history + new_history
+                clean_history = [{k: v for k, v in m.items() if k != "attachments"} for m in history]
+                final_history = clean_history + new_history
                 final_history.append({"role": "assistant", "content": reply_text})
                 new_session_id = save_session(session_id, json.dumps(final_history))
                 
