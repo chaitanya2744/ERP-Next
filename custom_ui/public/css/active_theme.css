@@ -1,0 +1,295 @@
+/* ==========================================================================
+   ACTIVE THEME STYLESHEET (Auto-generated from Customizer Settings)
+   Synchronously loaded in <head> to guarantee 100% Zero-FOUC & Zero-Teal on refresh
+   ========================================================================== */
+
+:root,
+html,
+body,
+html.theme-apple,
+body.theme-apple,
+body.theme-v9,
+body.ai-assistant-page-active {
+    /* Custom UI Core Tokens */
+    --cu-primary: #4083CA !important;
+    --cu-primary-rgb: 64, 131, 202 !important;
+    --cu-primary-dk: #2C64A0 !important;
+    --cu-primary-lt: #77A7DA !important;
+    --cu-accent: #F68714 !important;
+    --cu-accent-rgb: 246, 135, 20 !important;
+    --cu-accent-lt: #FEEEDD !important;
+    --cu-accent-xlt: #FEF8F0 !important;
+    --cu-bg: #F5F5F7 !important;
+    --cu-surface: #FFFFFF !important;
+    --cu-surface-solid: #FFFFFF !important;
+    --cu-surface-2: #F5F5F5 !important;
+    --cu-text: #1D1D1F !important;
+    --cu-text-sub: #4F4F54 !important;
+    --cu-text-muted: #818188 !important;
+    --cu-text-faint: #A8A8AD !important;
+    --primary: #4083CA !important;
+    --brand-color: #4083CA !important;
+
+    /* AI Chat Screen Variables */
+    --pro-primary: #4083CA !important;
+    --pro-primary-hover: #2C64A0 !important;
+    --pro-accent: #F68714 !important;
+    --pro-surface: #FFFFFF !important;
+    --pro-text-main: #1D1D1F !important;
+    --pro-text-muted: #818188 !important;
+    --chat-bg: #F5F5F7 !important;
+    --bubble-user: #4083CA !important;
+    --bubble-user-text: #FFFFFF !important;
+    --bubble-ai: #FFFFFF !important;
+    --bubble-ai-text: #1D1D1F !important;
+    --send-btn: #4083CA !important;
+    --send-btn-hover: #2C64A0 !important;
+    --input-focus: #F68714 !important;
+}
+
+/* 1. Canvas & Background Overrides */
+body,
+body.theme-apple,
+body.theme-apple #body,
+body.theme-apple .page-container,
+body.theme-apple .layout-main,
+body.theme-apple .layout-main-section,
+body.theme-apple .workspace-page,
+body.theme-v9,
+body.ai-assistant-page-active,
+body.ai-assistant-page-active #body,
+body.ai-assistant-page-active .ai-assistant-page-wrapper,
+body.ai-assistant-page-active #ai-chat-root {
+    background: #F5F5F7 !important;
+    background-color: #F5F5F7 !important;
+}
+
+/* 2. Surface & Cards & Header Overrides */
+body.theme-apple .page-head,
+body.theme-apple .layout-side-section,
+body.theme-apple .body-sidebar,
+body.theme-apple .desk-sidebar,
+body.theme-apple .widget,
+body.theme-apple .frappe-card,
+body.theme-apple .form-section,
+body.theme-apple .modal-content,
+body.theme-apple .chart-widget-box {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+}
+
+/* 3. Top Navbar Overrides */
+header.navbar-container,
+header.desktop-navbar,
+.desktop-navbar,
+.navbar-container,
+body.theme-apple .navbar {
+    background: linear-gradient(180deg, #1A3C60F5 0%, #2C64A0EE 100%) !important;
+    border-bottom: 1px solid #F6871455 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 4. Action Buttons (Create, Save, Submit, Primary) */
+body.theme-apple .primary-action,
+body.theme-apple .page-head .btn-primary,
+body.theme-apple .btn-primary,
+body.theme-apple button.btn-primary,
+body.theme-v9 .btn-primary,
+.btn-primary,
+.primary-action {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+    background-color: #4083CA !important;
+    border: 1px solid #2C64A0 !important;
+    border-color: #2C64A0 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px #4083CA4D !important;
+}
+
+body.theme-apple .primary-action:hover,
+body.theme-apple .page-head .btn-primary:hover,
+body.theme-apple .btn-primary:hover,
+body.theme-apple button.btn-primary:hover {
+    background: linear-gradient(180deg, #4083CA 0%, #2C64A0 100%) !important;
+    background-color: #2C64A0 !important;
+    border-color: #2C64A0 !important;
+    box-shadow: 0 4px 12px #4083CA66 !important;
+}
+
+/* 5. Form Tabs */
+body.theme-apple .form-tabs-list .nav-link.active,
+body.theme-v9 .form-tabs-list .nav-link.active,
+body.theme-apple .form-tabs .nav-link.active,
+body.theme-v9 .form-tabs .nav-link.active,
+.form-tabs-list .nav-link.active,
+.form-tabs .nav-link.active {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+    background-color: #4083CA !important;
+    color: #FFFFFF !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px #4083CA52, 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-apple .form-tabs-list .nav-link:hover,
+body.theme-v9 .form-tabs-list .nav-link:hover,
+body.theme-apple .form-tabs .nav-link:hover {
+    color: #4083CA !important;
+}
+
+/* 6. Sidebar Active Navigation */
+body.theme-apple .active-sidebar,
+body.theme-apple .standard-sidebar-item.selected,
+body.theme-apple .sidebar-item.selected,
+body.theme-v9 .active-sidebar {
+    background: linear-gradient(135deg, #4083CA 0%, #F68714 100%) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-apple .active-sidebar .item-anchor,
+body.theme-apple .active-sidebar .sidebar-item-label,
+body.theme-apple .standard-sidebar-item.selected .sidebar-item-label {
+    color: #FFFFFF !important;
+}
+
+body.theme-apple .active-sidebar .sidebar-item-icon svg,
+body.theme-apple .standard-sidebar-item.selected .sidebar-item-icon svg {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+
+/* 7. Widgets & Badges */
+body.theme-apple .shortcut-widget-box::before,
+body.theme-apple .widget.shortcut-widget-box::before {
+    background: linear-gradient(180deg, #F68714 0%, #4083CA 100%) !important;
+}
+body.theme-apple .number-widget-box::before {
+    background: linear-gradient(90deg, #F68714 0%, #4083CA 100%) !important;
+}
+body.theme-apple .number-widget-box .number {
+    background: linear-gradient(135deg, #2C64A0 0%, #4083CA 50%, #F68714 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+body.theme-apple .badge-primary {
+    background: #4083CA !important;
+    color: #FFFFFF !important;
+}
+
+/* 8. Links & Icons */
+body.theme-apple a.text-primary,
+body.theme-apple .text-primary,
+body.theme-apple .sidebar-header .sidebar-item-icon svg {
+    color: #4083CA !important;
+}
+
+/* 9. AI Chat Components */
+.hero-avatar-core,
+#hero-avatar-core,
+body.ai-assistant-page-active .hero-avatar-core,
+body.ai-assistant-page-active #hero-avatar-core {
+    background: radial-gradient(circle at 35% 28%, #77A7DA 0%, #4083CA 48%, #1A3C60 100%) !important;
+    box-shadow: 
+        0 10px 26px -3px #4083CA73,
+        0 0 16px #F6871459,
+        inset 0 1.5px 2px rgba(255, 255, 255, 0.85),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.35) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+    color: #FFFFFF !important;
+}
+
+.hero-avatar-halo,
+body.ai-assistant-page-active .hero-avatar-halo {
+    background: conic-gradient(from 0deg, #FEEEDD, #F68714, #77A7DA, #4083CA, #FEEEDD) !important;
+    opacity: 0.85 !important;
+}
+
+.hero-avatar-ring,
+body.ai-assistant-page-active .hero-avatar-ring {
+    border: 1.5px solid #F6871480 !important;
+}
+
+.hero-ambient-glow,
+body.ai-assistant-page-active .hero-ambient-glow {
+    background: radial-gradient(circle, #77A7DA50 0%, #4083CA20 40%, rgba(0, 0, 0, 0) 70%) !important;
+}
+
+.hero-status-ping,
+.hero-ping-wave,
+body.ai-assistant-page-active .hero-status-ping,
+body.ai-assistant-page-active .hero-ping-wave {
+    background: #F68714 !important;
+}
+
+.welcome-headline,
+body.theme-apple .welcome-headline,
+.welcome-title,
+.hero-title,
+body.ai-assistant-page-active .welcome-headline,
+body.ai-assistant-page-active .welcome-title,
+body.ai-assistant-page-active .hero-title {
+    background: linear-gradient(135deg, #1D1D1F 15%, #4083CA 65%, #F68714 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+body.theme-apple #chat-header .avatar,
+#chat-header .avatar {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+}
+
+body.theme-apple #new-chat-btn,
+#new-chat-btn {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-apple .msg-row.user .msg-bubble,
+.msg-row.user .msg-bubble,
+.chat-bubble-user {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-apple #send-btn,
+#send-btn,
+#ai-send-btn,
+.ai-chat-send-btn,
+.pro-send-btn {
+    background: linear-gradient(180deg, #77A7DA 0%, #4083CA 100%) !important;
+    color: #FFFFFF !important;
+}
+
+.exec-tab-btn.active {
+    background: linear-gradient(135deg, #77A7DA 0%, #4083CA 100%) !important;
+    border-color: transparent !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 3px 10px #4083CA40 !important;
+}
+
+.exec-action-btn.run {
+    background: linear-gradient(135deg, #77A7DA 0%, #4083CA 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px #4083CA40 !important;
+}
+
+/* 10. Form Controls (Radio / Checkbox / Focus Rings) */
+input[type="radio"]:checked,
+.radio input[type="radio"]:checked,
+.form-check-input[type="radio"]:checked {
+    border-color: #4083CA !important;
+    background-color: #4083CA !important;
+}
+input[type="checkbox"]:checked,
+.checkbox input[type="checkbox"]:checked,
+.form-check-input[type="checkbox"]:checked {
+    border-color: #4083CA !important;
+    background-color: #4083CA !important;
+}
+
+/* Global Search Filter Pills Active State */
+.search-dialog button.global-search-filter-pill.active {
+    background: #4083CA !important;
+    color: #FFFFFF !important;
+    border-color: #4083CA !important;
+}
