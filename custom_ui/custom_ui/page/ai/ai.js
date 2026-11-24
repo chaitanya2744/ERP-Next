@@ -899,15 +899,34 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     }
   }
 
+  function getDocCardIcon(ext) {
+    if (ext === 'pdf') {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+    } else if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M12 9v12"/></svg>';
+    } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+  }
+
   function renderAttachmentChips() {
     if (!chipsContainer) chipsContainer = wrapper.querySelector('#attachment-chips');
     if (!chipsContainer) return;
     chipsContainer.innerHTML = '';
     pendingAttachments.forEach(function(att, idx) {
       var chip = document.createElement('div');
-      chip.className = 'attachment-chip';
+      var ext = (att.name || '').split('.').pop().toLowerCase();
+      chip.className = 'attachment-chip ' + ext;
       var sizeFormatted = att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB';
-      chip.innerHTML = '<span class="chip-icon">📄</span><span class="chip-name" title="' + _escapeHtml(att.name) + '">' + _escapeHtml(att.name) + '</span><span class="chip-size">' + sizeFormatted + '</span><button type="button" class="chip-remove" title="Remove">×</button>';
+      var iconSvg = getDocCardIcon(ext);
+      chip.innerHTML = 
+        '<div class="chip-icon-box ' + ext + '">' + iconSvg + '</div>' +
+        '<div class="chip-info">' +
+          '<span class="chip-name" title="' + _escapeHtml(att.name) + '">' + _escapeHtml(att.name) + '</span>' +
+          '<span class="chip-size">' + ext.toUpperCase() + (sizeFormatted ? ' • ' + sizeFormatted : '') + '</span>' +
+        '</div>' +
+        '<button type="button" class="chip-remove" title="Remove attachment">×</button>';
       chip.querySelector('.chip-remove').addEventListener('click', function(e) {
         e.stopPropagation();
         pendingAttachments.splice(idx, 1);
@@ -1065,21 +1084,41 @@ frappe.pages["ai"].on_page_load = function (wrapper) {
     bubble.className = 'msg-bubble';
 
     if (role === 'user') {
-      if (content.indexOf('[Command:') === 0 || content.indexOf('[Language Switch:') === 0) {
-        var cleanNotice = content.replace(/^\[.*?\]\s*/, '');
-        if (!cleanNotice) cleanNotice = content.replace(/^\[(.*?)\]$/, '$1');
-        bubble.innerHTML = '<span style="font-style: italic; opacity: 0.85;">🌐 ' + _escapeHtml(cleanNotice) + '</span>';
-      } else {
-        bubble.textContent = content;
-      }
+      // 1. Enterprise Document Cards (Claude / Gemini style) stacked cleanly
       if (attachments && attachments.length) {
+        var attContainer = document.createElement('div');
+        attContainer.className = 'chat-bubble-attachments';
+
         attachments.forEach(function(att) {
-          var sizeStr = att.size ? ' <span class="chat-attachment-size">' + (att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB') + '</span>' : '';
-          var badge = document.createElement('div');
-          badge.className = 'chat-attachment-badge';
-          badge.innerHTML = '<span class="badge-icon">📎</span> ' + _escapeHtml(att.name || 'Attachment') + sizeStr;
-          bubble.appendChild(badge);
+          var card = document.createElement('div');
+          card.className = 'chat-doc-card';
+          var ext = (att.name || '').split('.').pop().toLowerCase();
+          var sizeFormatted = att.size ? (att.size > 1048576 ? (att.size / (1024 * 1024)).toFixed(1) + ' MB' : (att.size / 1024).toFixed(0) + ' KB') : '';
+          var iconSvg = getDocCardIcon(ext);
+          
+          card.innerHTML = 
+            '<div class="doc-card-icon-box ' + ext + '">' + iconSvg + '</div>' +
+            '<div class="doc-card-details">' +
+              '<span class="doc-card-name" title="' + _escapeHtml(att.name || 'Document') + '">' + _escapeHtml(att.name || 'Document') + '</span>' +
+              '<span class="doc-card-sub">' + ext.toUpperCase() + (sizeFormatted ? ' • ' + sizeFormatted : '') + '</span>' +
+            '</div>';
+          attContainer.appendChild(card);
         });
+        bubble.appendChild(attContainer);
+      }
+
+      // 2. User prompt text (isolated in separate container, strictly zero overlap)
+      if (content) {
+        var textNode = document.createElement('div');
+        textNode.className = 'chat-bubble-text';
+        if (content.indexOf('[Command:') === 0 || content.indexOf('[Language Switch:') === 0) {
+          var cleanNotice = content.replace(/^\[.*?\]\s*/, '');
+          if (!cleanNotice) cleanNotice = content.replace(/^\[(.*?)\]$/, '$1');
+          textNode.innerHTML = '<span style="font-style: italic; opacity: 0.85;">🌐 ' + _escapeHtml(cleanNotice) + '</span>';
+        } else {
+          textNode.textContent = content;
+        }
+        bubble.appendChild(textNode);
       }
     } else {
       bubble.innerHTML = renderMarkdown(content);
