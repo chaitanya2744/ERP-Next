@@ -1,0 +1,47 @@
+name: Production CD Pipeline
+
+on:
+  push:
+    branches:
+      - Prod   # Automatically deploys whenever code is merged or pushed into 'Prod'
+
+jobs:
+  deploy:
+    name: Deploy custom_ui to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: SSH and Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script_stop: true
+          script: |
+            # 1. Load shell environment & bench paths for non-interactive SSH
+            export PATH=$PATH:$HOME/.local/bin:$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -n 1)/bin
+            
+            # 2. Paths
+            BENCH_DIR="$HOME/frappe-bench"
+            APP_NAME="custom_ui"
+
+            echo "🚀 [1/4] Pulling latest code for $APP_NAME..."
+            cd "$BENCH_DIR/apps/$APP_NAME"
+            git fetch origin Prod || git fetch upstream Prod
+            git checkout Prod
+            git pull --ff-only
+
+            echo "📦 [2/4] Building frontend assets..."
+            cd "$BENCH_DIR"
+            bench build --app "$APP_NAME"
+
+            echo "🧹 [3/4] Clearing cache..."
+            bench clear-cache
+
+            echo "🔄 [4/4] Restarting Frappe..."
+            sudo /usr/local/bin/frappe-restart
+
+            echo "✅ Deployment completed successfully!"
