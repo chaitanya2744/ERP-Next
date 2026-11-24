@@ -258,6 +258,20 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
                     f"The user wrote in {lang_name}. You MUST formulate your entire response in {lang_name}."
                 )
 
+    # Detect if user attached files in the latest turn
+    latest_user_turn = next((m for m in reversed(history) if m.get("role") == "user"), {})
+    has_active_attachments = bool(latest_user_turn.get("attachments"))
+
+    if has_active_attachments:
+        att_names = [a.get("name", "document") for a in latest_user_turn.get("attachments", []) if isinstance(a, dict)]
+        system_text += (
+            f"\n\nCRITICAL DIRECTIVE - ATTACHED DOCUMENTS:\n"
+            f"The user has attached {len(att_names)} file(s): {', '.join(att_names)} directly to this turn via inline multimodal data.\n"
+            f"You MUST directly examine, read, analyze, and reference the contents of these attached document(s).\n"
+            f"DO NOT query the ERP database, doctypes, or `tabFile` for these documents — their full content is provided directly in the inline data parts.\n"
+            f"Provide a clear, helpful summary and answer the user's prompt based directly on the attached file contents."
+        )
+
     # Convert chat history to Gemini format
     contents = []
     for i, msg in enumerate(history):
@@ -278,8 +292,9 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
             if not text.startswith("[Voice Call Directive") and not text.startswith("[Command:"):
                 text = command_prefix + text
 
-        parts = [{"text": text}] if text else []
-        for att in msg.get("attachments", []):
+        parts = []
+        msg_attachments = msg.get("attachments", [])
+        for att in msg_attachments:
             if isinstance(att, dict) and att.get("data") and att.get("mime_type"):
                 parts.append({
                     "inline_data": {
@@ -287,6 +302,17 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
                         "data": att["data"]
                     }
                 })
+
+        if msg_attachments and role == "user":
+            file_names = [a.get("name") for a in msg_attachments if isinstance(a, dict) and a.get("name")]
+            if file_names:
+                file_tag = f"[User attached document(s): {', '.join(file_names)}]\n"
+                if not text.startswith("[User attached document"):
+                    text = file_tag + (text or "Please analyze and summarize the attached document(s).")
+
+        if text:
+            parts.append({"text": text})
+
         if parts:
             contents.append({
                 "role": role,
@@ -366,7 +392,10 @@ def chat(messages, approved_action=None, voice_gender="female", session_id=None,
                 if prev_ctx:
                     routing_prompt = f"Context: {prev_ctx[-300:]}\nFollow-up: {user_prompt}"
 
-            route_info = route_and_prune(routing_prompt)
+            if has_active_attachments:
+                route_info = {"query_type": "general_chat", "needs_llm": True, "selected_tools": []}
+            else:
+                route_info = route_and_prune(routing_prompt)
             # Safeguard: if JEV flags general_chat on a multi-turn conversation, keep analytics tools available
             if route_info.get("query_type") == "general_chat" and len(history) >= 3:
                 route_info["selected_tools"] = ["execute_sql_query", "execute_frappe_report"]
